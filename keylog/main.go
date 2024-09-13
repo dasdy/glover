@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.bug.st/serial"
 )
 
 func main() {
-
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -19,7 +19,16 @@ func main() {
 		fmt.Printf("Port:%v\n", port)
 	}
 
-	port, err := serial.Open("/dev/tty.usbmodem12301", &serial.Mode{
+	args := os.Args
+
+	var fname string
+	if len(args) < 2 {
+		fname = "/dev/tty.usbmodem12301"
+	} else {
+		fname = args[1]
+	}
+
+	port, err := serial.Open(fname, &serial.Mode{
 		BaudRate: 9600,
 	})
 	defer func() {
@@ -27,7 +36,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	port.SetReadTimeout(time.Second)
+	port.SetReadTimeout(10 * time.Second)
 
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +45,6 @@ func main() {
 	buff := make([]byte, 1024)
 	for {
 		n, err := port.Read(buff)
-
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -46,4 +54,5 @@ func main() {
 		fmt.Printf("%v", string(buff[:n]))
 	}
 
+	fmt.Println("Read ended")
 }

@@ -1,0 +1,519 @@
+Port:/dev/cu.Bluetooth-Incoming-Port
+Port:/dev/cu.usbmodem12301
+Port:/dev/cu.usbmodem12401
+Port:/dev/tty.Bluetooth-Incoming-Port
+Port:/dev/tty.usbmodem12301
+Port:/dev/tty.usbmodem12401
+[22:56:39listener: [0m
+[22:56:47.123,229] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state on[0m
+[22:56:47.123,352] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: true[0m
+[22:56:47.123,382] [0m<dbg> zmk: split_listener: [0m
+[22:56:47.232,238] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state off[0m
+[22:56:47.232,421] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: false[0m
+[22:56:47.232,421] [0m<dbg> zmk: split_listener: [0m
+[22:56:48.881,347] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,0 state on[0m
+[22:56:48.881,469] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 0, position: 73, pressed: true[0m
+[22:56:48.881,500] [0m<dbg> zmk: split_listener: [0m
+[22:56:48.990,234] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,0 state off[0m
+[22:56:48.990,386] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 0, position: 73, pressed: false[0m
+[22:56:48.990,417] [0m<dbg> zmk: split_listener: [0m
+[22:56:50.935,241] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state on[0m
+[22:56:50.935,363] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: true[0m
+[22:56:50.935,394] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.120,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:56:51.120,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:56:51.120,391] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.125,213] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state on[0m
+[22:56:51.125,335] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: true[0m
+[22:56:51.125,335] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.156,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state off[0m
+[22:56:51.156,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: false[0m
+[22:56:51.156,341] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.299,224] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state off[0m
+[22:56:51.299,346] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: false[0m
+[22:56:51.299,346] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.376,220] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:56:51.376,342] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:56:51.376,342] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.377,258] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state on[0m
+[22:56:51.377,380] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: true[0m
+[22:56:51.377,380] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.586,242] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,5 state on[0m
+[22:56:51.586,364] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 5, position: 32, pressed: true[0m
+[22:56:51.586,395] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.628,234] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state off[0m
+[22:56:51.628,356] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: false[0m
+[22:56:51.628,356] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.785,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state on[0m
+[22:56:51.785,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: true[0m
+[22:56:51.785,369] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.834,228] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state on[0m
+[22:56:51.834,350] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: true[0m
+[22:56:51.834,350] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.855,224] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,5 state off[0m
+[22:56:51.855,346] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 5, position: 32, pressed: false[0m
+[22:56:51.855,346] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.906,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state off[0m
+[22:56:51.906,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: false[0m
+[22:56:51.906,372] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.926,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:56:51.926,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:56:51.926,361] [0m<dbg> zmk: split_listener: [0m
+[22:56:51.975,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state off[0m
+[22:56:51.975,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: false[0m
+[22:56:51.975,341] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.042,236] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:56:52.042,419] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:56:52.042,419] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.189,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state on[0m
+[22:56:52.189,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: true[0m
+[22:56:52.189,392] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.365,234] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:56:52.365,356] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:56:52.365,356] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.443,237] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state off[0m
+[22:56:52.443,359] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: false[0m
+[22:56:52.443,359] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.521,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,4 state on[0m
+[22:56:52.521,362] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 4, position: 43, pressed: true[0m
+[22:56:52.521,392] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.530,242] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state on[0m
+[22:56:52.530,364] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: true[0m
+[22:56:52.530,364] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.554,229] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:56:52.554,351] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:56:52.554,351] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.620,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state off[0m
+[22:56:52.620,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: false[0m
+[22:56:52.620,391] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.708,221] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,4 state off[0m
+[22:56:52.708,374] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 4, position: 43, pressed: false[0m
+[22:56:52.708,404] [0m<dbg> zmk: split_listener: [0m
+[22:56:52.850,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,5 state on[0m
+[22:56:52.850,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 5, position: 44, pressed: true[0m
+[22:56:52.850,372] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.077,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state on[0m
+[22:56:53.077,362] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: true[0m
+[22:56:53.077,392] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.085,235] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,5 state off[0m
+[22:56:53.085,357] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 5, position: 44, pressed: false[0m
+[22:56:53.085,357] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.234,222] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:56:53.234,344] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:56:53.234,375] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.277,221] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state off[0m
+[22:56:53.277,343] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: false[0m
+[22:56:53.277,343] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.331,237] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:56:53.331,390] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:56:53.331,420] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.468,231] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,1 state on[0m
+[22:56:53.468,353] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 1, position: 58, pressed: true[0m
+[22:56:53.468,383] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.564,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state on[0m
+[22:56:53.564,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: true[0m
+[22:56:53.564,361] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.624,237] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,1 state off[0m
+[22:56:53.624,359] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 1, position: 58, pressed: false[0m
+[22:56:53.624,389] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.674,224] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state on[0m
+[22:56:53.674,346] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: true[0m
+[22:56:53.674,346] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.675,292] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state on[0m
+[22:56:53.675,384] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: true[0m
+[22:56:53.675,384] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.704,223] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state off[0m
+[22:56:53.704,345] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: false[0m
+[22:56:53.704,376] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.769,226] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state off[0m
+[22:56:53.769,348] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: false[0m
+[22:56:53.769,378] [0m<dbg> zmk: split_listener: [0m
+[22:56:53.959,259] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state off[0m
+[22:56:53.959,381] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: false[0m
+[22:56:53.959,411] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.168,273] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state on[0m
+[22:56:54.168,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: true[0m
+[22:56:54.168,395] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.173,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,5 state on[0m
+[22:56:54.173,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 5, position: 44, pressed: true[0m
+[22:56:54.173,339] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.312,225] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,5 state off[0m
+[22:56:54.312,347] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 5, position: 44, pressed: false[0m
+[22:56:54.312,377] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.337,249] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state off[0m
+[22:56:54.337,371] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: false[0m
+[22:56:54.337,402] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.547,271] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state on[0m
+[22:56:54.547,363] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: true[0m
+[22:56:54.547,393] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.666,259] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state off[0m
+[22:56:54.666,381] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: false[0m
+[22:56:54.666,412] [0m<dbg> zmk: split_listener: [0m
+[22:56:54.934,234] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,6 state on[0m
+[22:56:54.934,356] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 6, position: 21, pressed: true[0m
+[22:56:54.934,387] [0m<dbg> zmk: split_listener: [0m
+[22:56:55.063,232] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,6 state off[0m
+[22:56:55.063,415] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 6, position: 21, pressed: false[0m
+[22:56:55.063,415] [0m<dbg> zmk: split_listener: [0m
+[22:56:55.760,223] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,6 state on[0m
+[22:56:55.760,345] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 6, position: 33, pressed: true[0m
+[22:56:55.760,375] [0m<dbg> zmk: split_listener: [0m
+[22:56:55.909,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,6 state off[0m
+[22:56:55.909,423] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 6, position: 33, pressed: false[0m
+[22:56:55.909,423] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.028,228] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,6 state on[0m
+[22:56:56.028,350] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 6, position: 45, pressed: true[0m
+[22:56:56.028,381] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.160,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,6 state off[0m
+[22:56:56.160,369] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 6, position: 45, pressed: false[0m
+[22:56:56.160,400] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.255,218] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,6 state on[0m
+[22:56:56.255,340] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 6, position: 45, pressed: true[0m
+[22:56:56.255,340] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.357,238] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,6 state off[0m
+[22:56:56.357,391] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 6, position: 45, pressed: false[0m
+[22:56:56.357,421] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.708,251] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:56:56.708,343] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:56:56.708,374] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.812,286] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:56:56.812,438] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:56:56.812,438] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.877,258] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:56:56.877,349] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:56:56.877,349] [0m<dbg> zmk: split_listener: [0m
+[22:56:56.969,268] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:56:56.969,390] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:56:56.969,421] [0m<dbg> zmk: split_listener: [0m
+[22:56:57.037,261] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:56:57.037,353] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:56:57.037,353] [0m<dbg> zmk: split_listener: [0m
+[22:56:57.138,244] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:56:57.138,366] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:56:57.138,397] [0m<dbg> zmk: split_listener: [0m
+[22:56:57.199,249] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:56:57.199,340] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:56:57.199,340] [0m<dbg> zmk: split_listener: [0m
+[22:56:57.320,251] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:56:57.320,373] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:56:57.320,404] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.526,214] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,2 state on[0m
+[22:56:58.526,336] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 2, position: 5, pressed: true[0m
+[22:56:58.526,367] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.632,232] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,3 state on[0m
+[22:56:58.632,354] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 3, position: 6, pressed: true[0m
+[22:56:58.632,385] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.655,242] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,2 state off[0m
+[22:56:58.655,364] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 2, position: 5, pressed: false[0m
+[22:56:58.655,364] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.739,227] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,4 state on[0m
+[22:56:58.739,318] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 4, position: 7, pressed: true[0m
+[22:56:58.739,349] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.818,237] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,3 state off[0m
+[22:56:58.818,359] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 3, position: 6, pressed: false[0m
+[22:56:58.818,359] [0m<dbg> zmk: split_listener: [0m
+[22:56:58.942,230] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,4 state off[0m
+[22:56:58.942,413] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 4, position: 7, pressed: false[0m
+[22:56:58.942,413] [0m<dbg> zmk: split_listener: [0m
+[22:56:59.146,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,5 state on[0m
+[22:56:59.146,362] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 5, position: 8, pressed: true[0m
+[22:56:59.146,392] [0m<dbg> zmk: split_listener: [0m
+[22:56:59.351,226] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,5 state off[0m
+[22:56:59.351,379] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 5, position: 8, pressed: false[0m
+[22:56:59.351,409] [0m<dbg> zmk: split_listener: [0m
+[22:56:59.618,225] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,6 state on[0m
+[22:56:59.618,347] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 6, position: 9, pressed: true[0m
+[22:56:59.618,377] [0m<dbg> zmk: split_listener: [0m
+[22:56:59.822,235] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,6 state off[0m
+[22:56:59.822,418] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 6, position: 9, pressed: false[0m
+[22:56:59.822,418] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.505,218] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,1 state on[0m
+[22:57:00.505,340] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 1, position: 58, pressed: true[0m
+[22:57:00.505,371] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.600,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state on[0m
+[22:57:00.600,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: true[0m
+[22:57:00.600,341] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.663,238] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,1 state off[0m
+[22:57:00.663,360] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 1, position: 58, pressed: false[0m
+[22:57:00.663,391] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.697,235] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state on[0m
+[22:57:00.697,357] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: true[0m
+[22:57:00.697,357] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.766,235] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state off[0m
+[22:57:00.766,326] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: false[0m
+[22:57:00.766,357] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.857,269] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state on[0m
+[22:57:00.857,360] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: true[0m
+[22:57:00.857,391] [0m<dbg> zmk: split_listener: [0m
+[22:57:00.910,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state off[0m
+[22:57:00.910,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: false[0m
+[22:57:00.910,339] [0m<dbg> zmk: split_listener: [0m
+[22:57:01.247,253] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state off[0m
+[22:57:01.247,375] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: false[0m
+[22:57:01.247,406] [0m<dbg> zmk: split_listener: [0m
+[22:57:01.740,264] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state on[0m
+[22:57:01.740,356] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: true[0m
+[22:57:01.740,386] [0m<dbg> zmk: split_listener: [0m
+[22:57:01.864,257] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state off[0m
+[22:57:01.864,379] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: false[0m
+[22:57:01.864,410] [0m<dbg> zmk: split_listener: [0m
+[22:57:01.963,256] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:57:01.963,348] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:57:01.963,348] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.071,258] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:57:02.071,380] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:57:02.071,411] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.362,274] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state on[0m
+[22:57:02.362,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: true[0m
+[22:57:02.362,396] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.500,244] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,3 state on[0m
+[22:57:02.500,335] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 3, position: 76, pressed: true[0m
+[22:57:02.500,366] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.543,273] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state off[0m
+[22:57:02.543,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: false[0m
+[22:57:02.543,365] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.638,244] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state on[0m
+[22:57:02.638,336] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: true[0m
+[22:57:02.638,366] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.682,250] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,3 state off[0m
+[22:57:02.682,342] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 3, position: 76, pressed: false[0m
+[22:57:02.682,342] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.779,266] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,3 state on[0m
+[22:57:02.779,357] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 3, position: 76, pressed: true[0m
+[22:57:02.779,388] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.799,255] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state off[0m
+[22:57:02.799,346] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: false[0m
+[22:57:02.799,346] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.870,269] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state on[0m
+[22:57:02.870,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: true[0m
+[22:57:02.870,361] [0m<dbg> zmk: split_listener: [0m
+[22:57:02.926,269] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,3 state off[0m
+[22:57:02.926,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 3, position: 76, pressed: false[0m
+[22:57:02.926,391] [0m<dbg> zmk: split_listener: [0m
+[22:57:03.010,253] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,2 state off[0m
+[22:57:03.010,375] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 2, position: 75, pressed: false[0m
+[22:57:03.010,406] [0m<dbg> zmk: split_listener: [0m
+[22:57:03.609,222] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,0 state on[0m
+[22:57:03.609,344] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 0, position: 55, pressed: true[0m
+[22:57:03.609,375] [0m<dbg> zmk: split_listener: [0m
+[22:57:03.759,216] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,0 state off[0m
+[22:57:03.759,399] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 0, position: 55, pressed: false[0m
+[22:57:03.759,399] [0m<dbg> zmk: split_listener: [0m
+[22:57:03.915,222] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,0 state on[0m
+[22:57:03.915,344] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 0, position: 56, pressed: true[0m
+[22:57:03.915,374] [0m<dbg> zmk: split_listener: [0m
+[22:57:04.070,220] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,0 state off[0m
+[22:57:04.070,404] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 0, position: 56, pressed: false[0m
+[22:57:04.070,404] [0m<dbg> zmk: split_listener: [0m
+[22:57:04.283,233] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,0 state on[0m
+[22:57:04.283,355] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 0, position: 57, pressed: true[0m
+[22:57:04.283,355] [0m<dbg> zmk: split_listener: [0m
+[22:57:04.437,225] [0m<dbg> zmk: kscan_matrix_read: Sending event at 0,0 state off[0m
+[22:57:04.437,408] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 0, col: 0, position: 57, pressed: false[0m
+[22:57:04.437,408] [0m<dbg> zmk: split_listener: [0m
+[22:57:04.781,250] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,0 state on[0m
+[22:57:04.781,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 0, position: 72, pressed: true[0m
+[22:57:04.781,372] [0m<dbg> zmk: split_listener: [0m
+[22:57:04.993,255] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,0 state off[0m
+[22:57:04.993,408] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 0, position: 72, pressed: false[0m
+[22:57:04.993,408] [0m<dbg> zmk: split_listener: [0m
+[22:57:05.159,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,0 state on[0m
+[22:57:05.159,362] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 0, position: 73, pressed: true[0m
+[22:57:05.159,393] [0m<dbg> zmk: split_listener: [0m
+[22:57:05.340,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,0 state off[0m
+[22:57:05.340,393] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 0, position: 73, pressed: false[0m
+[22:57:05.340,423] [0m<dbg> zmk: split_listener: [0m
+[22:57:05.532,226] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,0 state on[0m
+[22:57:05.532,348] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 0, position: 74, pressed: true[0m
+[22:57:05.532,379] [0m<dbg> zmk: split_listener: [0m
+[22:57:05.711,242] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,0 state off[0m
+[22:57:05.711,395] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 0, position: 74, pressed: false[0m
+[22:57:05.711,425] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.016,265] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,4 state on[0m
+[22:57:07.016,357] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 4, position: 77, pressed: true[0m
+[22:57:07.016,387] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.090,270] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,4 state off[0m
+[22:57:07.090,393] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 4, position: 77, pressed: false[0m
+[22:57:07.090,423] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.203,247] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,5 state on[0m
+[22:57:07.203,338] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 5, position: 78, pressed: true[0m
+[22:57:07.203,369] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.311,248] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,5 state off[0m
+[22:57:07.311,370] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 5, position: 78, pressed: false[0m
+[22:57:07.311,401] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.370,269] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,5 state on[0m
+[22:57:07.370,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 5, position: 78, pressed: true[0m
+[22:57:07.370,361] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.486,267] [0m<dbg> zmk: kscan_matrix_read: Sending event at 5,5 state off[0m
+[22:57:07.486,389] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 5, col: 5, position: 78, pressed: false[0m
+[22:57:07.486,419] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.739,257] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state on[0m
+[22:57:07.739,349] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: true[0m
+[22:57:07.739,379] [0m<dbg> zmk: split_listener: [0m
+[22:57:07.892,272] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,6 state off[0m
+[22:57:07.892,395] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 6, position: 63, pressed: false[0m
+[22:57:07.892,425] [0m<dbg> zmk: split_listener: [0m
+[22:57:08.068,267] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state on[0m
+[22:57:08.068,359] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: true[0m
+[22:57:08.068,389] [0m<dbg> zmk: split_listener: [0m
+[22:57:08.314,270] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,5 state off[0m
+[22:57:08.314,392] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 5, position: 62, pressed: false[0m
+[22:57:08.314,422] [0m<dbg> zmk: split_listener: [0m
+[22:57:08.427,246] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state on[0m
+[22:57:08.427,337] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: true[0m
+[22:57:08.427,368] [0m<dbg> zmk: split_listener: [0m
+[22:57:08.607,269] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,4 state off[0m
+[22:57:08.607,391] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 4, position: 61, pressed: false[0m
+[22:57:08.607,421] [0m<dbg> zmk: split_listener: [0m
+[22:57:09.180,236] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:57:09.180,358] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:57:09.180,389] [0m<dbg> zmk: split_listener: [0m
+[22:57:09.302,215] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:57:09.302,368] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:57:09.302,398] [0m<dbg> zmk: split_listener: [0m
+[22:57:11.036,132] [0m<dbg> zmk: vddh_sample_fetch: ADC raw 3261 ~ 4775 mV => 100%[0m
+[22:57:15.655,242] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,0 state on[0m
+[22:57:15.655,364] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 0, position: 74, pressed: true[0m
+[22:57:15.655,395] [0m<dbg> zmk: split_listener: [0m
+[22:57:15.845,214] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,0 state off[0m
+[22:57:15.845,367] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 0, position: 74, pressed: false[0m
+[22:57:15.845,397] [0m<dbg> zmk: split_listener: [0m
+[22:57:18.997,222] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state on[0m
+[22:57:18.997,344] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: true[0m
+[22:57:18.997,375] [0m<dbg> zmk: split_listener: [0m
+[22:57:19.215,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state off[0m
+[22:57:19.215,393] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: false[0m
+[22:57:19.215,423] [0m<dbg> zmk: split_listener: [0m
+[22:57:19.371,215] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:57:19.371,337] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:57:19.371,368] [0m<dbg> zmk: split_listener: [0m
+[22:57:19.564,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:57:19.564,392] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:57:19.564,422] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.044,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state on[0m
+[22:57:20.044,342] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: true[0m
+[22:57:20.044,372] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.180,236] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state off[0m
+[22:57:20.180,389] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: false[0m
+[22:57:20.180,419] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.308,227] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state on[0m
+[22:57:20.308,349] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: true[0m
+[22:57:20.308,349] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.439,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state on[0m
+[22:57:20.439,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: true[0m
+[22:57:20.439,392] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.445,220] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:57:20.445,343] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:57:20.445,343] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.472,229] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state off[0m
+[22:57:20.472,351] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: false[0m
+[22:57:20.472,351] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.544,250] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:57:20.544,372] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:57:20.544,372] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.550,292] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state on[0m
+[22:57:20.550,445] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: true[0m
+[22:57:20.550,476] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.685,241] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state off[0m
+[22:57:20.685,363] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: false[0m
+[22:57:20.685,394] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.725,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:57:20.725,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:57:20.725,341] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.785,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state off[0m
+[22:57:20.785,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: false[0m
+[22:57:20.785,369] [0m<dbg> zmk: split_listener: [0m
+[22:57:20.909,240] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:57:20.909,423] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:57:20.909,423] [0m<dbg> zmk: split_listener: [0m
+[22:57:21.043,243] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state on[0m
+[22:57:21.043,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: true[0m
+[22:57:21.043,395] [0m<dbg> zmk: split_listener: [0m
+[22:57:21.192,230] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,1 state off[0m
+[22:57:21.192,413] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 28, pressed: false[0m
+[22:57:21.192,413] [0m<dbg> zmk: split_listener: [0m
+[22:57:21.339,233] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:57:21.339,355] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:57:21.339,355] [0m<dbg> zmk: split_listener: [0m
+[22:57:21.481,231] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:57:21.481,414] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:57:21.481,414] [0m<dbg> zmk: split_listener: [0m
+[22:57:21.851,226] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,5 state on[0m
+[22:57:21.851,348] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 5, position: 32, pressed: true[0m
+[22:57:21.851,379] [0m<dbg> zmk: split_listener: [0m
+[22:57:22.080,230] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,5 state off[0m
+[22:57:22.080,413] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 5, position: 32, pressed: false[0m
+[22:57:22.080,413] [0m<dbg> zmk: split_listener: [0m
+[22:57:22.608,215] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,0 state on[0m
+[22:57:22.608,337] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 0, position: 56, pressed: true[0m
+[22:57:22.608,367] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.237,243] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:57:23.237,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:57:23.237,396] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.406,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state on[0m
+[22:57:23.406,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: true[0m
+[22:57:23.406,372] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.410,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state on[0m
+[22:57:23.410,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: true[0m
+[22:57:23.410,339] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.474,243] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:57:23.474,365] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:57:23.474,365] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.613,220] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,4 state off[0m
+[22:57:23.613,342] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 4, position: 31, pressed: false[0m
+[22:57:23.613,372] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.643,218] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state on[0m
+[22:57:23.643,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: true[0m
+[22:57:23.643,341] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.658,233] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,3 state off[0m
+[22:57:23.658,355] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 3, position: 30, pressed: false[0m
+[22:57:23.658,355] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.763,214] [0m<dbg> zmk: kscan_matrix_read: Sending event at 2,2 state off[0m
+[22:57:23.763,336] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 2, position: 29, pressed: false[0m
+[22:57:23.763,366] [0m<dbg> zmk: split_listener: [0m
+[22:57:23.870,239] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:57:23.870,361] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:57:23.870,391] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.016,235] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,4 state on[0m
+[22:57:24.016,357] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 4, position: 43, pressed: true[0m
+[22:57:24.016,387] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.055,236] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:57:24.055,358] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:57:24.055,358] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.149,230] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state on[0m
+[22:57:24.149,353] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: true[0m
+[22:57:24.149,383] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.212,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state on[0m
+[22:57:24.212,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: true[0m
+[22:57:24.212,341] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.254,272] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,3 state off[0m
+[22:57:24.254,394] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 3, position: 42, pressed: false[0m
+[22:57:24.254,425] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.285,217] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,4 state off[0m
+[22:57:24.285,339] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 4, position: 43, pressed: false[0m
+[22:57:24.285,339] [0m<dbg> zmk: split_listener: [0m
+[22:57:24.435,241] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,2 state off[0m
+[22:57:24.435,363] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 2, position: 41, pressed: false[0m
+[22:57:24.435,394] [0m<dbg> zmk: split_listener: [0m
+[22:57:25.300,231] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state on[0m
+[22:57:25.300,354] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: true[0m
+[22:57:25.300,354] [0m<dbg> zmk: split_listener: [0m
+[22:57:25.393,218] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state on[0m
+[22:57:25.393,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: true[0m
+[22:57:25.393,341] [0m<dbg> zmk: split_listener: [0m
+[22:57:25.457,214] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,3 state off[0m
+[22:57:25.457,336] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 3, position: 60, pressed: false[0m
+[22:57:25.457,366] [0m<dbg> zmk: split_listener: [0m
+[22:57:25.549,224] [0m<dbg> zmk: kscan_matrix_read: Sending event at 4,2 state off[0m
+[22:57:25.549,346] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 4, col: 2, position: 59, pressed: false[0m
+[22:57:25.549,346] [0m<dbg> zmk: split_listener: [0m
+[22:57:25.934,234] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state on[0m
+[22:57:25.934,356] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: true[0m
+[22:57:25.934,387] [0m<dbg> zmk: split_listener: [0m
+[22:57:26.087,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 3,1 state off[0m
+[22:57:26.087,341] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 3, col: 1, position: 40, pressed: false[0m
+[22:57:26.087,371] [0m<dbg> zmk: split_listener: [0m
+[22:57:26.350,219] [0m<dbg> zmk: kscan_matrix_read: Sending event at 1,0 state off[0m
+[22:57:26.350,372] [0m<dbg> zmk: zmk_kscan_process_msgq: Row: 1, col: 0, position: 56, pressed: false[0m
+[22:57:26.350,402] [0m<dbg> zmk: split_listener: [0m
+Read ended
