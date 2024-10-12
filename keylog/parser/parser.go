@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -53,11 +54,6 @@ func ParseLine(line string) (*KeyEvent, error) {
 		case "pressed:":
 			// Trim the reset escape code from the output. Maybe we can do it another way implicitly?
 			nextItem = strings.TrimSuffix(nextItem, "\x1b[0m")
-			// log.Printf("checking pressed: '%s'", nextItem)
-			//
-			// log.Printf("checking pressed: '%+v'", []byte(nextItem))
-			// log.Printf("true: '%+v'", []byte("true"))
-			// log.Printf("false: '%+v'", []byte("false"))
 			switch nextItem {
 			case "true":
 				pressed = true
@@ -77,4 +73,30 @@ func ParseLine(line string) (*KeyEvent, error) {
 		return &KeyEvent{row, col, position, pressed}, nil
 	}
 	return nil, nil
+}
+
+var pattern = regexp.MustCompile(`Row: (?P<row>\d+), col: (?P<col>\d+), position: (?P<pos>\d+), pressed: (?P<pres>true|false)`)
+
+func ParseLineRegex(line string) (*KeyEvent, error) {
+	matches := pattern.FindStringSubmatch(line)
+
+	if matches == nil {
+		return nil, nil
+	}
+
+	row, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return nil, err
+	}
+	col, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return nil, err
+	}
+	pos, err := strconv.Atoi(matches[3])
+	if err != nil {
+		return nil, err
+	}
+	pressed := matches[4] == "true"
+
+	return &KeyEvent{row, col, pos, pressed}, nil
 }
