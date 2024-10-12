@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"glover/keylog/parser"
 	"log"
 	"os"
 	"time"
@@ -32,6 +34,9 @@ func main() {
 		BaudRate: 9600,
 	})
 	defer func() {
+		if port == nil {
+			log.Fatal("Port is nil :(")
+		}
 		if err := port.Close(); err != nil {
 			log.Fatal(err)
 		}
@@ -42,17 +47,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	buff := make([]byte, 1024)
-	for {
-		n, err := port.Read(buff)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if n == 0 {
-			break
-		}
-		fmt.Printf("%v", string(buff[:n]))
-	}
+	// print via a buffer
+	// buff := make([]byte, 1024)
+	// for {
+	// 	n, err := port.Read(buff)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	if n == 0 {
+	// 		break
+	// 	}
+	// 	fmt.Printf("%v", string(buff[:n]))
+	// }
 
+	// use a scanner!
+	scanner := bufio.NewScanner(port)
+	for scanner.Scan() {
+		line := scanner.Text()
+		parsed, err := parser.ParseLine(line)
+		if err != nil {
+			log.Printf("Got warning: %s\nline: '%s'", err.Error(), line)
+		}
+
+		if parsed != nil {
+			log.Printf("Event! %v", *parsed)
+		}
+	}
 	fmt.Println("Read ended")
 }
