@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"glover/keylog/db"
+	"glover/db"
 	"glover/keylog/parser"
 	"glover/keylog/ports"
 	"log"

@@ -24,6 +24,7 @@ func ConnectDB(path string) (Storage, error) {
 		return nil, err
 	}
 
+	// TODO: add indices over row-col-position?
 	sqlStmt := `
 	create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);
 	`
@@ -45,6 +46,39 @@ func (s *SQLiteStorage) Store(event *parser.KeyEvent) error {
 		return err
 	}
 	return nil
+}
+
+type MinimalKeyEvent struct {
+	Row, Col, Position int
+}
+
+func (s *SQLiteStorage) GatherAll() (map[MinimalKeyEvent]int, error) {
+	// TODO: position should be same for each row-col, in reality, maybe groupby can be simpler. But double-check that.
+	rows, err := s.db.Query(
+		`select row, col, position, count(*) as cnt
+        from keypresses
+        where pressed = false
+        group by row, col, position`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	result := make(map[MinimalKeyEvent]int, 40)
+
+	for rows.Next() {
+		var row, col, position, count int
+
+		err = rows.Scan(&row, &col, &position, &count)
+		if err != nil {
+			return nil, err
+		}
+
+		result[MinimalKeyEvent{Row: row, Col: col, Position: position}] = count
+	}
+
+	return result, nil
 }
 
 func (s *SQLiteStorage) Close() {
