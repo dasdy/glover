@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"glover/keylog/db"
 	"glover/keylog/parser"
 	"glover/keylog/ports"
 	"log"
@@ -45,6 +46,12 @@ func main() {
 
 	ch, done := ports.ReadTwoFiles(reader1, reader2)
 
+	storage, err := db.ConnectDB("./keypresses.sqlite")
+	if err != nil {
+		log.Fatalf("Could not open port 2: %s: %s", fname2, err.Error())
+	}
+	defer storage.Close()
+
 out:
 	for {
 		select {
@@ -56,6 +63,7 @@ out:
 
 			if parsed != nil {
 				log.Printf("Event! %v", *parsed)
+				storage.Store(parsed)
 			}
 		case <-done:
 			break out

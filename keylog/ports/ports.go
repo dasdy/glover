@@ -26,7 +26,8 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 		}
 	}
 
-	port.SetReadTimeout(10 * time.Second)
+	// TODO make this configurable.
+	port.SetReadTimeout(10 * time.Hour)
 	return port, c, nil
 }
 

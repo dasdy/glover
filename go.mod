@@ -3,6 +3,7 @@ module glover
 go 1.23.2
 
 require (
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/stretchr/testify v1.7.0
 	go.bug.st/serial v1.6.2
 )
