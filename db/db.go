@@ -10,6 +10,7 @@ import (
 
 type Storage interface {
 	Store(event *parser.KeyEvent) error
+	GatherAll() (map[MinimalKeyEvent]int, error)
 	Close()
 }
 
