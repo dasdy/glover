@@ -10,7 +10,7 @@ import (
 
 type Storage interface {
 	Store(event *parser.KeyEvent) error
-	GatherAll() (map[MinimalKeyEvent]int, error)
+	GatherAll() ([]MinimalKeyEvent, error)
 	Close()
 }
 
@@ -50,23 +50,24 @@ func (s *SQLiteStorage) Store(event *parser.KeyEvent) error {
 }
 
 type MinimalKeyEvent struct {
-	Row, Col, Position int
+	Row, Col, Position, Count int
 }
 
-func (s *SQLiteStorage) GatherAll() (map[MinimalKeyEvent]int, error) {
+func (s *SQLiteStorage) GatherAll() ([]MinimalKeyEvent, error) {
 	// TODO: position should be same for each row-col, in reality, maybe groupby can be simpler. But double-check that.
 	rows, err := s.db.Query(
 		`select row, col, position, count(*) as cnt
         from keypresses
         where pressed = false
-        group by row, col, position`)
+        group by row, col, position
+        order by row, position`)
 	if err != nil {
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	result := make(map[MinimalKeyEvent]int, 40)
+	result := make([]MinimalKeyEvent, 0)
 
 	for rows.Next() {
 		var row, col, position, count int
@@ -76,7 +77,7 @@ func (s *SQLiteStorage) GatherAll() (map[MinimalKeyEvent]int, error) {
 			return nil, err
 		}
 
-		result[MinimalKeyEvent{Row: row, Col: col, Position: position}] = count
+		result = append(result, MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
 	}
 
 	return result, nil
