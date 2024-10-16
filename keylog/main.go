@@ -54,11 +54,14 @@ func main() {
 	}
 	defer storage.Close()
 
+	mux := http.NewServeMux()
+	// Serve the JS bundle.
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	handler := server.ServerHandler{storage}
-	http.Handle("/", http.HandlerFunc(handler.StatsHandle))
+	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
 
 	fmt.Println("Listening on :3000")
-	go http.ListenAndServe(":3000", nil)
+	go http.ListenAndServe(":3000", mux)
 out:
 	for {
 		select {

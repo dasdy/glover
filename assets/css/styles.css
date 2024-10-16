@@ -1,0 +1,17 @@
+
+// TODO: this should be somehow customizeable. 12 columns is not good enough for other keyboards
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 10px;
+}
+.grid-item {
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
+}
+
+.hidden {
+    visibility: hidden
+}
