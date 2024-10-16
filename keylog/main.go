@@ -5,7 +5,9 @@ import (
 	"glover/db"
 	"glover/keylog/parser"
 	"glover/keylog/ports"
+	"glover/server"
 	"log"
+	"net/http"
 	"os"
 
 	"go.bug.st/serial"
@@ -52,6 +54,11 @@ func main() {
 	}
 	defer storage.Close()
 
+	handler := server.ServerHandler{storage}
+	http.Handle("/", http.HandlerFunc(handler.StatsHandle))
+
+	fmt.Println("Listening on :3000")
+	go http.ListenAndServe(":3000", nil)
 out:
 	for {
 		select {

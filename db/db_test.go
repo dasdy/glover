@@ -37,13 +37,13 @@ func TestConnectToMemoryDB(t *testing.T) {
 
 		assert.NoError(t, error)
 
-		assert.Equal(t, items, map[db.MinimalKeyEvent]int{
-			{0, 0, 0}:  5,
-			{12, 1, 0}: 1,
-			{13, 3, 0}: 1,
-			{14, 5, 0}: 1,
-			{15, 7, 0}: 1,
-			{16, 9, 0}: 1,
+		assert.Equal(t, items, []db.MinimalKeyEvent{
+			{0, 0, 0, 5},
+			{12, 1, 0, 1},
+			{13, 3, 0, 1},
+			{14, 5, 0, 1},
+			{15, 7, 0, 1},
+			{16, 9, 0, 1},
 		})
 	})
 }
