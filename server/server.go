@@ -37,8 +37,13 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	totalCols := 0
 	maxVal := 0
 
+	// put empty items in the map so that we show them later properly
 	groupedItems := make(map[Location]db.MinimalKeyEvent)
+	for _, key := range locationsOnGrid {
+		groupedItems[key] = db.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
+	}
 
+	// set non-zero items in the map
 	for _, key := range curStats {
 		loc, ok := locationsOnGrid[key.Position]
 		if !ok {
@@ -57,6 +62,8 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 		groupedItems[Location{Row: loc.Row, Col: loc.Col}] = key
 	}
 
+	// Iterate over total grid and add real and hidden items.
+	// TODO: can this be done without a bunch of hidden items?
 	items := make([]Item, 0)
 	l := Location{0, 0}
 	for i := 0; i <= totalRows; i++ {

@@ -1,5 +1,5 @@
 
-// TODO: this should be somehow customizeable. 12 columns is not good enough for other keyboards
+/* TODO: this should be somehow customizeable. 12 columns is not good enough for other keyboards */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);

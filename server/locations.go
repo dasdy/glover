@@ -109,6 +109,11 @@ package server
 // 	79: {5, 5},
 // }
 
+// TODO: This is super-tied to Glove80. I don't know how to automate this because
+// position assignment seems sort of random in regards to target position, and
+// other keyboards are properly the same. Maybe make this configurable?
+// info.json for zmk-configurator seems close enough...
+// https://github.com/nickcoutsos/keymap-editor-contrib
 var locationsOnGrid = map[int]Location{
 	// Left, 1st row
 	0: {0, 0},
