@@ -33,21 +33,21 @@ func ParseLine(line string) (*KeyEvent, error) {
 		case "Row:":
 			row, err = strconv.Atoi(nextItem)
 			if err != nil {
-				return nil, fmt.Errorf("could not parse row: %w", err)
+				return nil, fmt.Errorf("could not parse row: %w. Full line: '%s'", err, line)
 			}
 			ix++
 			foundCount++
 		case "col:":
 			col, err = strconv.Atoi(nextItem)
 			if err != nil {
-				return nil, fmt.Errorf("could not parse col: %w", err)
+				return nil, fmt.Errorf("could not parse col: %w. Full line: '%s'", err, line)
 			}
 			ix++
 			foundCount++
 		case "position:":
 			position, err = strconv.Atoi(nextItem)
 			if err != nil {
-				return nil, fmt.Errorf("could not parse position: %w", err)
+				return nil, fmt.Errorf("could not parse position: %w. Full line: '%s'", err, line)
 			}
 			foundCount++
 			ix++

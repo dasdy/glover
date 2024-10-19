@@ -31,9 +31,14 @@ type Location struct {
 var tpl *template.Template = template.Must(template.ParseFiles("templates/heatmap.gohtml"))
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
+	log.Print("Got request to stats page")
+
 	curStats, err := s.Storage.GatherAll()
 	if err != nil {
 		log.Printf("Could not get stats: %s", err.Error())
+		fmt.Fprintf(w, "Could not get stats: %s", err.Error())
+
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	totalRows := 0
@@ -85,10 +90,11 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf("Rendering...totalCols:%d", totalCols)
 	err = tpl.Execute(w, RenderContext{18, items, maxVal})
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
+		fmt.Fprintf(w, "Could not render: %s", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 

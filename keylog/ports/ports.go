@@ -38,7 +38,7 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 // when both files were closed.
 func ReadTwoFiles(f1, f2 io.Reader) (<-chan string, <-chan bool) {
 	ch1, ch1Done := ReadFile(f1)
-	ch2, ch2Done := ReadFile(f1)
+	ch2, ch2Done := ReadFile(f2)
 
 	outputChan := make(chan string)
 	doneChan := make(chan bool)
