@@ -44,17 +44,16 @@ to quickly create a Cobra application.`,
 		}
 
 		var ch <-chan string
-		var done <-chan bool
 		var closer func()
 		var err error
 		if fileCount == 2 {
-			ch, done, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
+			ch, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
 			defer closer()
 			if err != nil {
 				return fmt.Errorf("Error opening files: %w", err)
 			}
 		} else {
-			ch, done = ports.ReadFile(os.Stdin)
+			ch = ports.ReadFile(os.Stdin)
 		}
 
 		log.Printf("Output file: %s\n", storagePath)
@@ -77,7 +76,7 @@ to quickly create a Cobra application.`,
 		}
 
 		log.Print("Main loop")
-		keylog.KeyLogLoop(ch, done, storage, verbose)
+		keylog.KeyLogLoop(ch, storage, verbose)
 		return nil
 	},
 }

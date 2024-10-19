@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"go.bug.st/serial"
@@ -40,35 +41,41 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 
 // Read from two files at the same time line-by-line. Done channel sends a message
 // when both files were closed.
-func ReadTwoFiles(f1, f2 io.Reader) (<-chan string, <-chan bool) {
-	ch1, ch1Done := ReadFile(f1)
-	ch2, ch2Done := ReadFile(f2)
+func ReadTwoFiles(f1, f2 io.Reader) <-chan string {
+	ch1 := ReadFile(f1)
+	ch2 := ReadFile(f2)
 
-	outputChan := make(chan string)
-	doneChan := make(chan bool)
+	outputChan := make(chan string, 5)
+	var wg sync.WaitGroup
+
+	wg.Add(2)
 
 	go func() {
-		var ch1Closed, ch2Closed bool
-		for !ch1Closed || !ch2Closed {
-			select {
-			case msg := <-ch1:
-				outputChan <- msg
-			case msg := <-ch2:
-				outputChan <- msg
-			case <-ch1Done:
-				ch1Closed = true
-			case <-ch2Done:
-				ch2Closed = true
-			}
+		for v := range ch1 {
+			outputChan <- v
 		}
-
-		doneChan <- true
+		wg.Done()
+		log.Print("Read ch1 routine fin")
 	}()
 
-	return outputChan, doneChan
+	go func() {
+		for v := range ch2 {
+			outputChan <- v
+		}
+		wg.Done()
+		log.Print("Read ch2 routine fin")
+	}()
+
+	go func() {
+		wg.Wait()
+		log.Print("Both files marked as closed")
+		close(outputChan)
+	}()
+
+	return outputChan
 }
 
-func OpenTwoFiles(fname1, fname2 string) (<-chan string, <-chan bool, func(), error) {
+func OpenTwoFiles(fname1, fname2 string) (<-chan string, func(), error) {
 	reader1, closer1, err1 := Open(fname1)
 	reader2, closer2, err2 := Open(fname2)
 	// Guarantee that closer is non-null and we can close connection if the other fails
@@ -82,29 +89,30 @@ func OpenTwoFiles(fname1, fname2 string) (<-chan string, <-chan bool, func(), er
 	}
 
 	if err1 != nil {
-		return nil, nil, closer, fmt.Errorf("Could not open port 1: %s: %s", fname1, err1.Error())
+		return nil, closer, fmt.Errorf("Could not open port 1: %s: %s", fname1, err1.Error())
 	}
 	if err2 != nil {
-		return nil, nil, closer, fmt.Errorf("Could not open port 2: %s: %s", fname2, err2.Error())
+		return nil, closer, fmt.Errorf("Could not open port 2: %s: %s", fname2, err2.Error())
 	}
 
-	ch, done := ReadTwoFiles(reader1, reader2)
+	ch := ReadTwoFiles(reader1, reader2)
 
-	return ch, done, closer, nil
+	return ch, closer, nil
 }
 
-func ReadFile(r io.Reader) (<-chan string, <-chan bool) {
-	ch1Done := make(chan bool)
-	ch1 := make(chan string)
+func ReadFile(r io.Reader) <-chan string {
+	ch1 := make(chan string, 5)
+
 	go func() {
 		scanner := bufio.NewScanner(r)
 		for scanner.Scan() {
 			ch1 <- scanner.Text()
 		}
-		ch1Done <- true
+
+		close(ch1)
 	}()
 
-	return ch1, ch1Done
+	return ch1
 }
 
 func GetAvailableDevices() ([]string, error) {

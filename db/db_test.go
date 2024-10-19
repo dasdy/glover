@@ -3,7 +3,11 @@ package db_test
 import (
 	"glover/db"
 	"glover/keylog/parser"
+	"log"
+	"os"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -47,5 +51,74 @@ func TestConnectToMemoryDB(t *testing.T) {
 			{15, 7, 0, 1},
 			{16, 9, 0, 1},
 		})
+	})
+}
+
+func TestRaceCondition(t *testing.T) {
+	t.Run("Should not fail due to race condition on db connection", func(t *testing.T) {
+		file, err := os.CreateTemp("/tmp", "*.sqlite")
+		assert.NoError(t, err)
+		log.Printf("Created file: %s", file.Name())
+		storage, err := db.ConnectDB(file.Name())
+
+		assert.NoError(t, err)
+
+		var wg sync.WaitGroup
+		done := make(chan bool, 2)
+
+		wg.Add(2)
+		go func() {
+			event := parser.KeyEvent{}
+		out:
+			for i := range 16_000 {
+				err := storage.Store(&event)
+
+				assert.NoError(t, err)
+				// Writes can take all the cake from reads - give them some time to rest
+				if i%2000 == 0 {
+					// log.Println("Another 2k items written")
+					time.Sleep(100 * time.Millisecond)
+				}
+				select {
+				case <-done:
+					break out
+				default:
+					continue
+				}
+			}
+			wg.Done()
+			done <- true
+			log.Println("Done writing")
+		}()
+
+		go func() {
+		out:
+			for range 6_000 {
+				_, err := storage.GatherAll()
+
+				// if i%500 == 0 {
+				// log.Println("Another 500 items read")
+				// }
+				assert.NoError(t, err)
+				select {
+				case <-done:
+					break out
+				default:
+					continue
+				}
+			}
+			wg.Done()
+			done <- true
+			log.Println("Done reading")
+		}()
+
+		wg.Wait()
+
+		items, err := storage.GatherAll()
+		assert.NoError(t, err)
+		assert.Len(t, items, 1)
+		for _, v := range items {
+			assert.Equal(t, v.Count, 16_000)
+		}
 	})
 }
