@@ -20,7 +20,10 @@ out:
 				if enableLogs {
 					log.Printf("Event! %v", *parsed)
 				}
-				storage.Store(parsed)
+				err := storage.Store(parsed)
+				if err != nil {
+					log.Printf("Could not log item: %s", err.Error())
+				}
 			}
 		case <-done:
 			log.Println("Received done from port readers, bailing out")

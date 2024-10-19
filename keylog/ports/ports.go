@@ -30,7 +30,11 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 	}
 
 	// TODO make this configurable.
-	port.SetReadTimeout(10 * time.Hour)
+	err = port.SetReadTimeout(10 * time.Hour)
+	if err != nil {
+		c()
+		return nil, nil, err
+	}
 	return port, c, nil
 }
 

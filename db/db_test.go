@@ -23,14 +23,16 @@ func TestConnectToMemoryDB(t *testing.T) {
 		item := parser.KeyEvent{Row: 0, Col: 0, Position: 0, Pressed: false}
 		for i := 0; i < 10; i++ {
 			item.Pressed = !item.Pressed
-			storage.Store(&item)
+			err := storage.Store(&item)
+			assert.NoError(t, err)
 		}
 
 		item.Pressed = false
 		for i := 0; i < 5; i++ {
 			item.Col = i*2 + 1
 			item.Row = i + 12
-			storage.Store(&item)
+			err := storage.Store(&item)
+			assert.NoError(t, err)
 		}
 
 		items, error = storage.GatherAll()
