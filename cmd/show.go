@@ -1,11 +1,14 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"glover/db"
+	"glover/server"
+	"log"
+	"net/http"
 
 	"github.com/spf13/cobra"
 )
@@ -20,21 +23,39 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("show called")
+
+		log.Printf("Output file: %s\n", storagePath)
+		storage, err := db.ConnectDB(storagePath)
+		if err != nil {
+			return fmt.Errorf("Could not open %s as sqlite file: %w", storagePath, err)
+		}
+		defer storage.Close()
+		log.Printf("Runnint interface on port %d\n", port)
+		err = http.ListenAndServe(
+			fmt.Sprintf(":%d", port),
+			server.BuildServer(storage))
+		if err != nil {
+			log.Fatalf("Could not run server: %s", err)
+		}
+
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(showCmd)
 
-	// Here you will define your flags and configuration settings.
+	// Variables themselves are defined elsewhere
+	showCmd.Flags().IntVar(
+		&port, "port", 3000,
+		"Port on which server should be watching")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// showCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	showCmd.Flags().StringVarP(
+		&storagePath,
+		"out",
+		"o",
+		"./keypresses.sqlite",
+		"Output path for statistics")
 }
