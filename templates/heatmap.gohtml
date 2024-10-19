@@ -1,15 +1,10 @@
-package server
-
-import "html/template"
-
-var tpl *template.Template = template.Must(template.New("something").Parse(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="600">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Layout</title>
+    <title>Glove80 Key Heatmap</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
@@ -34,4 +29,3 @@ var tpl *template.Template = template.Must(template.New("something").Parse(`
         });
     </script>
 </body>
-`))

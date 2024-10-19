@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"log"
+	"strings"
 	"time"
 
 	"go.bug.st/serial"
@@ -76,4 +77,45 @@ func ReadTwoFiles(f1, f2 io.Reader) (<-chan string, <-chan bool) {
 	}()
 
 	return outputChan, doneChan
+}
+
+func OpenTwoFiles(fname1, fname2 string) (<-chan string, <-chan bool, func()) {
+	reader1, closer1, err := Open(fname1)
+	if err != nil {
+		log.Fatalf("Could not open port 1: %s: %s", fname1, err.Error())
+	}
+	reader2, closer2, err := Open(fname2)
+	if err != nil {
+		log.Fatalf("Could not open port 2: %s: %s", fname2, err.Error())
+	}
+
+	closer := func() {
+		closer1()
+		closer2()
+	}
+
+	ch, done := ReadTwoFiles(reader1, reader2)
+
+	return ch, done, closer
+}
+
+func GetAvailableDevices() ([]string, error) {
+	names, err := serial.GetPortsList()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0)
+
+	for _, n := range names {
+		if strings.Contains(n, "tty.usbmodem") {
+			result = append(result, n)
+		}
+	}
+
+	if len(names) != 0 {
+		return result, nil
+	} else {
+		return names, nil
+	}
 }

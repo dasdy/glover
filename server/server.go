@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"glover/db"
+	"html/template"
 	"log"
 	"net/http"
 )
@@ -26,6 +27,8 @@ type Location struct {
 	Row int
 	Col int
 }
+
+var tpl *template.Template = template.Must(template.ParseFiles("templates/heatmap.gohtml"))
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	curStats, err := s.Storage.GatherAll()
@@ -87,4 +90,13 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
 	}
+}
+
+func BuildServer(storage db.Storage) *http.ServeMux {
+	mux := http.NewServeMux()
+	// Serve the JS bundle.
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	handler := ServerHandler{storage}
+	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
+	return mux
 }
