@@ -8,6 +8,7 @@ import (
 	"glover/server"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -25,21 +26,36 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Printf("filenames: %+v\n", filenames)
 
-		if len(filenames) == 0 {
+		fileCount := len(filenames)
+
+		if fileCount != 2 && fileCount != 0 {
+			return fmt.Errorf("expected exactly 0 or 2 files, got %d", len(filenames))
+		}
+
+		if fileCount == 0 {
 			names, err := ports.GetAvailableDevices()
 			if err != nil {
 				return err
 			}
 
 			log.Printf("Suggested devices: %+v ", names)
+
+			log.Print("Will proceed to read from stdin...")
 		}
 
-		if len(filenames) != 2 {
-			return fmt.Errorf("expected exactly 2 files, got %d", len(filenames))
+		var ch <-chan string
+		var done <-chan bool
+		var closer func()
+		var err error
+		if fileCount == 2 {
+			ch, done, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
+			defer closer()
+			if err != nil {
+				return fmt.Errorf("Error opening files: %w", err)
+			}
+		} else {
+			ch, done = ports.ReadFile(os.Stdin)
 		}
-
-		ch, done, closer := ports.OpenTwoFiles(filenames[0], filenames[1])
-		defer closer()
 
 		log.Printf("Output file: %s\n", storagePath)
 		storage, err := db.ConnectDB(storagePath)

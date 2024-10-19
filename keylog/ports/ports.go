@@ -2,6 +2,7 @@ package ports
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"strings"
@@ -20,10 +21,11 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 
 	c := func() {
 		if port == nil {
-			log.Fatal("Port is nil :(")
+			log.Print("Port is nil :(")
+			return
 		}
 		if err := port.Close(); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	}
 
@@ -35,25 +37,8 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 // Read from two files at the same time line-by-line. Done channel sends a message
 // when both files were closed.
 func ReadTwoFiles(f1, f2 io.Reader) (<-chan string, <-chan bool) {
-	ch1Done := make(chan bool)
-	ch1 := make(chan string)
-	go func() {
-		scanner := bufio.NewScanner(f1)
-		for scanner.Scan() {
-			ch1 <- scanner.Text()
-		}
-		ch1Done <- true
-	}()
-
-	ch2Done := make(chan bool)
-	ch2 := make(chan string)
-	go func() {
-		scanner := bufio.NewScanner(f2)
-		for scanner.Scan() {
-			ch2 <- scanner.Text()
-		}
-		ch2Done <- true
-	}()
+	ch1, ch1Done := ReadFile(f1)
+	ch2, ch2Done := ReadFile(f1)
 
 	outputChan := make(chan string)
 	doneChan := make(chan bool)
@@ -79,24 +64,43 @@ func ReadTwoFiles(f1, f2 io.Reader) (<-chan string, <-chan bool) {
 	return outputChan, doneChan
 }
 
-func OpenTwoFiles(fname1, fname2 string) (<-chan string, <-chan bool, func()) {
-	reader1, closer1, err := Open(fname1)
-	if err != nil {
-		log.Fatalf("Could not open port 1: %s: %s", fname1, err.Error())
-	}
-	reader2, closer2, err := Open(fname2)
-	if err != nil {
-		log.Fatalf("Could not open port 2: %s: %s", fname2, err.Error())
+func OpenTwoFiles(fname1, fname2 string) (<-chan string, <-chan bool, func(), error) {
+	reader1, closer1, err1 := Open(fname1)
+	reader2, closer2, err2 := Open(fname2)
+	// Guarantee that closer is non-null and we can close connection if the other fails
+	closer := func() {
+		if closer1 != nil {
+			closer1()
+		}
+		if closer2 != nil {
+			closer2()
+		}
 	}
 
-	closer := func() {
-		closer1()
-		closer2()
+	if err1 != nil {
+		return nil, nil, closer, fmt.Errorf("Could not open port 1: %s: %s", fname1, err1.Error())
+	}
+	if err2 != nil {
+		return nil, nil, closer, fmt.Errorf("Could not open port 2: %s: %s", fname2, err2.Error())
 	}
 
 	ch, done := ReadTwoFiles(reader1, reader2)
 
-	return ch, done, closer
+	return ch, done, closer, nil
+}
+
+func ReadFile(r io.Reader) (<-chan string, <-chan bool) {
+	ch1Done := make(chan bool)
+	ch1 := make(chan string)
+	go func() {
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			ch1 <- scanner.Text()
+		}
+		ch1Done <- true
+	}()
+
+	return ch1, ch1Done
 }
 
 func GetAvailableDevices() ([]string, error) {
