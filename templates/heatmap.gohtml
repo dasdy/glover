@@ -8,19 +8,24 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
-    <div class="grid-container">
-        {{- range .Items }}
-            {{ if .Visible }}
-                <div class="grid-item">{{ .Label }}</div>
-            {{ else }}
-                <div class="hidden"></div>
-            {{ end }}
-        {{- end }}
+    <div class="grid-parent">
+        <div id="keysgrid" class="grid-container">
+            {{- range .Items }}
+                {{ if .Visible }}
+                    <div id="key-{{ .Position }}" class="grid-item">
+                        <span id="keys-pressed-{{ .Position }}" class="keys-pressed">{{ .Label }}</span>
+                    </div>
+                {{ else }}
+                    <div id="key-{{ .Position }}" class="hidden"></div>
+                {{ end }}
+            {{- end }}
+        </div>
     </div>
     <script src="/assets/js/colorize.js"></script>
     <script>
         // Apply the gradient-based color to all .grid-item elements
         document.querySelectorAll('.grid-item').forEach(function(item) {
+            // TODO: get specific content of keys pressed; avoid other text within the cell
             let value = parseFloat(item.textContent.trim()); // Get the number from 0 to 1
             if (!isNaN(value)) {
                 const color = interpolateColor(value/ {{.MaxVal}});  // Calculate the color based on the value

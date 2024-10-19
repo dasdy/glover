@@ -1,15 +1,29 @@
 
 /* TODO: this should be somehow customizeable. 12 columns is not good enough for other keyboards */
+
+.grid-parent {
+    display: flex;
+    justify-content: center;
+}
+
 .grid-container {
-    display: grid;
+    display: inline-grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 10px;
+    margin-left: auto;
+    margin-right: auto;
 }
+
 .grid-item {
+    /* Some magic for vertical + horizontal aligning in cell*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     background-color: #ddd;
     border: 1px solid #ccc;
-    padding: 20px;
-    text-align: center;
+    padding: 10px;
+    aspect-ratio: 1;
 }
 
 .hidden {

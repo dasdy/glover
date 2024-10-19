@@ -7,7 +7,9 @@
 *.dll
 *.so
 *.dylib
-keypresses.sqlite
+*.sqlite
+bin
+tmp
 
 # Test binary, built with `go test -c`
 *.test

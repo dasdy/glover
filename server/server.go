@@ -13,8 +13,9 @@ type ServerHandler struct {
 }
 
 type Item struct {
-	Label   string
-	Visible bool
+	Position string
+	Label    string
+	Visible  bool
 }
 
 type RenderContext struct {
@@ -81,11 +82,12 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 			l.Col = j
 
 			item, ok := groupedItems[l]
+			elementId := fmt.Sprintf("%d", item.Position)
 			if ok {
 				// items = append(items, Item{fmt.Sprintf("(%d %d): %d", item.Row, item.Col, item.Count), true})
-				items = append(items, Item{fmt.Sprintf("%d", item.Count), true})
+				items = append(items, Item{elementId, fmt.Sprintf("%d", item.Count), true})
 			} else {
-				items = append(items, Item{"-", false})
+				items = append(items, Item{elementId, "-", false})
 			}
 		}
 	}
