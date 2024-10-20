@@ -2,6 +2,10 @@
 function interpolateColor(value) {
     let r, g, b;
 
+    if (value > 1) {
+        value = 1
+    }
+
     if (value <= 0.5) {
         // Interpolate between blue (0, 0, 255) and green (0, 255, 0)
         const ratio = value / 0.5;
@@ -23,4 +27,16 @@ function interpolateColor(value) {
     b = Math.round(b + (255 - b) * blendFactor);
 
     return `rgba(${r}, ${g}, ${b})`;
+}
+
+function colorize(maxVal) {
+    // Apply the gradient-based color to all .grid-item elements
+    document.querySelectorAll('.keys-pressed').forEach(function(item) {
+        let value = parseFloat(item.textContent.trim()); // Get the number from 0 to 1
+        if (!isNaN(value)) {
+            const color = interpolateColor(value / maxVal);  // Calculate the color based on the value
+            let parentItem = item.parentNode;
+            parentItem.style.backgroundColor = color;     // Set the background color
+        }
+    });
 }
