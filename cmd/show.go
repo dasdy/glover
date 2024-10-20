@@ -48,14 +48,14 @@ func init() {
 	rootCmd.AddCommand(showCmd)
 
 	// Variables themselves are defined elsewhere
-	showCmd.Flags().IntVar(
-		&port, "port", 3000,
+	showCmd.Flags().IntVarP(
+		&port, "port", "p", 3000,
 		"Port on which server should be watching")
 
 	showCmd.Flags().StringVarP(
 		&storagePath,
-		"out",
-		"o",
+		"storage",
+		"s",
 		"./keypresses.sqlite",
 		"Output path for statistics")
 }

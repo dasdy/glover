@@ -6,17 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glove80 Key Heatmap</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/output.css">
 </head>
-<body>
-    <div class="grid-parent">
-        <div id="keysgrid" class="grid-container">
+<body class="bg-lime-100">
+    <div class="flex justify-center">
+        <div id="keysgrid" class="mt-20 inline-grid grid-cols-12 gap-1">
             {{- range .Items }}
                 {{ if .Visible }}
-                    <div id="key-{{ .Position }}" class="grid-item">
-                        <span id="keys-pressed-{{ .Position }}" class="keys-pressed">{{ .Label }}</span>
+                    <div id="key-{{ .Position }}" 
+                    class="grid-item 
+                    flex justify-center items-center 
+                    border-gray-50 border border-solid p-4
+                    aspect-square rounded-md">
+                        <span id="keys-pressed-{{ .Position }}" class="keys-pressed font-semibold">{{ .Label }}</span>
                     </div>
                 {{ else }}
-                    <div id="key-{{ .Position }}" class="hidden"></div>
+                    <div id="key-{{ .Position }}" class="grid-item-hidden"></div>
                 {{ end }}
             {{- end }}
         </div>
@@ -24,12 +29,13 @@
     <script src="/assets/js/colorize.js"></script>
     <script>
         // Apply the gradient-based color to all .grid-item elements
-        document.querySelectorAll('.grid-item').forEach(function(item) {
+        document.querySelectorAll('.keys-pressed').forEach(function(item) {
             // TODO: get specific content of keys pressed; avoid other text within the cell
             let value = parseFloat(item.textContent.trim()); // Get the number from 0 to 1
             if (!isNaN(value)) {
                 const color = interpolateColor(value/ {{.MaxVal}});  // Calculate the color based on the value
-                item.style.backgroundColor = color;     // Set the background color
+                let parentItem = item.parentNode;
+                parentItem.style.backgroundColor = color;     // Set the background color
             }
         });
     </script>

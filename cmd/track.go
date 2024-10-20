@@ -106,8 +106,8 @@ func init() {
 		"./keypresses.sqlite",
 		"Output path for statistics")
 
-	trackCmd.Flags().IntVar(
-		&port, "port", 3000,
+	trackCmd.Flags().IntVarP(
+		&port, "port", "p", 3000,
 		"Port on which server should be watching")
 
 	trackCmd.Flags().BoolVar(&disableInterface,
