@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"glover/db"
 	"html/template"
@@ -37,9 +38,9 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	curStats, err := s.Storage.GatherAll()
 	if err != nil {
 		log.Printf("Could not get stats: %s", err.Error())
-		fmt.Fprintf(w, "Could not get stats: %s", err.Error())
 
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	totalRows := 0
@@ -92,12 +93,21 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = tpl.Execute(w, RenderContext{18, items, maxVal})
+	// Do not write to w because it implies 200 status
+	var buf bytes.Buffer
+	err = tpl.Execute(&buf, RenderContext{18, items, maxVal})
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
-		fmt.Fprintf(w, "Could not render: %s", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		// fmt.Fprintf(w, "Could not render: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	// Template executed successfully to the buffer.
+	// Now, copy it over to the ResponseWriter
+	// This implies a 200 OK status code
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	buf.WriteTo(w)
 }
 
 func BuildServer(storage db.Storage) *http.ServeMux {

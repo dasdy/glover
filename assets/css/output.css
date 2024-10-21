@@ -647,9 +647,9 @@ video {
   border-color: rgb(249 250 251 / var(--tw-border-opacity));
 }
 
-.bg-lime-100 {
+.bg-amber-100 {
   --tw-bg-opacity: 1;
-  background-color: rgb(236 252 203 / var(--tw-bg-opacity));
+  background-color: rgb(254 243 199 / var(--tw-bg-opacity));
 }
 
 .p-4 {
