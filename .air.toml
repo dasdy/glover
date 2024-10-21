@@ -4,7 +4,8 @@ tmp_dir = "tmp"
 
 [build]
 args_bin = []
-bin = "./bin/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -v"
+# bin = "./bin/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -v"
+bin = "./bin/glover show"
 cmd = "make build"
 delay = 1000
 exclude_dir = ["bin", "tmp", "vendor", "testdata"]

@@ -1,5 +1,6 @@
-.grid-item { }
+.grid-item {
+}
 
 .grid-item-hidden {
-    visibility: hidden
+  visibility: hidden;
 }

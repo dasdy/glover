@@ -27,3 +27,9 @@ tailwind:
 .PHONY: tailwind-watch
 tailwind-watch:
 	tailwindcss -i css/input.css -o assets/css/output.css --watch
+
+.PHONY: lint
+lint:
+	golangci-lint run
+	go vet
+	prettier . --write

@@ -50,7 +50,17 @@ to quickly create a Cobra application.`,
 			ch, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
 			defer closer()
 			if err != nil {
-				return fmt.Errorf("Error opening files: %w", err)
+				// Try suggesting devices
+				names, errInner := ports.GetAvailableDevices()
+				if errInner != nil {
+					return fmt.Errorf("Could not open file: %w; Could not suggest devices: %w", err, errInner)
+				}
+
+				if len(names) > 0 {
+					return fmt.Errorf("Error opening files: %w. Maybe try instead: %+v", err, names)
+				} else {
+					return fmt.Errorf("Error opening files: %w. It does not seem like any keyboard is connected...", err)
+				}
 			}
 		} else {
 			ch = ports.ReadFile(os.Stdin)

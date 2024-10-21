@@ -27,3 +27,4 @@ go.work.sum
 # env file
 .env
 coverage.html
+node_modules
