@@ -34,7 +34,11 @@ let magma = [
   hexToRgb("#000004"),
 ];
 
-let default = [hexToRgb("#0000ff"), hexToRgb("#00ff00"), hexToRgb("#ff0000")];
+let defaultGradient = [
+  hexToRgb("#0000ff"),
+  hexToRgb("#00ff00"),
+  hexToRgb("#ff0000"),
+];
 
 function normalize(n, min, max) {
   if (min === max) {
@@ -51,7 +55,7 @@ function translate(n, min1, max1, min2, max2) {
 
 function interpolateColor(value, schema) {
   if (schema === undefined) {
-    schema = default;
+    schema = defaultGradient;
     // schema = viridis.slice().reverse();
     // schema = magma.slice().reverse();
     // schema = inferno.slice().reverse();
@@ -86,7 +90,7 @@ function interpolateColor(value, schema) {
     b = translate(value, minVal, maxVal, A.b, B.b);
   }
 
-  let blendFactor = 0.3;
+  let blendFactor = 0.5;
   // // Blend with white (255, 255, 255) to reduce intensity
   r = Math.round(r + (255 - r) * blendFactor);
   g = Math.round(g + (255 - g) * blendFactor);
