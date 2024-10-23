@@ -78,7 +78,7 @@ to quickly create a Cobra application.`,
 			go func() {
 				err := http.ListenAndServe(
 					fmt.Sprintf(":%d", port),
-					server.BuildServer(storage))
+					server.BuildServer(storage, dev))
 				if err != nil {
 					log.Fatalf("Could not run server: %s", err)
 				}
@@ -97,6 +97,7 @@ var (
 	port             int
 	disableInterface bool
 	verbose          bool
+	dev              bool
 )
 
 func init() {
@@ -130,4 +131,9 @@ func init() {
 		"v",
 		false,
 		"If provided, debug output will be shown")
+
+	trackCmd.Flags().BoolVar(&dev,
+		"dev",
+		false,
+		"Enable developer mode")
 }

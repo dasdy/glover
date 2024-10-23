@@ -35,7 +35,7 @@ to quickly create a Cobra application.`,
 		log.Printf("Runnint interface on port %d\n", port)
 		err = http.ListenAndServe(
 			fmt.Sprintf(":%d", port),
-			server.BuildServer(storage))
+			server.BuildServer(storage, dev))
 		if err != nil {
 			log.Fatalf("Could not run server: %s", err)
 		}
@@ -58,4 +58,9 @@ func init() {
 		"s",
 		"./keypresses.sqlite",
 		"Output path for statistics")
+
+	showCmd.Flags().BoolVar(&dev,
+		"dev",
+		false,
+		"Enable developer mode")
 }

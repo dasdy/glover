@@ -110,10 +110,23 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	buf.WriteTo(w)
 }
 
-func BuildServer(storage db.Storage) *http.ServeMux {
+func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
+	if !dev {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		next.ServeHTTP(w, r)
+	})
+}
+
+func BuildServer(storage db.Storage, dev bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	// Serve the JS bundle.
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	mux.Handle("/assets/",
+		disableCacheInDevMode(dev,
+			http.StripPrefix("/assets",
+				http.FileServer(http.Dir("assets")))))
 	handler := ServerHandler{storage}
 	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
 	return mux
