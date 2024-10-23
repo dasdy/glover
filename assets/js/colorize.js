@@ -91,7 +91,7 @@ function interpolateColor(value, schema) {
   }
 
   let blendFactor = 0.5;
-  // // Blend with white (255, 255, 255) to reduce intensity
+  // Blend with white (255, 255, 255) to reduce intensity
   r = Math.round(r + (255 - r) * blendFactor);
   g = Math.round(g + (255 - g) * blendFactor);
   b = Math.round(b + (255 - b) * blendFactor);

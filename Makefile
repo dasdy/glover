@@ -10,7 +10,7 @@ cover: test
 
 .PHONY: build
 build:
-	go build -race -o bin/glover main.go
+	go build -v -race -o bin/glover main.go
 
 .PHONY: clean
 clean:
@@ -18,7 +18,19 @@ clean:
 
 .PHONY: run-dev
 run-dev:
+	make -j3 templates-watch tailwind-watch server-watch
+
+.PHONY: server-watch
+server-watch:
 	air
+
+.PHONY: templates
+templates:
+	templ generate components
+
+.PHONY: templates-watch
+templates-watch:
+	templ generate --watch components
 
 .PHONY: tailwind
 tailwind:

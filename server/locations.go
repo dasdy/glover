@@ -1,5 +1,7 @@
 package server
 
+import "glover/components"
+
 // var locations = map[int]Location{
 // 	// Left, 1st row
 // 	0: {0, 0},
@@ -114,7 +116,7 @@ package server
 // other keyboards are properly the same. Maybe make this configurable?
 // info.json for zmk-configurator seems close enough...
 // https://github.com/nickcoutsos/keymap-editor-contrib
-var locationsOnGrid = map[int]Location{
+var locationsOnGrid = map[int]components.Location{
 	// Left, 1st row
 	0: {0, 0},
 	1: {0, 1},

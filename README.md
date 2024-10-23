@@ -12,6 +12,10 @@ for this. For example, in my `glove80.conf`, I have this line:
 CONFIG_ZMK_USB_LOGGING=y
 ```
 
+I am not aware of any way to enable similar feature of key logging without
+a need for usb connection, so currently there's no other option other than
+putting the line above to your keyboards' config and using it via usb.
+
 ## Run
 
 ### Track
@@ -38,21 +42,12 @@ In case if you don't need active key tracking, you can only run the web interfac
 
 ### Live-reload
 
-For continuous updates, it's easy to use [air](github.com/air-verse/air).
-I tested this repo with `v1.61.1`
+For development, it's easy to use [air](github.com/air-verse/air).
+I tested this repo with `v1.61.1`. You will also need a [tailwind-cli](https://tailwindcss.com/blog/standalone-cli)
+and [templ](https://templ.guide/quick-start/installation#go-install) in your PATH.
 
 ```shell
 make run-dev
-```
-
-### Tailwind
-
-For active development you'll need a [tailwind-cli](https://tailwindcss.com/blog/standalone-cli)
-somewhere in your PATH. To re-generate css if you are actively working on html
-templates, run
-
-```shell
-make tailwind-watch
 ```
 
 ### Tests

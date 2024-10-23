@@ -2,9 +2,10 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	cs "glover/components"
 	"glover/db"
-	"html/template"
 	"log"
 	"net/http"
 )
@@ -12,25 +13,6 @@ import (
 type ServerHandler struct {
 	Storage db.Storage
 }
-
-type Item struct {
-	Position string
-	Label    string
-	Visible  bool
-}
-
-type RenderContext struct {
-	TotalCols int
-	Items     []Item
-	MaxVal    int
-}
-
-type Location struct {
-	Row int
-	Col int
-}
-
-var tpl *template.Template = template.Must(template.ParseFiles("templates/heatmap.gohtml"))
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	log.Print("Got request to stats page")
@@ -48,7 +30,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	maxVal := 0
 
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[Location]db.MinimalKeyEvent)
+	groupedItems := make(map[cs.Location]db.MinimalKeyEvent)
 	for _, key := range locationsOnGrid {
 		groupedItems[key] = db.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
 	}
@@ -69,13 +51,13 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 			maxVal = key.Count
 		}
 
-		groupedItems[Location{Row: loc.Row, Col: loc.Col}] = key
+		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}] = key
 	}
 
 	// Iterate over total grid and add real and hidden items.
 	// TODO: can this be done without a bunch of hidden items?
-	items := make([]Item, 0)
-	l := Location{0, 0}
+	items := make([]cs.Item, 0)
+	l := cs.Location{Row: 0, Col: 0}
 	for i := 0; i <= totalRows; i++ {
 		for j := 0; j <= totalCols; j++ {
 
@@ -83,19 +65,21 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 			l.Col = j
 
 			item, ok := groupedItems[l]
-			elementId := fmt.Sprintf("%d", item.Position)
 			if ok {
 				// items = append(items, Item{fmt.Sprintf("(%d %d): %d", item.Row, item.Col, item.Count), true})
-				items = append(items, Item{elementId, fmt.Sprintf("%d", item.Count), true})
+				items = append(items, cs.Item{Position: item.Position, Label: fmt.Sprintf("%d", item.Count), Visible: true})
 			} else {
-				items = append(items, Item{elementId, "-", false})
+				items = append(items, cs.Item{Position: item.Position, Label: "-", Visible: false})
 			}
 		}
 	}
 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
-	err = tpl.Execute(&buf, RenderContext{18, items, maxVal})
+	component := cs.HeatMap(
+		&cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal},
+	)
+	err = component.Render(context.Background(), &buf)
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
 		// fmt.Fprintf(w, "Could not render: %s", err.Error())

@@ -1,0 +1,72 @@
+package components
+
+import "fmt"
+
+templ HeatMap(c *RenderContext) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta http-equiv="refresh" content="600"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Glove80 Key Heatmap</title>
+			<link rel="stylesheet" href="/assets/css/styles.css"/>
+			<link rel="stylesheet" href="/assets/css/output.css"/>
+		</head>
+		<body class="bg-amber-100">
+			<div class="flex flex-col items-center justify-center">
+				<div id="keysgrid" class="mt-20 inline-grid grid-cols-12 gap-1">
+					for _, item := range c.Items {
+						@key(&item)
+					}
+				</div>
+				@slider(fmt.Sprintf("%d", c.MaxVal))
+			</div>
+			<script src="/assets/js/colorize.js"></script>
+			<script>
+        var slider = document.getElementById("colorClipRange");
+        var output = document.getElementById("colorClipSpan");
+
+        // Update the current slider value (each time you drag the slider handle)
+        slider.oninput = function () {
+            output.innerHTML = this.value;
+            colorize(this.value)
+        }
+        slider.oninput()
+    </script>
+		</body>
+	</html>
+}
+
+templ key(item *Item) {
+	<div class="aspect-square">
+		if item.Visible {
+			<div
+				class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4"
+			>
+				<span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
+				<span id={ fmt.Sprintf("keys-pressed-%d", item.Position) } class="keys-pressed font-semibold">
+					{ 
+            item.Label }
+				</span>
+			</div>
+		} else {
+			<div class="grid-item-hidden"></div>
+		}
+	</div>
+}
+
+templ slider(maxVal string) {
+	<div class="slidecontainer flex w-6/12 flex-row">
+		<label for="colorClipRange" class="mr-1 content-center align-middle">Color Clipping at:</label>
+		<input
+			type="range"
+			min="1"
+			max={ maxVal }
+			value={ maxVal }
+			class="slider mt-1 h-12 w-9/12"
+			step="10"
+			id="colorClipRange"
+		/>
+		<span id="colorClipSpan" class="ml-1 content-center align-middle">{ maxVal }</span>
+	</div>
+}
