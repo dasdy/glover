@@ -1,13 +1,9 @@
 package db
 
 import (
-	"cmp"
 	"database/sql"
-	"fmt"
 	"glover/keylog/parser"
 	"log"
-	"slices"
-	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -102,7 +98,7 @@ func (s *SQLiteStorage) GatherAll() ([]MinimalKeyEvent, error) {
 }
 
 type ComboKey struct {
-	Row, Col, Position int
+	Position int
 }
 
 type keyState struct {
@@ -117,125 +113,90 @@ type Combo struct {
 
 func (s *SQLiteStorage) GatherCombos(length int) ([]Combo, error) {
 	rows, err := s.db.Query(
-		`select row, col, position, pressed, ts 
+		`select position, pressed, ts 
         from keypresses
         order by ts`)
 	if err != nil {
 		return nil, err
 	}
-
-	comboKeys := make([][]ComboKey, 0)
-
 	defer rows.Close()
 
-	// TODO: measure performance, compare with using pre-allocated arrays (we should know total # of keys right?)
-	keys := make(map[int]ComboKey)
-	// position -> "pressed"
-	curState := make(map[int]*keyState)
+	return ScanForCombos(rows, length)
+}
 
-	for rows.Next() {
-		var row, col, position int
+func ScanForCombos(cursor *sql.Rows, length int) ([]Combo, error) {
+	counter := make(map[keyHash]*Combo)
+	keys := make([]*ComboKey, 100)
+	curState := make([]*keyState, 100)
+
+	for cursor.Next() {
+		var position int
 		var pressed bool
 		var ts time.Time
 
-		err = rows.Scan(&row, &col, &position, &pressed, &ts)
+		err := cursor.Scan(&position, &pressed, &ts)
 		if err != nil {
 			return nil, err
 		}
-		key := ComboKey{Row: row, Col: col, Position: position}
-		keys[position] = key
+
+		if keys[position] == nil {
+			key := ComboKey{Position: position}
+			keys[position] = &key
+		}
 
 		curState[position] = &keyState{pressed, ts}
 
 		pressedKeys := make([]ComboKey, 0)
 		for k, p := range curState {
+			if p == nil {
+				continue
+			}
 			// Ignore key states that have been "true" for too long - for cases when keypress was kost
 			if p.pressed && ts.Sub(p.timeWhen) > 2*time.Second {
 				p.pressed = false
 			}
 
 			if p.pressed {
-				pressedKeys = append(pressedKeys, keys[k])
+				pressedKeys = append(pressedKeys, *keys[k])
 			}
 		}
 
-		// log.Printf("Current key: %v; pressedKeys: %+v", key, pressedKeys)
-
 		if len(pressedKeys) >= length {
-			comboKeys = append(comboKeys, pressedKeys)
+			id := comboKeyIdFast(pressedKeys)
+			v, ok := counter[id]
+			if !ok {
+				counter[id] = &Combo{Keys: pressedKeys, Pressed: 1}
+			} else {
+				v.Pressed++
+			}
 		}
-	}
-
-	// TODO: do this during the main loop to avoid double-processing same-ish data
-	return countCombos(comboKeys), nil
-}
-
-func countCombos(keys [][]ComboKey) []Combo {
-	counter := make(map[string]Combo)
-
-	for _, combo := range keys {
-		id := comboKeyId(combo)
-
-		v, ok := counter[id]
-		if !ok {
-			v = Combo{Keys: combo, Pressed: 1}
-		} else {
-			v.Pressed++
-		}
-		counter[id] = v
 	}
 
 	result := make([]Combo, 0)
 	for _, v := range counter {
-		result = append(result, v)
+		result = append(result, *v)
 	}
-
-	// TODO: this sort might be not useful outside of tests, but maybe it's not that slow
-	// (we are only looking at <200 rows here). Measure how long does it take.
-	slices.SortFunc(result, func(a, b Combo) int {
-		baseCmp := cmp.Or(
-			-cmp.Compare(a.Pressed, b.Pressed),
-			cmp.Compare(len(a.Keys), len(b.Keys)),
-		)
-		if baseCmp != 0 {
-			return baseCmp
-		}
-
-		// if a.keys has different length than b.keys, we wouldn't be here.
-		for i := 0; i < len(a.Keys); i++ {
-			ak := a.Keys[i]
-			bk := b.Keys[i]
-			keyCmp := cmp.Or(
-				cmp.Compare(ak.Row, bk.Row),
-				cmp.Compare(ak.Col, bk.Col),
-				cmp.Compare(ak.Position, bk.Position),
-			)
-			if keyCmp != 0 {
-				return keyCmp
-			}
-		}
-		return 0
-	})
-
-	return result
+	return result, nil
 }
 
-func comboKeyId(keys []ComboKey) string {
-	slices.SortFunc(keys, func(a, b ComboKey) int {
-		return cmp.Or(
-			cmp.Compare(a.Position, b.Position),
-			cmp.Compare(a.Row, b.Row),
-			cmp.Compare(a.Col, b.Col),
-		)
-	})
+type keyHash struct {
+	high int32
+	low  int64
+}
 
-	res := strings.Builder{}
+func comboKeyIdFast(keys []ComboKey) keyHash {
+	result := keyHash{}
 
 	for _, key := range keys {
-		res.WriteString(fmt.Sprintf("(%d|%d|%d)", key.Row, key.Col, key.Position))
+		if key.Position < 64 {
+			result.low = result.low | (1 << key.Position)
+		} else {
+			position := key.Position % 64
+			result.high = result.high | (1 << position)
+		}
 	}
 
-	return res.String()
+	return result
 }
 
 func (s *SQLiteStorage) Close() {

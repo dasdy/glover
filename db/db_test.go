@@ -1,11 +1,13 @@
 package db_test
 
 import (
+	"cmp"
 	"database/sql"
 	"glover/db"
 	"glover/keylog/parser"
 	"log"
 	"os"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -34,6 +36,31 @@ func mockEvents(keyPositions []int) []parser.KeyEvent {
 	}
 
 	return values
+}
+
+func sortCombos(result []db.Combo) {
+	// TODO: this sort might be not useful outside of tests, but maybe it's not that slow
+	// (we are only looking at <200 rows here). Measure how long does it take.
+	slices.SortFunc(result, func(a, b db.Combo) int {
+		baseCmp := cmp.Or(
+			-cmp.Compare(a.Pressed, b.Pressed),
+			cmp.Compare(len(a.Keys), len(b.Keys)),
+		)
+		if baseCmp != 0 {
+			return baseCmp
+		}
+
+		// if a.keys has different length than b.keys, we wouldn't be here.
+		for i := 0; i < len(a.Keys); i++ {
+			ak := a.Keys[i]
+			bk := b.Keys[i]
+			keyCmp := cmp.Compare(ak.Position, bk.Position)
+			if keyCmp != 0 {
+				return keyCmp
+			}
+		}
+		return 0
+	})
 }
 
 func TestConnectToMemoryDB(t *testing.T) {
@@ -155,7 +182,7 @@ func TestGatherCombos(t *testing.T) {
 		assert.Len(t, items, 0)
 	})
 
-	t.Run("returns plain item count for len 1", func(t *testing.T) {
+	t.Run("returns one combo", func(t *testing.T) {
 		conn, error := sql.Open("sqlite3", ":memory:")
 
 		db.InitDbStorage(conn)
@@ -187,8 +214,8 @@ func TestGatherCombos(t *testing.T) {
 		assert.Equal(t, []db.Combo{
 			{
 				[]db.ComboKey{
-					{1, 1, 1},
-					{2, 2, 2},
+					{1},
+					{2},
 				},
 				1,
 			},
@@ -224,33 +251,35 @@ func TestGatherCombos(t *testing.T) {
 		combos, error := storage.GatherCombos(2)
 		assert.NoError(t, error)
 
+		sortCombos(combos)
+
 		assert.Equal(t, []db.Combo{
 			{
 				[]db.ComboKey{
-					{1, 1, 1},
-					{2, 2, 2},
+					{1},
+					{2},
 				},
 				1,
 			},
 			{
 				[]db.ComboKey{
-					{1, 1, 1},
-					{3, 3, 3},
+					{1},
+					{3},
 				},
 				1,
 			},
 			{
 				[]db.ComboKey{
-					{1, 1, 1},
-					{4, 4, 4},
+					{1},
+					{4},
 				},
 				1,
 			},
 			{
 				[]db.ComboKey{
-					{1, 1, 1},
-					{3, 3, 3},
-					{4, 4, 4},
+					{1},
+					{3},
+					{4},
 				},
 				1,
 			},
@@ -261,13 +290,84 @@ func TestGatherCombos(t *testing.T) {
 		storage, error := db.ConnectDB("./../keypresses.sqlite")
 		assert.NoError(t, error)
 
-		items, error := storage.GatherCombos(2)
+		_, error = storage.GatherCombos(2)
 		assert.NoError(t, error)
 
-		log.Println("Combos:[")
-		for _, i := range items {
-			log.Printf("%v", i)
-		}
-		log.Println("]")
+		// log.Println("Combos:[")
+		// for _, i := range items {
+		// 	log.Printf("%v", i)
+		// }
+		// log.Println("]")
 	})
+}
+
+func copyToMem(path string) (*sql.DB, error) {
+	conn, error := sql.Open("sqlite3", path)
+	if error != nil {
+		return nil, error
+	}
+	memConn, error := sql.Open("sqlite3", ":memory:")
+	if error != nil {
+		return nil, error
+	}
+	error = db.InitDbStorage(memConn)
+
+	if error != nil {
+		return nil, error
+	}
+
+	rows, error := conn.Query(
+		`select row, col, position, pressed, ts 
+        from keypresses
+        order by ts`)
+
+	if error != nil {
+		return nil, error
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var row, col, position int
+		var pressed bool
+		var ts time.Time
+
+		err := rows.Scan(&row, &col, &position, &pressed, &ts)
+		if err != nil {
+			return nil, err
+		}
+
+		_, error := memConn.Exec(`insert into keypresses(row, col, position, pressed, ts)
+	    values(?, ?, ?, ?, ?)`,
+			row, col, position, pressed, ts)
+
+		if error != nil {
+			return nil, error
+		}
+
+	}
+
+	return memConn, error
+}
+
+func BenchmarkFaster(b *testing.B) {
+	conn, error := copyToMem("./../keypresses.sqlite")
+	if error != nil {
+		b.Fatal(error)
+	}
+	stmt, error := conn.Prepare(`select position, pressed, ts from keypresses order by ts`)
+	if error != nil {
+		b.Fatal(error)
+	}
+	for i := 0; i < b.N; i++ {
+		rows, error := stmt.Query()
+		if error != nil {
+			b.Fatal(error)
+		}
+
+		_, error = db.ScanForCombos(rows, 2)
+		if error != nil {
+			b.Fatal(error)
+		}
+	}
 }
