@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"database/sql"
 	"glover/db"
 	"glover/keylog/parser"
 	"log"
@@ -11,6 +12,29 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func mockEvents(keyPositions []int) []parser.KeyEvent {
+	// Every position in array is an event. Repeating positions like 5,5 will
+	// result in making two events: first with pressed = True, second with pressed=false
+	// Also, row/col locations get jumbled up a bit because I don't really care here abt them, just make
+	// them unique for the input range (0-79)
+	state := make(map[int]parser.KeyEvent)
+	values := make([]parser.KeyEvent, 0)
+
+	for _, pos := range keyPositions {
+		event, ok := state[pos]
+		if !ok {
+			event = parser.KeyEvent{Row: pos, Col: pos, Position: pos, Pressed: true}
+		} else {
+			event.Pressed = !event.Pressed
+		}
+		state[pos] = event
+		values = append(values, event)
+
+	}
+
+	return values
+}
 
 func TestConnectToMemoryDB(t *testing.T) {
 	t.Run("should insert and gather correctly", func(t *testing.T) {
@@ -117,5 +141,133 @@ func TestRaceCondition(t *testing.T) {
 		items, err := storage.GatherAll()
 		assert.NoError(t, err)
 		assert.Len(t, items, 1)
+	})
+}
+
+func TestGatherCombos(t *testing.T) {
+	t.Run("returns empty combos by default", func(t *testing.T) {
+		storage, error := db.ConnectDB(":memory:")
+		assert.NoError(t, error)
+
+		items, error := storage.GatherCombos(2)
+
+		assert.NoError(t, error)
+		assert.Len(t, items, 0)
+	})
+
+	t.Run("returns plain item count for len 1", func(t *testing.T) {
+		conn, error := sql.Open("sqlite3", ":memory:")
+
+		db.InitDbStorage(conn)
+
+		storage := db.NewStorage(conn)
+
+		assert.NoError(t, error)
+		positions := []int{
+			1, 2,
+			1, 2,
+		}
+		events := mockEvents(positions)
+		log.Printf("Events: %+v", events)
+
+		curTime := time.Now()
+
+		for _, event := range events {
+			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
+	    values(?, ?, ?, ?, ?)`,
+				event.Row, event.Col, event.Position, event.Pressed, curTime)
+			assert.NoError(t, err)
+
+			curTime = curTime.Add(100 * time.Millisecond)
+		}
+
+		combos, error := storage.GatherCombos(2)
+		assert.NoError(t, error)
+
+		assert.Equal(t, []db.Combo{
+			{
+				[]db.ComboKey{
+					{1, 1, 1},
+					{2, 2, 2},
+				},
+				1,
+			},
+		}, combos)
+	})
+	t.Run("returns plain item count for complicated thing", func(t *testing.T) {
+		conn, error := sql.Open("sqlite3", ":memory:")
+
+		db.InitDbStorage(conn)
+
+		storage := db.NewStorage(conn)
+
+		assert.NoError(t, error)
+		positions := []int{
+			1, 2,
+			1, 2,
+			3, 1, 4, 3, 4, 1,
+		}
+		events := mockEvents(positions)
+		log.Printf("Events: %+v", events)
+
+		curTime := time.Now()
+
+		for _, event := range events {
+			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
+	    values(?, ?, ?, ?, ?)`,
+				event.Row, event.Col, event.Position, event.Pressed, curTime)
+			assert.NoError(t, err)
+
+			curTime = curTime.Add(100 * time.Millisecond)
+		}
+
+		combos, error := storage.GatherCombos(2)
+		assert.NoError(t, error)
+
+		assert.Equal(t, []db.Combo{
+			{
+				[]db.ComboKey{
+					{1, 1, 1},
+					{2, 2, 2},
+				},
+				1,
+			},
+			{
+				[]db.ComboKey{
+					{1, 1, 1},
+					{3, 3, 3},
+				},
+				1,
+			},
+			{
+				[]db.ComboKey{
+					{1, 1, 1},
+					{4, 4, 4},
+				},
+				1,
+			},
+			{
+				[]db.ComboKey{
+					{1, 1, 1},
+					{3, 3, 3},
+					{4, 4, 4},
+				},
+				1,
+			},
+		}, combos)
+	})
+
+	t.Run("show other combos", func(t *testing.T) {
+		storage, error := db.ConnectDB("./../keypresses.sqlite")
+		assert.NoError(t, error)
+
+		items, error := storage.GatherCombos(2)
+		assert.NoError(t, error)
+
+		log.Println("Combos:[")
+		for _, i := range items {
+			log.Printf("%v", i)
+		}
+		log.Println("]")
 	})
 }
