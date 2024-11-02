@@ -350,7 +350,7 @@ func copyToMem(path string) (*sql.DB, error) {
 	return memConn, error
 }
 
-func BenchmarkFaster(b *testing.B) {
+func BenchmarkComboScan(b *testing.B) {
 	conn, error := copyToMem("./../keypresses.sqlite")
 	if error != nil {
 		b.Fatal(error)

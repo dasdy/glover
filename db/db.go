@@ -27,10 +27,16 @@ func NewStorage(db *sql.DB) SQLiteStorage {
 func InitDbStorage(db *sql.DB) error {
 	// TODO: add indices over row-col-position?
 	sqlStmt := `
-	create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);
-	`
+	create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);`
 
 	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		log.Printf("%q: %v\n", err, sqlStmt)
+		return err
+	}
+
+	sqlStmt = ` create index if not exists keypresses_tsix on keypresses (ts ASC);`
+	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
 		return err
@@ -172,7 +178,7 @@ func ScanForCombos(cursor *sql.Rows, length int) ([]Combo, error) {
 		}
 	}
 
-	result := make([]Combo, 0)
+	result := make([]Combo, 0, len(counter))
 	for _, v := range counter {
 		result = append(result, *v)
 	}
