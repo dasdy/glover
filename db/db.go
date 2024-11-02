@@ -128,6 +128,7 @@ func (s *SQLiteStorage) GatherCombos(length int) ([]Combo, error) {
 
 	defer rows.Close()
 
+	// TODO: measure performance, compare with using pre-allocated arrays (we should know total # of keys right?)
 	keys := make(map[int]ComboKey)
 	// position -> "pressed"
 	curState := make(map[int]*keyState)
@@ -158,13 +159,14 @@ func (s *SQLiteStorage) GatherCombos(length int) ([]Combo, error) {
 			}
 		}
 
-		log.Printf("Current key: %v; pressedKeys: %+v", key, pressedKeys)
+		// log.Printf("Current key: %v; pressedKeys: %+v", key, pressedKeys)
 
 		if len(pressedKeys) >= length {
 			comboKeys = append(comboKeys, pressedKeys)
 		}
 	}
 
+	// TODO: do this during the main loop to avoid double-processing same-ish data
 	return countCombos(comboKeys), nil
 }
 
@@ -188,6 +190,8 @@ func countCombos(keys [][]ComboKey) []Combo {
 		result = append(result, v)
 	}
 
+	// TODO: this sort might be not useful outside of tests, but maybe it's not that slow
+	// (we are only looking at <200 rows here). Measure how long does it take.
 	slices.SortFunc(result, func(a, b Combo) int {
 		baseCmp := cmp.Or(
 			-cmp.Compare(a.Pressed, b.Pressed),

@@ -1,9 +1,10 @@
 package components
 
 type Item struct {
-	Position int
-	Label    string
-	Visible  bool
+	Position  int
+	Label     string
+	Visible   bool
+	Highlight bool
 }
 
 type RenderContext struct {
