@@ -1,0 +1,19 @@
+<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"600\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Glove80 Key Heatmap</title><link rel=\"stylesheet\" href=\"/assets/css/styles.css\"><link rel=\"stylesheet\" href=\"/assets/css/output.css\"></head><body class=\"bg-amber-100\"><div class=\"flex flex-col items-center justify-center\"><h1 class=\"text-xl mt-10\"><a href=\"/\">Home</a></h1><div id=\"keysgrid\" class=\"mt-4 inline-grid grid-cols-12 gap-1\">
+</div>
+</div><script src=\"/assets/js/colorize.js\"></script><script>\n        var slider = document.getElementById(\"colorClipRange\");\n        var output = document.getElementById(\"colorClipSpan\");\n\n        // Update the current slider value (each time you drag the slider handle)\n        slider.oninput = function () {\n            output.innerHTML = this.value;\n            colorize(this.value)\n        }\n        slider.oninput()\n    </script></body></html>
+<a href=\"
+\"><div class=\"aspect-square\">
+<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4\"><span id=\"
+\">A </span> <span id=\"
+\" class=\"keys-pressed font-semibold\">
+</span></div>
+<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 border-solid border-red-500 p-4\"><span id=\"
+\">A </span> <span id=\"
+\" class=\"keys-pressed font-semibold\">
+</span></div>
+<div class=\"grid-item-hidden\"></div>
+</div></a>
+<div class=\"slidecontainer flex w-6/12 flex-row\"><label for=\"colorClipRange\" class=\"mr-1 content-center align-middle\">Color Clipping at:</label> <input type=\"range\" min=\"1\" max=\"
+\" value=\"
+\" class=\"slider mt-1 h-12 w-9/12\" step=\"10\" id=\"colorClipRange\"> <span id=\"colorClipSpan\" class=\"ml-1 content-center align-middle\">
+</span></div>

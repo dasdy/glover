@@ -16,7 +16,8 @@ templ HeatMap(c *RenderContext) {
 
 <body class="bg-amber-100">
     <div class="flex flex-col items-center justify-center">
-        <div id="keysgrid" class="mt-20 inline-grid grid-cols-12 gap-1">
+        <h1 class="text-xl mt-10"><a href="/">Home</a></h1>
+        <div id="keysgrid" class="mt-4 inline-grid grid-cols-12 gap-1">
             for _, item := range c.Items {
             @key(&item)
             }
@@ -41,31 +42,33 @@ templ HeatMap(c *RenderContext) {
 }
 
 templ key(item *Item) {
-<div class="aspect-square">
-    if item.Visible {
-    if !item.Highlight {
-    <div
-        class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4">
-        <span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
-        <span id={ fmt.Sprintf("keys-pressed-%d", item.Position) } class="keys-pressed font-semibold">
-            {
-            item.Label }
-        </span>
+<a href={ templ.URL(fmt.Sprintf("/combo?position=%d", item.Position)) }>
+    <div class="aspect-square">
+        if item.Visible {
+        if !item.Highlight {
+        <div
+            class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4">
+            <span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
+            <span id={ fmt.Sprintf("keys-pressed-%d", item.Position) } class="keys-pressed font-semibold">
+                {
+                item.Label }
+            </span>
+        </div>
+        } else {
+        <div
+            class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 border-solid border-red-500 p-4">
+            <span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
+            <span id={ fmt.Sprintf("keys-pressed-%d", item.Position) } class="keys-pressed font-semibold">
+                {
+                item.Label }
+            </span>
+        </div>
+        }
+        } else {
+        <div class="grid-item-hidden"></div>
+        }
     </div>
-    } else {
-    <div
-        class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 border-solid border-red-500 p-4">
-        <span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
-        <span id={ fmt.Sprintf("keys-pressed-%d", item.Position) } class="keys-pressed font-semibold">
-            {
-            item.Label }
-        </span>
-    </div>
-    }
-    } else {
-    <div class="grid-item-hidden"></div>
-    }
-</div>
+</a>
 }
 
 templ slider(maxVal string) {
