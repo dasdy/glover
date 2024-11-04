@@ -83,7 +83,6 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	err = component.Render(context.Background(), &buf)
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
-		// fmt.Fprintf(w, "Could not render: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -92,7 +91,11 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	// Now, copy it over to the ResponseWriter
 	// This implies a 200 OK status code
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	buf.WriteTo(w)
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		log.Printf("Could not render: %s", err.Error())
+		return
+	}
 }
 
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
@@ -206,7 +209,11 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	// Now, copy it over to the ResponseWriter
 	// This implies a 200 OK status code
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	buf.WriteTo(w)
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		log.Printf("Could not render: %s", err.Error())
+		return
+	}
 }
 
 func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {

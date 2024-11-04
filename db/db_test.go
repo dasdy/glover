@@ -185,7 +185,10 @@ func TestGatherCombos(t *testing.T) {
 	t.Run("returns one combo", func(t *testing.T) {
 		conn, error := sql.Open("sqlite3", ":memory:")
 
-		db.InitDbStorage(conn)
+		assert.NoError(t, error)
+		error = db.InitDbStorage(conn)
+
+		assert.NoError(t, error)
 
 		storage := db.NewStorage(conn)
 
@@ -224,8 +227,10 @@ func TestGatherCombos(t *testing.T) {
 	t.Run("returns plain item count for complicated thing", func(t *testing.T) {
 		conn, error := sql.Open("sqlite3", ":memory:")
 
-		db.InitDbStorage(conn)
+		assert.NoError(t, error)
+		error = db.InitDbStorage(conn)
 
+		assert.NoError(t, error)
 		storage := db.NewStorage(conn)
 
 		assert.NoError(t, error)

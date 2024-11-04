@@ -195,10 +195,10 @@ func comboKeyIdFast(keys []ComboKey) keyHash {
 
 	for _, key := range keys {
 		if key.Position < 64 {
-			result.low = result.low | (1 << key.Position)
+			result.low |= (1 << key.Position)
 		} else {
 			position := key.Position % 64
-			result.high = result.high | (1 << position)
+			result.high |= (1 << position)
 		}
 	}
 
