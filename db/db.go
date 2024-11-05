@@ -61,7 +61,7 @@ func ConnectDB(path string) (Storage, error) {
 
 func (s *SQLiteStorage) Store(event *parser.KeyEvent) error {
 	_, err := s.db.Exec(`insert into keypresses(row, col, position, pressed, ts)
-	    values(?, ?, ?, ?, datetime('now'))`,
+	    values(?, ?, ?, ?, datetime('now', 'subsec'))`,
 		event.Row, event.Col, event.Position, event.Pressed)
 	if err != nil {
 		return err
