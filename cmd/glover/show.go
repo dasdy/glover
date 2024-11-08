@@ -1,14 +1,14 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package glover
 
 import (
 	"fmt"
-	"glover/db"
-	"glover/server"
 	"log"
-	"net/http"
+
+	"github.com/dasdy/glover/db"
+	"github.com/dasdy/glover/web"
 
 	"github.com/spf13/cobra"
 )
@@ -16,29 +16,18 @@ import (
 // showCmd represents the show command
 var showCmd = &cobra.Command{
 	Use:   "show",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Show collected statistics",
+	Long:  `Use log data collected by track command to show web interface with statistics.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("show called")
 
 		log.Printf("Output file: %s\n", storagePath)
 		storage, err := db.ConnectDB(storagePath)
 		if err != nil {
-			return fmt.Errorf("Could not open %s as sqlite file: %w", storagePath, err)
+			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}
 		defer storage.Close()
-		log.Printf("Runnint interface on port %d\n", port)
-		err = http.ListenAndServe(
-			fmt.Sprintf(":%d", port),
-			server.BuildServer(storage, dev))
-		if err != nil {
-			log.Fatalf("Could not run server: %s", err)
-		}
+		web.StartServer(port, storage, dev)
 
 		return nil
 	},

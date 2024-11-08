@@ -2,17 +2,18 @@ package db
 
 import (
 	"database/sql"
-	"glover/keylog/parser"
 	"log"
 	"time"
+
+	"github.com/dasdy/glover/model"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage interface {
-	Store(event *parser.KeyEvent) error
-	GatherAll() ([]MinimalKeyEvent, error)
-	GatherCombos(length int) ([]Combo, error)
+	Store(event *model.KeyEvent) error
+	GatherAll() ([]model.MinimalKeyEvent, error)
+	GatherCombos(length int) ([]model.Combo, error)
 	Close()
 }
 
@@ -59,7 +60,7 @@ func ConnectDB(path string) (Storage, error) {
 	return &SQLiteStorage{db}, nil
 }
 
-func (s *SQLiteStorage) Store(event *parser.KeyEvent) error {
+func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 	_, err := s.db.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, datetime('now', 'subsec'))`,
 		event.Row, event.Col, event.Position, event.Pressed)
@@ -69,11 +70,7 @@ func (s *SQLiteStorage) Store(event *parser.KeyEvent) error {
 	return nil
 }
 
-type MinimalKeyEvent struct {
-	Row, Col, Position, Count int
-}
-
-func (s *SQLiteStorage) GatherAll() ([]MinimalKeyEvent, error) {
+func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 	// TODO: position should be same for each row-col, in reality, maybe groupby can be simpler. But double-check that.
 	rows, err := s.db.Query(
 		`select row, col, position, count(*) as cnt
@@ -87,7 +84,7 @@ func (s *SQLiteStorage) GatherAll() ([]MinimalKeyEvent, error) {
 
 	defer rows.Close()
 
-	result := make([]MinimalKeyEvent, 0)
+	result := make([]model.MinimalKeyEvent, 0)
 
 	for rows.Next() {
 		var row, col, position, count int
@@ -97,14 +94,10 @@ func (s *SQLiteStorage) GatherAll() ([]MinimalKeyEvent, error) {
 			return nil, err
 		}
 
-		result = append(result, MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
+		result = append(result, model.MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
 	}
 
 	return result, nil
-}
-
-type ComboKey struct {
-	Position int
 }
 
 type keyState struct {
@@ -112,12 +105,7 @@ type keyState struct {
 	timeWhen time.Time
 }
 
-type Combo struct {
-	Keys    []ComboKey
-	Pressed int
-}
-
-func (s *SQLiteStorage) GatherCombos(length int) ([]Combo, error) {
+func (s *SQLiteStorage) GatherCombos(length int) ([]model.Combo, error) {
 	rows, err := s.db.Query(
 		`select position, pressed, ts 
         from keypresses
@@ -130,9 +118,9 @@ func (s *SQLiteStorage) GatherCombos(length int) ([]Combo, error) {
 	return ScanForCombos(rows, length)
 }
 
-func ScanForCombos(cursor *sql.Rows, length int) ([]Combo, error) {
-	counter := make(map[keyHash]*Combo)
-	keys := make([]*ComboKey, 100)
+func ScanForCombos(cursor *sql.Rows, length int) ([]model.Combo, error) {
+	counter := make(map[keyHash]*model.Combo)
+	keys := make([]*model.ComboKey, 100)
 	curState := make([]*keyState, 100)
 
 	for cursor.Next() {
@@ -146,13 +134,13 @@ func ScanForCombos(cursor *sql.Rows, length int) ([]Combo, error) {
 		}
 
 		if keys[position] == nil {
-			key := ComboKey{Position: position}
+			key := model.ComboKey{Position: position}
 			keys[position] = &key
 		}
 
 		curState[position] = &keyState{pressed, ts}
 
-		pressedKeys := make([]ComboKey, 0)
+		pressedKeys := make([]model.ComboKey, 0)
 		for k, p := range curState {
 			if p == nil {
 				continue
@@ -171,14 +159,14 @@ func ScanForCombos(cursor *sql.Rows, length int) ([]Combo, error) {
 			id := comboKeyIdFast(pressedKeys)
 			v, ok := counter[id]
 			if !ok {
-				counter[id] = &Combo{Keys: pressedKeys, Pressed: 1}
+				counter[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
 			} else {
 				v.Pressed++
 			}
 		}
 	}
 
-	result := make([]Combo, 0, len(counter))
+	result := make([]model.Combo, 0, len(counter))
 	for _, v := range counter {
 		result = append(result, *v)
 	}
@@ -190,7 +178,7 @@ type keyHash struct {
 	low  int64
 }
 
-func comboKeyIdFast(keys []ComboKey) keyHash {
+func comboKeyIdFast(keys []model.ComboKey) keyHash {
 	result := keyHash{}
 
 	for _, key := range keys {

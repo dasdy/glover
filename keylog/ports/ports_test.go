@@ -1,10 +1,11 @@
 package ports_test
 
 import (
-	"glover/keylog/ports"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/dasdy/glover/keylog/ports"
 
 	"github.com/stretchr/testify/assert"
 )

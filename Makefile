@@ -3,6 +3,15 @@ test:
 	mkdir -p ./tmp
 	go test -race -v -coverprofile=./tmp/c.out ./...
 
+.PHONY: benchmark
+benchmark:
+	go test ./... -bench=. -run=^#
+
+# .PHONY: profile
+# profile:
+# 	go test ./db/... -bench=. -benchtime=5s -cpuprofile ./tmp/cpu.prof -run=^#
+# 	go tool pprof -http=:8080 ./tmp/cpu.prof
+
 .PHONY: cover
 cover: test
 	 go tool cover -html=./tmp/c.out -o coverage.html
@@ -10,7 +19,7 @@ cover: test
 
 .PHONY: build
 build:
-	go build -v -race -o bin/glover main.go
+	go build -v -race -o bin/glover cmd/main.go
 
 .PHONY: clean
 clean:
@@ -26,19 +35,19 @@ server-watch:
 
 .PHONY: templates
 templates:
-	templ generate components
+	templ generate web/components
 
 .PHONY: templates-watch
 templates-watch:
-	templ generate --watch components
+	templ generate --watch web/components
 
 .PHONY: tailwind
 tailwind:
-	tailwindcss -i css/input.css -o assets/css/output.css
+	tailwindcss -i assets/css/tailwind_input.css -o assets/css/tailwind_output.css
 
 .PHONY: tailwind-watch
 tailwind-watch:
-	tailwindcss -i css/input.css -o assets/css/output.css --watch
+	tailwindcss -i assets/css/tailwind_input.css -o assets/css/tailwind_output.css --watch
 
 .PHONY: lint
 lint:

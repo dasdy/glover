@@ -1,6 +1,6 @@
-package server
+package web
 
-import "glover/components"
+import "github.com/dasdy/glover/web/components"
 
 // var locations = map[int]Location{
 // 	// Left, 1st row

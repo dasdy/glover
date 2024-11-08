@@ -1,14 +1,14 @@
-package cmd
+package glover
 
 import (
 	"fmt"
-	"glover/db"
-	"glover/keylog"
-	"glover/keylog/ports"
-	"glover/server"
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/dasdy/glover/db"
+	"github.com/dasdy/glover/keylog"
+	"github.com/dasdy/glover/keylog/ports"
+	"github.com/dasdy/glover/web"
 
 	"github.com/spf13/cobra"
 )
@@ -16,73 +16,55 @@ import (
 // trackCmd represents the track command
 var trackCmd = &cobra.Command{
 	Use:   "track",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Connect to attached keyboard and log keypresses",
+	Long: `Provide two paths to files to connect to, or leave empty to read from stdin.
+		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Printf("filenames: %+v\n", filenames)
-
 		fileCount := len(filenames)
 
 		if fileCount != 2 && fileCount != 0 {
 			return fmt.Errorf("expected exactly 0 or 2 files, got %d", len(filenames))
 		}
 
+		var ch <-chan string
 		if fileCount == 0 {
 			names, err := ports.GetAvailableDevices()
 			if err != nil {
 				return err
 			}
-
 			log.Printf("Suggested devices: %+v ", names)
-
 			log.Print("Will proceed to read from stdin...")
-		}
 
-		var ch <-chan string
-		var closer func()
-		var err error
-		if fileCount == 2 {
+			ch = ports.ReadFile(os.Stdin)
+		} else if fileCount == 2 {
+			var closer func()
+			var err error
 			ch, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
 			defer closer()
 			if err != nil {
 				// Try suggesting devices
 				names, errInner := ports.GetAvailableDevices()
 				if errInner != nil {
-					return fmt.Errorf("Could not open file: %w; Could not suggest devices: %w", err, errInner)
+					return fmt.Errorf("could not open file: %w; Could not suggest devices: %w", err, errInner)
 				}
 
 				if len(names) > 0 {
-					return fmt.Errorf("Error opening files: %w. Maybe try instead: %+v", err, names)
+					return fmt.Errorf("error opening files: %w. Maybe try instead: %+v", err, names)
 				} else {
-					return fmt.Errorf("Error opening files: %w. It does not seem like any keyboard is connected...", err)
+					return fmt.Errorf("error opening files: %w. It does not seem like any keyboard is connected", err)
 				}
 			}
-		} else {
-			ch = ports.ReadFile(os.Stdin)
 		}
 
 		log.Printf("Output file: %s\n", storagePath)
 		storage, err := db.ConnectDB(storagePath)
 		if err != nil {
-			return fmt.Errorf("Could not open %s as sqlite file: %w", storagePath, err)
+			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}
 		defer storage.Close()
 
 		if !disableInterface {
-			log.Printf("Runnint interface on port %d\n", port)
-			go func() {
-				err := http.ListenAndServe(
-					fmt.Sprintf(":%d", port),
-					server.BuildServer(storage, dev))
-				if err != nil {
-					log.Fatalf("Could not run server: %s", err)
-				}
-			}()
+			go web.StartServer(port, storage, dev)
 		}
 
 		log.Print("Main loop")

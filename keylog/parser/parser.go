@@ -5,16 +5,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/dasdy/glover/model"
 )
 
-type KeyEvent struct {
-	Row      int
-	Col      int
-	Position int
-	Pressed  bool
-}
-
-func ParseLine(line string) (*KeyEvent, error) {
+func ParseLine(line string) (*model.KeyEvent, error) {
 	splits := strings.Split(line, " ")
 
 	var (
@@ -70,14 +65,14 @@ func ParseLine(line string) (*KeyEvent, error) {
 		ix++
 	}
 	if foundCount == 4 {
-		return &KeyEvent{row, col, position, pressed}, nil
+		return &model.KeyEvent{row, col, position, pressed}, nil
 	}
 	return nil, nil
 }
 
 var pattern = regexp.MustCompile(`Row: (?P<row>\d+), col: (?P<col>\d+), position: (?P<pos>\d+), pressed: (?P<pres>true|false)`)
 
-func ParseLineRegex(line string) (*KeyEvent, error) {
+func ParseLineRegex(line string) (*model.KeyEvent, error) {
 	matches := pattern.FindStringSubmatch(line)
 
 	if matches == nil {
@@ -98,5 +93,5 @@ func ParseLineRegex(line string) (*KeyEvent, error) {
 	}
 	pressed := matches[4] == "true"
 
-	return &KeyEvent{row, col, pos, pressed}, nil
+	return &model.KeyEvent{row, col, pos, pressed}, nil
 }

@@ -1,9 +1,10 @@
 package keylog
 
 import (
-	"glover/db"
-	"glover/keylog/parser"
 	"log"
+
+	"github.com/dasdy/glover/db"
+	"github.com/dasdy/glover/keylog/parser"
 )
 
 func KeyLogLoop(ch <-chan string, storage db.Storage, enableLogs bool) {

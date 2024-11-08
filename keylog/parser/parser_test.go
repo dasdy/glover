@@ -2,8 +2,10 @@ package parser_test
 
 import (
 	"fmt"
-	"glover/keylog/parser"
 	"testing"
+
+	"github.com/dasdy/glover/keylog/parser"
+	"github.com/dasdy/glover/model"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,7 +13,7 @@ import (
 type parseLineTest struct {
 	name           string
 	line           string
-	expectedResult *parser.KeyEvent
+	expectedResult *model.KeyEvent
 }
 
 func TestParseLine(t *testing.T) {
@@ -20,12 +22,12 @@ func TestParseLine(t *testing.T) {
 		{
 			"correct full line",
 			`[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false`,
-			&parser.KeyEvent{2, 1, 23, false},
+			&model.KeyEvent{2, 1, 23, false},
 		},
 		{
 			"trims escape code at end",
 			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m",
-			&parser.KeyEvent{2, 1, 23, false},
+			&model.KeyEvent{2, 1, 23, false},
 		},
 	}
 
@@ -49,11 +51,11 @@ func TestParseLine(t *testing.T) {
 	}
 }
 
-var result *parser.KeyEvent
+var result *model.KeyEvent
 
 func BenchmarkParseLine(b *testing.B) {
 	line := "[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m"
-	var r *parser.KeyEvent
+	var r *model.KeyEvent
 	for i := 0; i < b.N; i++ {
 		r, _ = parser.ParseLine(line)
 	}
@@ -63,7 +65,7 @@ func BenchmarkParseLine(b *testing.B) {
 
 func BenchmarkParseLineRegex(b *testing.B) {
 	line := "[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m"
-	var r *parser.KeyEvent
+	var r *model.KeyEvent
 	for i := 0; i < b.N; i++ {
 		r, _ = parser.ParseLineRegex(line)
 	}

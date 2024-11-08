@@ -1,14 +1,16 @@
-package server
+package web
 
 import (
 	"bytes"
 	"context"
 	"fmt"
-	cs "glover/components"
-	"glover/db"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/dasdy/glover/db"
+	"github.com/dasdy/glover/model"
+	cs "github.com/dasdy/glover/web/components"
 )
 
 type ServerHandler struct {
@@ -31,9 +33,9 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	maxVal := 0
 
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[cs.Location]db.MinimalKeyEvent)
+	groupedItems := make(map[cs.Location]model.MinimalKeyEvent)
 	for _, key := range locationsOnGrid {
-		groupedItems[key] = db.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
+		groupedItems[key] = model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
 	}
 
 	// set non-zero items in the map
@@ -118,7 +120,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	combosToDisplay := make([]db.Combo, 0)
+	combosToDisplay := make([]model.Combo, 0)
 
 	for _, c := range combos {
 		if len(c.Keys) > 2 {
@@ -138,9 +140,9 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	maxVal := 0
 
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[cs.Location]*db.MinimalKeyEvent)
+	groupedItems := make(map[cs.Location]*model.MinimalKeyEvent)
 	for pos, key := range locationsOnGrid {
-		groupedItems[key] = &db.MinimalKeyEvent{Row: key.Row, Col: key.Col, Position: pos, Count: 0}
+		groupedItems[key] = &model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Position: pos, Count: 0}
 		if key.Row > totalRows {
 			totalRows = key.Row
 		}
@@ -237,4 +239,14 @@ func BuildServer(storage db.Storage, dev bool) *http.ServeMux {
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
 	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
 	return mux
+}
+
+func StartServer(port int, storage db.Storage, dev bool) {
+	log.Printf("Running interface on port %d\n", port)
+	err := http.ListenAndServe(
+		fmt.Sprintf(":%d", port),
+		BuildServer(storage, dev))
+	if err != nil {
+		log.Fatalf("Could not run server: %s", err)
+	}
 }
