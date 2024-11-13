@@ -45,7 +45,7 @@ func InitDbStorage(db *sql.DB) error {
 	return nil
 }
 
-func ConnectDB(path string) (Storage, error) {
+func ConnectDB(path string) (*SQLiteStorage, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		log.Fatal(err)
@@ -191,6 +191,39 @@ func comboKeyIdFast(keys []model.ComboKey) keyHash {
 	}
 
 	return result
+}
+
+func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
+	for _, input := range inputs {
+
+		rows, err := input.db.Query(`
+            select row, col, position, pressed, ts from keypresses
+        `)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var row, col, position int
+			var pressed bool
+			var ts time.Time
+
+			err = rows.Scan(&row, &col, &position, &pressed, &ts)
+			if err != nil {
+				return err
+			}
+
+			_, err := out.db.Exec(`
+                insert into keypresses(row, col, position, pressed, ts)
+	            values(?, ?, ?, ?, ?)`,
+				row, col, position, pressed, ts)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (s *SQLiteStorage) Close() {

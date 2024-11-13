@@ -79,16 +79,14 @@ func TestConnectToMemoryDB(t *testing.T) {
 		item := model.KeyEvent{Row: 0, Col: 0, Position: 0, Pressed: false}
 		for i := 0; i < 10; i++ {
 			item.Pressed = !item.Pressed
-			err := storage.Store(&item)
-			assert.NoError(t, err)
+			assert.NoError(t, storage.Store(&item))
 		}
 
 		item.Pressed = false
 		for i := 0; i < 5; i++ {
 			item.Col = i*2 + 1
 			item.Row = i + 12
-			err := storage.Store(&item)
-			assert.NoError(t, err)
+			assert.NoError(t, storage.Store(&item))
 		}
 
 		items, err = storage.GatherAll()
@@ -123,9 +121,7 @@ func TestRaceCondition(t *testing.T) {
 			event := model.KeyEvent{}
 		out:
 			for i := range 16_000 {
-				err := storage.Store(&event)
-
-				assert.NoError(t, err)
+				assert.NoError(t, storage.Store(&event))
 				// Writes can take all the cake from reads - give them some time to rest
 				if i%2000 == 0 {
 					// log.Println("Another 2k items written")
@@ -187,13 +183,11 @@ func TestGatherCombos(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
 
 		assert.NoError(t, err)
-		err = db.InitDbStorage(conn)
 
-		assert.NoError(t, err)
+		assert.NoError(t, db.InitDbStorage(conn))
 
 		storage := db.NewStorage(conn)
 
-		assert.NoError(t, err)
 		positions := []int{
 			1, 2,
 			1, 2,
@@ -229,12 +223,9 @@ func TestGatherCombos(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
 
 		assert.NoError(t, err)
-		err = db.InitDbStorage(conn)
-
-		assert.NoError(t, err)
+		assert.NoError(t, db.InitDbStorage(conn))
 		storage := db.NewStorage(conn)
 
-		assert.NoError(t, err)
 		positions := []int{
 			1, 2,
 			1, 2,
@@ -313,7 +304,6 @@ func copyToMem(path string) (*sql.DB, error) {
 		return nil, err
 	}
 	err = db.InitDbStorage(memConn)
-
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +312,6 @@ func copyToMem(path string) (*sql.DB, error) {
 		`select row, col, position, pressed, ts 
         from keypresses
         order by ts`)
-
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +331,6 @@ func copyToMem(path string) (*sql.DB, error) {
 		_, err = memConn.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, ?)`,
 			row, col, position, pressed, ts)
-
 		if err != nil {
 			return nil, err
 		}
@@ -372,4 +360,59 @@ func BenchmarkComboScan(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+func TestMergeDatabases(t *testing.T) {
+	t.Run("merges two storages successfully", func(t *testing.T) {
+		file1, err := os.CreateTemp("/tmp", "*.sqlite")
+		assert.NoError(t, err)
+		file2, err := os.CreateTemp("/tmp", "*.sqlite")
+		assert.NoError(t, err)
+
+		storage1, err := db.ConnectDB(file1.Name())
+		assert.NoError(t, err)
+		storage2, err := db.ConnectDB(file2.Name())
+		assert.NoError(t, err)
+		event1 := model.KeyEvent{
+			Row: 5, Col: 100, Position: 5, Pressed: false,
+		}
+		assert.NoError(t, storage1.Store(&event1))
+		event2 := model.KeyEvent{
+			Row: 102, Col: 110, Position: 6, Pressed: true,
+		}
+		assert.NoError(t, storage2.Store(&event2))
+
+		file3, err := os.CreateTemp("/tmp", "*.sqlite")
+		assert.NoError(t, err)
+
+		output, err := db.ConnectDB(file3.Name())
+
+		assert.NoError(t, db.Merge([]*db.SQLiteStorage{storage1, storage2}, output))
+
+		conn, err := sql.Open("sqlite3", file3.Name())
+		rows, err := conn.Query(
+			`select row, col, position, pressed, ts 
+        from keypresses
+        order by ts`)
+
+		assert.True(t, rows.Next())
+		var row, col, position int
+		var pressed bool
+		var ts time.Time
+
+		assert.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
+		assert.Equal(t,
+			event1,
+			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+		)
+
+		assert.True(t, rows.Next())
+		assert.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
+		assert.Equal(t,
+			event2,
+			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+		)
+
+		assert.False(t, rows.Next())
+	})
 }
