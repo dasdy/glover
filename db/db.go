@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dasdy/glover/model"
+	"github.com/schollz/progressbar/v3"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -193,8 +194,29 @@ func comboKeyIdFast(keys []model.ComboKey) keyHash {
 	return result
 }
 
+func (s *SQLiteStorage) count() (int, error) {
+	rows, err := s.db.Query("select count(*) from keypresses")
+	if err != nil {
+		return -1, err
+	}
+
+	var count int
+
+	rows.Next()
+
+	err = rows.Scan(&count)
+	if err != nil {
+		return -1, err
+	}
+	return count, nil
+}
+
 func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
-	for _, input := range inputs {
+	for i, input := range inputs {
+		count, err := input.count()
+		if err != nil {
+			return err
+		}
 
 		rows, err := input.db.Query(`
             select row, col, position, pressed, ts from keypresses
@@ -204,7 +226,12 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 		}
 		defer rows.Close()
 
+		log.Printf("processing input %d", i)
+
+		bar := progressbar.Default(int64(count), "Writing...")
+
 		for rows.Next() {
+			bar.Add(1)
 			var row, col, position int
 			var pressed bool
 			var ts time.Time

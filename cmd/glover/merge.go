@@ -1,6 +1,9 @@
 package glover
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/dasdy/glover/db"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +21,10 @@ var mergeCmd = &cobra.Command{
 				return err
 			}
 			inputs[i] = store
+		}
+
+		if _, err := os.Stat(storagePath); err == nil {
+			return fmt.Errorf("output file %s already exists", storagePath)
 		}
 
 		output, err := db.ConnectDB(storagePath)
