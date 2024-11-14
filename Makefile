@@ -53,5 +53,4 @@ tailwind-watch:
 .PHONY: lint
 lint:
 	golangci-lint run
-	go vet
 	prettier . --write
