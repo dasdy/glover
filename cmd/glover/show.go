@@ -9,11 +9,10 @@ import (
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/web"
-
 	"github.com/spf13/cobra"
 )
 
-// showCmd represents the show command
+// showCmd represents the show command.
 var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show collected statistics",

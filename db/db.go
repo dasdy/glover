@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/dasdy/glover/model"
-	"github.com/schollz/progressbar/v3"
-
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/schollz/progressbar/v3"
 )
 
 type Storage interface {

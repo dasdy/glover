@@ -19,11 +19,12 @@ cover: test
 
 .PHONY: build
 build:
-	go build -v -race -o bin/glover cmd/main.go
+	mkdir -p ./tmp
+	go build -v -race -o ./tmp/glover cmd/main.go
 
 .PHONY: clean
 clean:
-	rm -rvf bin tmp
+	rm -rvf tmp
 
 .PHONY: run-dev
 run-dev:

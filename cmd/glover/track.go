@@ -9,11 +9,10 @@ import (
 	"github.com/dasdy/glover/keylog"
 	"github.com/dasdy/glover/keylog/ports"
 	"github.com/dasdy/glover/web"
-
 	"github.com/spf13/cobra"
 )
 
-// trackCmd represents the track command
+// trackCmd represents the track command.
 var trackCmd = &cobra.Command{
 	Use:   "track",
 	Short: "Connect to attached keyboard and log keypresses",

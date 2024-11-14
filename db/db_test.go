@@ -12,7 +12,6 @@ import (
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/model"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +32,6 @@ func mockEvents(keyPositions []int) []model.KeyEvent {
 		}
 		state[pos] = event
 		values = append(values, event)
-
 	}
 
 	return values
@@ -318,7 +316,6 @@ func copyToMem(path string) (*sql.DB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-
 		var row, col, position int
 		var pressed bool
 		var ts time.Time
@@ -334,7 +331,6 @@ func copyToMem(path string) (*sql.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return memConn, err

@@ -6,7 +6,6 @@ import (
 
 	"github.com/dasdy/glover/keylog/parser"
 	"github.com/dasdy/glover/model"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,7 +46,6 @@ func TestParseLine(t *testing.T) {
 
 			assert.Equal(t, res, item.expectedResult)
 		})
-
 	}
 }
 

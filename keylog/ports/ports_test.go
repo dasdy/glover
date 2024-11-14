@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/dasdy/glover/keylog/ports"
-
 	"github.com/stretchr/testify/assert"
 )
 

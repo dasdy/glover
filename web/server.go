@@ -63,7 +63,6 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	l := cs.Location{Row: 0, Col: 0}
 	for i := 0; i <= totalRows; i++ {
 		for j := 0; j <= totalCols; j++ {
-
 			l.Row = i
 			l.Col = j
 
@@ -154,7 +153,6 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	// set non-zero items in the map
 	for _, combo := range combosToDisplay {
 		for _, key := range combo.Keys {
-
 			loc, ok := locationsOnGrid[key.Position]
 			if !ok {
 				log.Printf("Could not find position %d, wtf", key.Position)
@@ -175,7 +173,6 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	l := cs.Location{Row: 0, Col: 0}
 	for i := 0; i <= totalRows; i++ {
 		for j := 0; j <= totalCols; j++ {
-
 			l.Row = i
 			l.Col = j
 

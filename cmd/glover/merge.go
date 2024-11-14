@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// mergeCmd represents the merge command
+// mergeCmd represents the merge command.
 var mergeCmd = &cobra.Command{
 	Use:   "merge",
 	Short: "Merge two databases into one",

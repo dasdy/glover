@@ -1,26 +1,25 @@
 root = "."
-testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
 args_bin = []
-# bin = "./bin/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -v --dev"
-bin = "./bin/glover show --dev"
+bin = "./tmp/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -v --dev"
+# bin = "./bin/glover show --dev"
 cmd = "make build"
-delay = 1000
+delay = 500
 exclude_dir = ["bin", "tmp", "assets", "vendor", "testdata"]
 exclude_file = []
 exclude_regex = ["_test.go"]
 exclude_unchanged = false
 follow_symlink = false
 full_bin = ""
-include_dir = ["cmd", "db", "keylog", "server", "templates", "components"]
-include_ext = ["go", "html", "gohtml"]
+include_dir = ["cmd", "db", "keylog", "web"]
+include_ext = ["go"]
 include_file = []
 kill_delay = "0s"
 log = "build-errors.log"
 poll = false
-poll_interval = 0
+poll_interval = 100
 post_cmd = []
 pre_cmd = []
 rerun = false

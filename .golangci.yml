@@ -1,0 +1,43 @@
+linters:
+  # disable-all: false
+  enable-all: true
+  # enable:
+  disable:
+   - funlen
+   - exportloopref
+   - lll # NOTE: configure length larger?
+   - cyclop
+   - depguard
+   - mnd
+   - godox
+   - varnamelen
+   - gochecknoinits
+   - gocognit
+   - gochecknoglobals
+
+
+  # TODO: enable these one-by-one and fix
+   - revive
+   - testifylint
+   - wsl
+   - nilnil
+   - err113
+   - wrapcheck
+   - exhaustruct
+   - govet
+   - ineffassign
+   - intrange
+   - paralleltest
+   - stylecheck
+   - staticcheck
+   - sqlclosecheck
+   - rowserrcheck
+   - perfsprint
+   - nonamedreturns
+   - nlreturn
+   - contextcheck
+   - gosec
+   - forbidigo
+   - errcheck
+   - wastedassign
+

@@ -22,7 +22,7 @@ putting the line above to your keyboards' config and using it via usb.
 
 ```shell
 make build
-./bin/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -o keypresses.sqlite -v
+./tmp/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -o keypresses.sqlite -v
 ```
 
 This will also open a web interface, default location is localhost:3000
@@ -35,7 +35,7 @@ Interface looks roughly like this:
 In case if you don't need active key tracking, you can only run the web interface
 
 ```shell
-./bin/glover show -s keypresses.sqlite -p 8000
+./tmp/glover show -s keypresses.sqlite -p 8000
 ```
 
 ## Develop
