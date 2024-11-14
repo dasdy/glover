@@ -26,7 +26,8 @@ var trackCmd = &cobra.Command{
 		}
 
 		var ch <-chan string
-		if fileCount == 0 {
+		switch fileCount {
+		case 0:
 			names, err := ports.GetAvailableDevices()
 			if err != nil {
 				return err
@@ -35,7 +36,7 @@ var trackCmd = &cobra.Command{
 			log.Print("Will proceed to read from stdin...")
 
 			ch = ports.ReadFile(os.Stdin)
-		} else if fileCount == 2 {
+		case 2:
 			var closer func()
 			var err error
 			ch, closer, err = ports.OpenTwoFiles(filenames[0], filenames[1])
@@ -68,7 +69,9 @@ var trackCmd = &cobra.Command{
 
 		log.Print("Main loop")
 		keylog.KeyLogLoop(ch, storage, verbose)
-		return nil
+		// In order for air to auto-restart, we need to return error code. It does not do this if
+		// the code is 0
+		return fmt.Errorf("I shall not accept just closure of file! Restart me!")
 	},
 }
 
