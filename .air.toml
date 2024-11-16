@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
 args_bin = []
-bin = "./tmp/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -v --dev"
+bin = "./tmp/glover track -v --dev"
 # bin = "./bin/glover show --dev"
 cmd = "make build"
 delay = 500
