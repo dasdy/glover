@@ -134,9 +134,5 @@ func GetAvailableDevices() ([]string, error) {
 		}
 	}
 
-	if len(names) != 0 {
-		return result, nil
-	} else {
-		return names, nil
-	}
+	return result, nil
 }
