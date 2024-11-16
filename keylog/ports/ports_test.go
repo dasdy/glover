@@ -85,3 +85,22 @@ func TestReadTwoFiles(t *testing.T) {
 		}, lines)
 	})
 }
+
+func TestLooksLikeZMKDevice(t *testing.T) {
+	testCases := []struct {
+		path     string
+		expected bool
+	}{
+		{"/dev/tty.usbmodem12301", true},
+		{"/dev/tty.usbmodem12401", true},
+		{"/dev/tty.usbmodem11400", true},
+		{"/dev/ttyp1", false},
+		{"/home/user/tty.usbmodem12301/ttyp1", false},
+	}
+
+	for _, v := range testCases {
+		t.Run(v.path, func(t *testing.T) {
+			assert.Equal(t, v.expected, ports.LooksLikeZMKDevice(v.path))
+		})
+	}
+}

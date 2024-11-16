@@ -14,6 +14,10 @@ type parseLineTest struct {
 	line           string
 	expectedResult *model.KeyEvent
 }
+type errorLineTest struct {
+	name string
+	line string
+}
 
 func TestParseLine(t *testing.T) {
 	testCases := []parseLineTest{
@@ -28,6 +32,11 @@ func TestParseLine(t *testing.T) {
 			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m",
 			&model.KeyEvent{2, 1, 23, false},
 		},
+		{
+			"pressed=true",
+			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: true",
+			&model.KeyEvent{2, 1, 23, true},
+		},
 	}
 
 	for _, item := range testCases {
@@ -38,13 +47,33 @@ func TestParseLine(t *testing.T) {
 
 			assert.Equal(t, res, item.expectedResult)
 		})
+	}
 
-		t.Run(fmt.Sprintf("regex parses %s", item.name), func(t *testing.T) {
-			res, err := parser.ParseLineRegex(item.line)
+	errorTestCases := []errorLineTest{
+		{
+			"pressed=gobble",
+			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: t",
+		},
+		{
+			"row malformed",
+			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: , col: 1, position: 23, pressed: true",
+		},
+		{
+			"col malformed",
+			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: k, position: 23, pressed: true",
+		},
+		{
+			"pos malformed",
+			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: :, pressed: true",
+		},
+	}
 
-			assert.NoError(t, err)
+	for _, item := range errorTestCases {
+		t.Run(fmt.Sprintf("does not parse %s", item.name), func(t *testing.T) {
+			res, err := parser.ParseLine(item.line)
 
-			assert.Equal(t, res, item.expectedResult)
+			assert.Error(t, err)
+			assert.Nil(t, res)
 		})
 	}
 }
@@ -56,16 +85,6 @@ func BenchmarkParseLine(b *testing.B) {
 	var r *model.KeyEvent
 	for i := 0; i < b.N; i++ {
 		r, _ = parser.ParseLine(line)
-	}
-
-	result = r
-}
-
-func BenchmarkParseLineRegex(b *testing.B) {
-	line := "[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m"
-	var r *model.KeyEvent
-	for i := 0; i < b.N; i++ {
-		r, _ = parser.ParseLineRegex(line)
 	}
 
 	result = r

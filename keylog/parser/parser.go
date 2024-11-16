@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -68,30 +67,4 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 		return &model.KeyEvent{row, col, position, pressed}, nil
 	}
 	return nil, nil
-}
-
-var pattern = regexp.MustCompile(`Row: (?P<row>\d+), col: (?P<col>\d+), position: (?P<pos>\d+), pressed: (?P<pres>true|false)`)
-
-func ParseLineRegex(line string) (*model.KeyEvent, error) {
-	matches := pattern.FindStringSubmatch(line)
-
-	if matches == nil {
-		return nil, nil
-	}
-
-	row, err := strconv.Atoi(matches[1])
-	if err != nil {
-		return nil, err
-	}
-	col, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return nil, err
-	}
-	pos, err := strconv.Atoi(matches[3])
-	if err != nil {
-		return nil, err
-	}
-	pressed := matches[4] == "true"
-
-	return &model.KeyEvent{row, col, pos, pressed}, nil
 }

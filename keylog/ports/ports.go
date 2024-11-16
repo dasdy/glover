@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -115,6 +116,10 @@ func ReadFile(r io.Reader) <-chan string {
 	return ch1
 }
 
+func LooksLikeZMKDevice(path string) bool {
+	return strings.HasPrefix(filepath.Base(path), "tty.usbmodem")
+}
+
 func GetAvailableDevices() ([]string, error) {
 	names, err := serial.GetPortsList()
 	if err != nil {
@@ -124,7 +129,7 @@ func GetAvailableDevices() ([]string, error) {
 	result := make([]string, 0)
 
 	for _, n := range names {
-		if strings.Contains(n, "tty.usbmodem") {
+		if LooksLikeZMKDevice(n) {
 			result = append(result, n)
 		}
 	}
