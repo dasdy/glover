@@ -13,15 +13,17 @@ import (
 	"go.bug.st/serial"
 )
 
-func Open(path string) (r io.Reader, closer func(), err error) {
+func noop() {}
+
+func Open(path string) (io.Reader, func(), error) {
 	port, err := serial.Open(path, &serial.Mode{
 		BaudRate: 9600,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, noop, err
 	}
 
-	c := func() {
+	closer := func() {
 		if port == nil {
 			log.Print("Port is nil :(")
 			return
@@ -34,10 +36,12 @@ func Open(path string) (r io.Reader, closer func(), err error) {
 	// TODO make this configurable.
 	err = port.SetReadTimeout(10 * time.Hour)
 	if err != nil {
-		c()
-		return nil, nil, err
+		closer()
+		// Guarantee that closer is non-null, but close
+		// file now because it does not make sense to keep it open.
+		return nil, noop, err
 	}
-	return port, c, nil
+	return port, closer, nil
 }
 
 // Read from two files at the same time line-by-line. Done channel sends a message
@@ -81,12 +85,8 @@ func OpenTwoFiles(fname1, fname2 string) (<-chan string, func(), error) {
 	reader2, closer2, err2 := Open(fname2)
 	// Guarantee that closer is non-null and we can close connection if the other fails
 	closer := func() {
-		if closer1 != nil {
-			closer1()
-		}
-		if closer2 != nil {
-			closer2()
-		}
+		closer1()
+		closer2()
 	}
 
 	if err1 != nil {
