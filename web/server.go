@@ -102,13 +102,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	log.Print("Got request to combos page")
 
-	combos, err := s.Storage.GatherCombos(2)
-	if err != nil {
-		log.Printf("Could not get stats: %s", err.Error())
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	combos := s.Storage.GatherCombos()
 
 	positionString := r.URL.Query().Get("position")
 	position, err := strconv.ParseInt(positionString, 10, 32)

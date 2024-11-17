@@ -171,9 +171,8 @@ func TestGatherCombos(t *testing.T) {
 		storage, err := db.ConnectDB(":memory:")
 		assert.NoError(t, err)
 
-		items, err := storage.GatherCombos(2)
+		items := storage.GatherCombos()
 
-		assert.NoError(t, err)
 		assert.Len(t, items, 0)
 	})
 
@@ -183,8 +182,6 @@ func TestGatherCombos(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.NoError(t, db.InitDbStorage(conn))
-
-		storage := db.NewStorage(conn)
 
 		positions := []int{
 			1, 2,
@@ -204,14 +201,15 @@ func TestGatherCombos(t *testing.T) {
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
-		combos, err := storage.GatherCombos(2)
+		storage, err := db.NewStorage(conn)
 		assert.NoError(t, err)
+		combos := storage.GatherCombos()
 
 		assert.Equal(t, []model.Combo{
 			{
 				Keys: []model.ComboKey{
-					{1},
-					{2},
+					{Position: 1},
+					{Position: 2},
 				},
 				Pressed: 1,
 			},
@@ -222,7 +220,6 @@ func TestGatherCombos(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NoError(t, db.InitDbStorage(conn))
-		storage := db.NewStorage(conn)
 
 		positions := []int{
 			1, 2,
@@ -243,8 +240,9 @@ func TestGatherCombos(t *testing.T) {
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
-		combos, err := storage.GatherCombos(2)
+		storage, err := db.NewStorage(conn)
 		assert.NoError(t, err)
+		combos := storage.GatherCombos()
 
 		sortCombos(combos)
 
@@ -275,20 +273,6 @@ func TestGatherCombos(t *testing.T) {
 				Pressed: 1,
 			},
 		}, combos)
-	})
-
-	t.Run("show other combos", func(t *testing.T) {
-		storage, err := db.ConnectDB("./../keypresses.sqlite")
-		assert.NoError(t, err)
-
-		_, err = storage.GatherCombos(2)
-		assert.NoError(t, err)
-
-		// log.Println("Combos:[")
-		// for _, i := range items {
-		// 	log.Printf("%v", i)
-		// }
-		// log.Println("]")
 	})
 }
 
@@ -341,17 +325,9 @@ func BenchmarkComboScan(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	stmt, err := conn.Prepare(`select position, pressed, ts from keypresses order by ts`)
-	if err != nil {
-		b.Fatal(err)
-	}
+	defer conn.Close()
 	for i := 0; i < b.N; i++ {
-		rows, err := stmt.Query()
-		if err != nil {
-			b.Fatal(err)
-		}
-
-		_, err = db.ScanForCombos(rows, 2)
+		_, err = db.NewComboTrackerFromDb(conn)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -367,8 +343,10 @@ func TestMergeDatabases(t *testing.T) {
 
 		storage1, err := db.ConnectDB(file1.Name())
 		assert.NoError(t, err)
+		defer storage1.Close()
 		storage2, err := db.ConnectDB(file2.Name())
 		assert.NoError(t, err)
+		defer storage2.Close()
 		event1 := model.KeyEvent{
 			Row: 5, Col: 100, Position: 5, Pressed: false,
 		}

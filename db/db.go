@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/dasdy/glover/model"
@@ -13,16 +14,21 @@ import (
 type Storage interface {
 	Store(event *model.KeyEvent) error
 	GatherAll() ([]model.MinimalKeyEvent, error)
-	GatherCombos(length int) ([]model.Combo, error)
+	GatherCombos() []model.Combo
 	Close()
 }
 
 type SQLiteStorage struct {
-	db *sql.DB
+	db           *sql.DB
+	comboTracker *ComboTracker
 }
 
-func NewStorage(db *sql.DB) SQLiteStorage {
-	return SQLiteStorage{db}
+func NewStorage(db *sql.DB) (*SQLiteStorage, error) {
+	tracker, err := NewComboTrackerFromDb(db)
+	if err != nil {
+		return nil, err
+	}
+	return &SQLiteStorage{db: db, comboTracker: tracker}, nil
 }
 
 func InitDbStorage(db *sql.DB) error {
@@ -57,7 +63,12 @@ func ConnectDB(path string) (*SQLiteStorage, error) {
 		return nil, err
 	}
 
-	return &SQLiteStorage{db}, nil
+	tracker, err := NewComboTrackerFromDb(db)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SQLiteStorage{db, tracker}, nil
 }
 
 func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
@@ -67,6 +78,9 @@ func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 	if err != nil {
 		return err
 	}
+
+	s.comboTracker.HandleKeyNow(event.Position, event.Pressed)
+
 	return nil
 }
 
@@ -101,28 +115,106 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 }
 
 type keyState struct {
-	pressed  bool
 	timeWhen time.Time
+	pressed  bool
 }
 
-func (s *SQLiteStorage) GatherCombos(length int) ([]model.Combo, error) {
-	rows, err := s.db.Query(
+type ComboTracker struct {
+	counter  map[keyHash]*model.Combo
+	curState []*keyState
+
+	keys []*model.ComboKey
+	l    sync.RWMutex
+}
+
+func NewComboTracker() *ComboTracker {
+	return &ComboTracker{
+		counter:  make(map[keyHash]*model.Combo),
+		curState: make([]*keyState, 100),
+		keys:     make([]*model.ComboKey, 100),
+
+		l: sync.RWMutex{},
+	}
+}
+
+func NewComboTrackerFromDb(db *sql.DB) (*ComboTracker, error) {
+	nullTracker := NewComboTracker()
+	err := nullTracker.initComboCounter(db)
+	if err != nil {
+		return nil, err
+	}
+
+	return nullTracker, nil
+}
+
+func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time) {
+	c.l.Lock()
+	defer c.l.Unlock()
+	if c.keys[position] == nil {
+		key := model.ComboKey{Position: position}
+		c.keys[position] = &key
+	}
+
+	c.curState[position] = &keyState{pressed: pressed, timeWhen: timeWhen}
+
+	pressedKeys := make([]model.ComboKey, 0)
+	for k, p := range c.curState {
+		if p == nil {
+			continue
+		}
+		// Ignore key states that have been "true" for too long - for cases when keypress was kost
+		if p.pressed && timeWhen.Sub(p.timeWhen) > 2*time.Second {
+			p.pressed = false
+		}
+
+		if p.pressed {
+			pressedKeys = append(pressedKeys, *c.keys[k])
+		}
+	}
+
+	if len(pressedKeys) >= 2 {
+		id := comboKeyIdFast(pressedKeys)
+		v, ok := c.counter[id]
+		if !ok {
+			c.counter[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
+		} else {
+			v.Pressed++
+		}
+	}
+}
+
+func (c *ComboTracker) HandleKeyNow(position int, pressed bool) {
+	c.HandleKey(position, pressed, time.Now())
+}
+
+func (c *ComboTracker) GatherCombos() []model.Combo {
+	c.l.RLock()
+	defer c.l.RUnlock()
+	result := make([]model.Combo, 0, len(c.counter))
+	for _, v := range c.counter {
+		result = append(result, *v)
+	}
+	return result
+}
+
+func (s *SQLiteStorage) GatherCombos() []model.Combo {
+	return s.comboTracker.GatherCombos()
+}
+
+func (c *ComboTracker) initComboCounter(db *sql.DB) error {
+	rows, err := db.Query(
 		`select position, pressed, ts 
         from keypresses
         order by ts`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer rows.Close()
 
-	return ScanForCombos(rows, length)
+	return c.initialRead(rows)
 }
 
-func ScanForCombos(cursor *sql.Rows, length int) ([]model.Combo, error) {
-	counter := make(map[keyHash]*model.Combo)
-	keys := make([]*model.ComboKey, 100)
-	curState := make([]*keyState, 100)
-
+func (c *ComboTracker) initialRead(cursor *sql.Rows) error {
 	for cursor.Next() {
 		var position int
 		var pressed bool
@@ -130,47 +222,12 @@ func ScanForCombos(cursor *sql.Rows, length int) ([]model.Combo, error) {
 
 		err := cursor.Scan(&position, &pressed, &ts)
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		if keys[position] == nil {
-			key := model.ComboKey{Position: position}
-			keys[position] = &key
-		}
-
-		curState[position] = &keyState{pressed, ts}
-
-		pressedKeys := make([]model.ComboKey, 0)
-		for k, p := range curState {
-			if p == nil {
-				continue
-			}
-			// Ignore key states that have been "true" for too long - for cases when keypress was kost
-			if p.pressed && ts.Sub(p.timeWhen) > 2*time.Second {
-				p.pressed = false
-			}
-
-			if p.pressed {
-				pressedKeys = append(pressedKeys, *keys[k])
-			}
-		}
-
-		if len(pressedKeys) >= length {
-			id := comboKeyIdFast(pressedKeys)
-			v, ok := counter[id]
-			if !ok {
-				counter[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
-			} else {
-				v.Pressed++
-			}
-		}
+		c.HandleKey(position, pressed, ts)
 	}
 
-	result := make([]model.Combo, 0, len(counter))
-	for _, v := range counter {
-		result = append(result, *v)
-	}
-	return result, nil
+	return nil
 }
 
 type keyHash struct {
