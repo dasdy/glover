@@ -71,7 +71,7 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 			item, ok := groupedItems[l]
 			if ok {
 				// items = append(items, Item{fmt.Sprintf("(%d %d): %d", item.Row, item.Col, item.Count), true})
-				items = append(items, cs.Item{Position: item.Position, Label: fmt.Sprintf("%d", item.Count), Visible: true})
+				items = append(items, cs.Item{Position: item.Position, Label: strconv.Itoa(item.Count), Visible: true})
 			} else {
 				items = append(items, cs.Item{Position: item.Position, Label: "-", Visible: false})
 			}
@@ -113,6 +113,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 
 	if _, err = buf.WriteTo(w); err != nil {
 		log.Printf("Could not render: %s", err.Error())
+
 		return
 	}
 }
@@ -185,7 +186,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 				highlight := int64(item.Position) == position
 				items = append(items, cs.Item{
 					Position:  item.Position,
-					Label:     fmt.Sprintf("%d", item.Count),
+					Label:     strconv.Itoa(item.Count),
 					Visible:   true,
 					Highlight: highlight,
 				})
@@ -207,6 +208,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	position, err := strconv.ParseInt(positionString, 10, 32)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -231,6 +233,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 
 	if _, err = buf.WriteTo(w); err != nil {
 		log.Printf("Could not render: %s", err.Error())
+
 		return
 	}
 }

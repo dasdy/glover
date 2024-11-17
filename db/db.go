@@ -41,6 +41,7 @@ func InitDbStorage(db *sql.DB) error {
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
+
 		return err
 	}
 
@@ -49,6 +50,7 @@ func InitDbStorage(db *sql.DB) error {
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
+
 		return err
 	}
 
@@ -59,6 +61,7 @@ func ConnectDB(path string) (*SQLiteStorage, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		log.Fatal(err)
+
 		return nil, err
 	}
 

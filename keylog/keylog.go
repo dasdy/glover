@@ -1,6 +1,7 @@
 package keylog
 
 import (
+	"errors"
 	"log"
 
 	"github.com/dasdy/glover/db"
@@ -10,7 +11,7 @@ import (
 func Loop(ch <-chan string, storage db.Storage, enableLogs bool) {
 	for line := range ch {
 		parsed, err := parser.ParseLine(line)
-		if err != nil {
+		if err != nil && !errors.Is(err, parser.ErrEmptyLine) {
 			log.Printf("Got warning: %s\nline: '%s'", err.Error(), line)
 		}
 

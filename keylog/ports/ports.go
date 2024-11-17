@@ -111,11 +111,13 @@ func OpenMultiple(paths ...string) (*DeviceReader, error) {
 		reader, err := Open(p)
 		if err != nil {
 			outerError := fmt.Errorf("error on opening path %s: %w", p, err)
+
 			return nil, CloseReaders(outerError, ports[:i])
 		}
 
 		if len(reader.ports) != 1 {
 			outerError := fmt.Errorf("should not be here: got %d ports on file %s", len(reader.ports), p)
+
 			return nil, CloseReaders(outerError, ports[:i])
 		}
 

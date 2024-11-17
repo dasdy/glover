@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/dasdy/glover/keylog/parser"
@@ -21,7 +20,6 @@ type errorLineTest struct {
 
 func TestParseLine(t *testing.T) {
 	testCases := []parseLineTest{
-		{"empty", "", nil},
 		{
 			"correct full line",
 			`[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false`,
@@ -40,7 +38,7 @@ func TestParseLine(t *testing.T) {
 	}
 
 	for _, item := range testCases {
-		t.Run(fmt.Sprintf("parses %s", item.name), func(t *testing.T) {
+		t.Run("parses "+item.name, func(t *testing.T) {
 			res, err := parser.ParseLine(item.line)
 
 			assert.NoError(t, err)
@@ -50,6 +48,7 @@ func TestParseLine(t *testing.T) {
 	}
 
 	errorTestCases := []errorLineTest{
+		{"empty", ""},
 		{
 			"pressed=gobble",
 			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: t",
@@ -69,7 +68,7 @@ func TestParseLine(t *testing.T) {
 	}
 
 	for _, item := range errorTestCases {
-		t.Run(fmt.Sprintf("does not parse %s", item.name), func(t *testing.T) {
+		t.Run("does not parse "+item.name, func(t *testing.T) {
 			res, err := parser.ParseLine(item.line)
 
 			assert.Error(t, err)

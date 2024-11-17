@@ -1,12 +1,15 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/dasdy/glover/model"
 )
+
+var ErrEmptyLine = errors.New("Line does not contain something we can parse as KeyEvent")
 
 func ParseLine(line string) (*model.KeyEvent, error) {
 	splits := strings.Split(line, " ")
@@ -76,5 +79,5 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 		return &model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed}, nil
 	}
 
-	return nil, nil
+	return nil, ErrEmptyLine
 }

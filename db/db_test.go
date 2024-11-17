@@ -51,7 +51,7 @@ func sortCombos(result []model.Combo) {
 		}
 
 		// if a.keys has different length than b.keys, we wouldn't be here.
-		for i := 0; i < len(a.Keys); i++ {
+		for i := range a.Keys {
 			ak := a.Keys[i]
 			bk := b.Keys[i]
 
@@ -77,13 +77,13 @@ func TestConnectToMemoryDB(t *testing.T) {
 		assert.Empty(t, items)
 
 		item := model.KeyEvent{Row: 0, Col: 0, Position: 0, Pressed: false}
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			item.Pressed = !item.Pressed
 			assert.NoError(t, storage.Store(&item))
 		}
 
 		item.Pressed = false
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			item.Col = i*2 + 1
 			item.Row = i + 12
 			assert.NoError(t, storage.Store(&item))
@@ -376,14 +376,17 @@ func TestMergeDatabases(t *testing.T) {
 		assert.NoError(t, err)
 
 		output, err := db.ConnectDB(file3.Name())
+		assert.NoError(t, err)
 
 		assert.NoError(t, db.Merge([]*db.SQLiteStorage{storage1, storage2}, output))
 
 		conn, err := sql.Open("sqlite3", file3.Name())
+		assert.NoError(t, err)
 		rows, err := conn.Query(
 			`select row, col, position, pressed, ts 
         from keypresses
         order by ts`)
+		assert.NoError(t, err)
 
 		assert.True(t, rows.Next())
 

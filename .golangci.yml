@@ -17,23 +17,15 @@ linters:
 
     # TODO: enable these one-by-one and fix
     - testifylint
-    - nilnil
     - err113
     - wrapcheck
     - exhaustruct
-    - govet
     - ineffassign
-    - intrange
     - paralleltest
     - stylecheck
-    - staticcheck
     - sqlclosecheck
     - rowserrcheck
-    - perfsprint
     - nonamedreturns
-    - nlreturn
     - contextcheck
     - gosec
-    - forbidigo
     - errcheck
-    - wastedassign

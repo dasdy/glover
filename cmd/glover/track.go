@@ -46,9 +46,11 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 
 		if autoConnect && len(names) == 2 {
 			log.Print("Will proceed to autoconnect to devices")
+
 			return GetInputsChannel(names, false)
 		} else {
 			log.Print("Will proceed to read from stdin...")
+
 			return ports.NewDeviceReader(os.Stdin), nil
 		}
 	case 2:
@@ -69,6 +71,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 		switch {
 		case len(names) > 0 && shouldTryConnect(filenames, names, autoConnect):
 			log.Print("autoconnect enabled. Trying to connect to candidates")
+
 			return GetInputsChannel(names, false)
 
 		case len(names) > 0:
@@ -108,6 +111,7 @@ var trackCmd = &cobra.Command{
 
 		log.Print("Main loop")
 		keylog.Loop(deviceReader.Channel(), storage, verbose)
+
 		return nil
 	},
 }
