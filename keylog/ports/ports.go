@@ -2,6 +2,7 @@ package ports
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,92 +14,108 @@ import (
 	"go.bug.st/serial"
 )
 
-func noop() {}
-
-func Open(path string) (io.Reader, func(), error) {
-	port, err := serial.Open(path, &serial.Mode{
-		BaudRate: 9600,
-	})
-	if err != nil {
-		return nil, noop, err
-	}
-
-	closer := func() {
-		if port == nil {
-			log.Print("Port is nil :(")
-			return
-		}
-		if err := port.Close(); err != nil {
-			log.Print(err)
-		}
-	}
-
-	// TODO make this configurable.
-	err = port.SetReadTimeout(10 * time.Hour)
-	if err != nil {
-		closer()
-		// Guarantee that closer is non-null, but close
-		// file now because it does not make sense to keep it open.
-		return nil, noop, err
-	}
-	return port, closer, nil
+type DeviceReader struct {
+	ports []io.ReadCloser
 }
 
-// Read from two files at the same time line-by-line. Done channel sends a message
-// when both files were closed.
-func ReadTwoFiles(f1, f2 io.Reader) <-chan string {
-	ch1 := ReadFile(f1)
-	ch2 := ReadFile(f2)
+func NewDeviceReader(devices ...io.ReadCloser) *DeviceReader {
+	return &DeviceReader{ports: devices}
+}
 
+func (r *DeviceReader) Close() error {
+	es := make([]error, 0)
+	for _, p := range r.ports {
+		err := p.Close()
+		if err != nil {
+			es = append(es, err)
+		}
+	}
+
+	if len(es) > 0 {
+		return errors.Join(es...)
+	}
+	return nil
+}
+
+func (r *DeviceReader) Channel() <-chan string {
 	outputChan := make(chan string, 5)
 	var wg sync.WaitGroup
+	wg.Add(len(r.ports))
 
-	wg.Add(2)
-
-	go func() {
-		for v := range ch1 {
-			outputChan <- v
-		}
-		wg.Done()
-		log.Print("Read ch1 routine fin")
-	}()
-
-	go func() {
-		for v := range ch2 {
-			outputChan <- v
-		}
-		wg.Done()
-		log.Print("Read ch2 routine fin")
-	}()
+	for i, p := range r.ports {
+		ch := ReadFile(p)
+		go func() {
+			for v := range ch {
+				outputChan <- v
+			}
+			wg.Done()
+			log.Printf("Read channel %d routine fin", i)
+		}()
+	}
 
 	go func() {
 		wg.Wait()
-		log.Print("Both files marked as closed")
+		log.Print("All files marked as closed")
 		close(outputChan)
 	}()
 
 	return outputChan
 }
 
-func OpenTwoFiles(fname1, fname2 string) (<-chan string, func(), error) {
-	reader1, closer1, err1 := Open(fname1)
-	reader2, closer2, err2 := Open(fname2)
-	// Guarantee that closer is non-null and we can close connection if the other fails
-	closer := func() {
-		closer1()
-		closer2()
+func Open(path string) (*DeviceReader, error) {
+	port, err := serial.Open(path, &serial.Mode{
+		BaudRate: 9600,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if err1 != nil {
-		return nil, closer, fmt.Errorf("Could not open port 1: %s: %s", fname1, err1.Error())
+	// TODO make this configurable.
+	err = port.SetReadTimeout(10 * time.Hour)
+	if err != nil {
+		innerErr := port.Close()
+		if innerErr != nil {
+			return nil, fmt.Errorf("error during closing of port: %w, outer error: %w", innerErr, err)
+		}
+		return nil, err
 	}
-	if err2 != nil {
-		return nil, closer, fmt.Errorf("Could not open port 2: %s: %s", fname2, err2.Error())
+	return NewDeviceReader(port), nil
+}
+
+func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
+	es := []error{outerError}
+	for i, item := range itemsToClose {
+		err := item.Close()
+		if err != nil {
+			es = append(es, fmt.Errorf("error on item %d: %w", i, err))
+		}
 	}
 
-	ch := ReadTwoFiles(reader1, reader2)
+	if len(es) > 1 {
+		return errors.Join(es...)
+	} else {
+		return outerError
+	}
+}
 
-	return ch, closer, nil
+func OpenMultiple(paths ...string) (*DeviceReader, error) {
+	ports := make([]io.ReadCloser, len(paths))
+	for i, p := range paths {
+		reader, err := Open(p)
+		if err != nil {
+			outerError := fmt.Errorf("error on opening path %s: %w", p, err)
+			return nil, CloseReaders(outerError, ports[:i])
+		}
+
+		if len(reader.ports) != 1 {
+			outerError := fmt.Errorf("should not be here: got %d ports on file %s", len(reader.ports), p)
+			return nil, CloseReaders(outerError, ports[:i])
+		}
+
+		ports[i] = reader.ports[0]
+	}
+
+	return NewDeviceReader(ports...), nil
 }
 
 func ReadFile(r io.Reader) <-chan string {

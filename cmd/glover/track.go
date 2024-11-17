@@ -27,19 +27,18 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 	return true
 }
 
-func GetInputsChannel(filenames []string, autoConnect bool) (<-chan string, func(), error) {
+func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader, error) {
 	fileCount := len(filenames)
-	noop := func() {}
 
 	if fileCount != 2 && fileCount != 0 {
-		return nil, noop, fmt.Errorf("expected exactly 0 or 2 files, got %d", len(filenames))
+		return nil, fmt.Errorf("expected exactly 0 or 2 files, got %d", len(filenames))
 	}
 
 	switch fileCount {
 	case 0:
 		names, err := ports.GetAvailableDevices()
 		if err != nil {
-			return nil, noop, err
+			return nil, err
 		}
 		log.Printf("Suggested devices: %+v ", names)
 
@@ -48,21 +47,19 @@ func GetInputsChannel(filenames []string, autoConnect bool) (<-chan string, func
 			return GetInputsChannel(names, false)
 		} else {
 			log.Print("Will proceed to read from stdin...")
-			return ports.ReadFile(os.Stdin), noop, nil
+			return ports.NewDeviceReader(os.Stdin), nil
 		}
 	case 2:
-		var closer func()
-		var err error
-		ch, closer, err := ports.OpenTwoFiles(filenames[0], filenames[1])
+		deviceReader, err := ports.OpenMultiple(filenames[0], filenames[1])
 
 		if err == nil {
-			return ch, closer, nil
+			return deviceReader, nil
 		}
 
 		// Try suggesting devices
 		names, errInner := ports.GetAvailableDevices()
 		if errInner != nil {
-			return nil, closer, fmt.Errorf("could not open file: %w; Could not suggest devices: %w", err, errInner)
+			return nil, fmt.Errorf("could not open file: %w; Could not suggest devices: %w", err, errInner)
 		}
 
 		log.Printf("could not open provided files. Found candidates to connect instead: %+v", names)
@@ -73,14 +70,14 @@ func GetInputsChannel(filenames []string, autoConnect bool) (<-chan string, func
 			return GetInputsChannel(names, false)
 
 		case len(names) > 0:
-			return nil, closer, fmt.Errorf("error opening files: %w.", err)
+			return nil, fmt.Errorf("error opening files: %w.", err)
 
 		default:
-			return nil, closer, fmt.Errorf("error opening files: %w. It does not seem like any keyboard is connected", err)
+			return nil, fmt.Errorf("error opening files: %w. It does not seem like any keyboard is connected", err)
 		}
 	}
 
-	return nil, noop, fmt.Errorf("Strange count of devices provided: %d: %+v", len(filenames), filenames)
+	return nil, fmt.Errorf("Strange count of devices provided: %d: %+v", len(filenames), filenames)
 }
 
 // trackCmd represents the track command.
@@ -90,12 +87,11 @@ var trackCmd = &cobra.Command{
 	Long: `Provide two paths to files to connect to, or leave empty to read from stdin.
 		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ch, closer, err := GetInputsChannel(filenames, autoConnect)
-
-		defer closer()
+		deviceReader, err := GetInputsChannel(filenames, autoConnect)
 		if err != nil {
 			return fmt.Errorf("could not open inputs channel: %w", err)
 		}
+		defer deviceReader.Close()
 
 		log.Printf("connected successfully. Output file: %s\n", storagePath)
 		storage, err := db.ConnectDB(storagePath)
@@ -109,7 +105,7 @@ var trackCmd = &cobra.Command{
 		}
 
 		log.Print("Main loop")
-		keylog.KeyLogLoop(ch, storage, verbose)
+		keylog.KeyLogLoop(deviceReader.Channel(), storage, verbose)
 		// In order for air to auto-restart, we need to return error code. It does not do this if
 		// the code is 0
 		return fmt.Errorf("I shall not accept just closure of file! Restart me!")

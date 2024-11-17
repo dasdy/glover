@@ -1,6 +1,7 @@
 package ports_test
 
 import (
+	"io"
 	"sort"
 	"strings"
 	"testing"
@@ -18,9 +19,13 @@ func readChanLines(c <-chan string) []string {
 	return result
 }
 
+func sReader(s string) io.ReadCloser {
+	return io.NopCloser(strings.NewReader(s))
+}
+
 func TestReadFile(t *testing.T) {
 	t.Run("should handle non-empty file", func(t *testing.T) {
-		r := strings.NewReader("a\nb\nc\n")
+		r := sReader("a\nb\nc\n")
 
 		c := ports.ReadFile(r)
 
@@ -30,7 +35,7 @@ func TestReadFile(t *testing.T) {
 	})
 
 	t.Run("should handle empty file", func(t *testing.T) {
-		r := strings.NewReader("")
+		r := sReader("")
 
 		c := ports.ReadFile(r)
 
@@ -42,12 +47,12 @@ func TestReadFile(t *testing.T) {
 
 func TestReadTwoFiles(t *testing.T) {
 	t.Run("should handle non-empty files", func(t *testing.T) {
-		r1 := strings.NewReader("aa\nbb\ncc\n")
-		r2 := strings.NewReader("ab\nba\ncd\n")
+		r1 := sReader("aa\nbb\ncc\n")
+		r2 := sReader("ab\nba\ncd\n")
 
-		c := ports.ReadTwoFiles(r1, r2)
+		c := ports.NewDeviceReader(r1, r2)
 
-		lines := readChanLines(c)
+		lines := readChanLines(c.Channel())
 
 		sort.Strings(lines)
 
@@ -57,12 +62,12 @@ func TestReadTwoFiles(t *testing.T) {
 	})
 
 	t.Run("should handle when one file is empty", func(t *testing.T) {
-		r1 := strings.NewReader("aa\nbb\ncc\n")
-		r2 := strings.NewReader("")
+		r1 := sReader("aa\nbb\ncc\n")
+		r2 := sReader("")
 
-		c := ports.ReadTwoFiles(r1, r2)
+		c := ports.NewDeviceReader(r1, r2)
 
-		lines := readChanLines(c)
+		lines := readChanLines(c.Channel())
 
 		sort.Strings(lines)
 
@@ -71,12 +76,12 @@ func TestReadTwoFiles(t *testing.T) {
 		}, lines)
 	})
 	t.Run("should handle when other file is empty", func(t *testing.T) {
-		r1 := strings.NewReader("")
-		r2 := strings.NewReader("aa\nbb\ncc\n")
+		r1 := sReader("")
+		r2 := sReader("aa\nbb\ncc\n")
 
-		c := ports.ReadTwoFiles(r1, r2)
+		c := ports.NewDeviceReader(r1, r2)
 
-		lines := readChanLines(c)
+		lines := readChanLines(c.Channel())
 
 		sort.Strings(lines)
 
