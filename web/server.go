@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/a-h/templ"
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/model"
 	cs "github.com/dasdy/glover/web/components"
@@ -15,6 +16,30 @@ import (
 
 type ServerHandler struct {
 	Storage db.Storage
+}
+
+func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error {
+	// Do not write to w because it implies 200 status
+	var buf bytes.Buffer
+	if err := component.Render(context.Background(), &buf); err != nil {
+		log.Printf("Could not render: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return err
+	}
+
+	// Template executed successfully to the buffer.
+	// Now, copy it over to the ResponseWriter
+	// This implies a 200 OK status code
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	if _, err := buf.WriteTo(w); err != nil {
+		log.Printf("Could not render: %s", err.Error())
+
+		return err
+	}
+
+	return nil
 }
 
 func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
@@ -41,14 +66,6 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 		loc, ok := locationsOnGrid[key.Position]
 		if !ok {
 			log.Printf("Could not find position %d, wtf", key.Position)
-		}
-
-		if loc.Row > totalRows {
-			totalRows = loc.Row
-		}
-
-		if loc.Col > totalCols {
-			totalCols = loc.Col
 		}
 
 		if maxVal < key.Count {
@@ -94,28 +111,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	renderContext := BuildStatsRenderContext(curStats)
-
-	// Do not write to w because it implies 200 status
-	var buf bytes.Buffer
-
-	component := cs.HeatMap(&renderContext)
-	if err = component.Render(context.Background(), &buf); err != nil {
-		log.Printf("Could not render: %s", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-
-	// Template executed successfully to the buffer.
-	// Now, copy it over to the ResponseWriter
-	// This implies a 200 OK status code
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
-	if _, err = buf.WriteTo(w); err != nil {
-		log.Printf("Could not render: %s", err.Error())
-
-		return
-	}
+	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
 func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderContext {
@@ -213,29 +209,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderContext := BuildCombosRenderContext(combos, position)
-
-	// Do not write to w because it implies 200 status
-	var buf bytes.Buffer
-
-	component := cs.HeatMap(&renderContext)
-	if err = component.Render(context.Background(), &buf); err != nil {
-		log.Printf("Could not render: %s", err.Error())
-		// fmt.Fprintf(w, "Could not render: %s", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-
-	// Template executed successfully to the buffer.
-	// Now, copy it over to the ResponseWriter
-	// This implies a 200 OK status code
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
-	if _, err = buf.WriteTo(w); err != nil {
-		log.Printf("Could not render: %s", err.Error())
-
-		return
-	}
+	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
 func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
