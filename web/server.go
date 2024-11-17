@@ -17,17 +17,7 @@ type ServerHandler struct {
 	Storage db.Storage
 }
 
-func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
-	log.Print("Got request to stats page")
-
-	curStats, err := s.Storage.GatherAll()
-	if err != nil {
-		log.Printf("Could not get stats: %s", err.Error())
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 	totalRows := 0
 	totalCols := 0
 	maxVal := 0
@@ -36,10 +26,16 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	groupedItems := make(map[cs.Location]model.MinimalKeyEvent)
 	for _, key := range locationsOnGrid {
 		groupedItems[key] = model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
+		if key.Row > totalRows {
+			totalRows = key.Row
+		}
+		if key.Col > totalCols {
+			totalCols = key.Col
+		}
 	}
 
 	// set non-zero items in the map
-	for _, key := range curStats {
+	for _, key := range dbStats {
 		loc, ok := locationsOnGrid[key.Position]
 		if !ok {
 			log.Printf("Could not find position %d, wtf", key.Position)
@@ -75,12 +71,25 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+}
+
+func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
+	log.Print("Got request to stats page")
+
+	curStats, err := s.Storage.GatherAll()
+	if err != nil {
+		log.Printf("Could not get stats: %s", err.Error())
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	renderContext := BuildStatsRenderContext(curStats)
 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
-	component := cs.HeatMap(
-		&cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal},
-	)
+	component := cs.HeatMap(&renderContext)
 	err = component.Render(context.Background(), &buf)
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())
@@ -99,20 +108,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
-	log.Print("Got request to combos page")
-
-	combos := s.Storage.GatherCombos()
-
-	positionString := r.URL.Query().Get("position")
-	position, err := strconv.ParseInt(positionString, 10, 32)
-	if err != nil {
-		log.Printf("Could not parse position %s: %s", positionString, err.Error())
-
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderContext {
 	combosToDisplay := make([]model.Combo, 0)
 
 	for _, c := range combos {
@@ -184,12 +180,26 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+}
+
+func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
+	log.Print("Got request to combos page")
+
+	combos := s.Storage.GatherCombos()
+
+	positionString := r.URL.Query().Get("position")
+	position, err := strconv.ParseInt(positionString, 10, 32)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	renderContext := BuildCombosRenderContext(combos, position)
 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
-	component := cs.HeatMap(
-		&cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal},
-	)
+	component := cs.HeatMap(&renderContext)
 	err = component.Render(context.Background(), &buf)
 	if err != nil {
 		log.Printf("Could not render: %s", err.Error())

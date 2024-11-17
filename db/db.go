@@ -120,25 +120,26 @@ type keyState struct {
 }
 
 type ComboTracker struct {
-	counter  map[keyHash]*model.Combo
-	curState []*keyState
-
-	keys []*model.ComboKey
-	l    sync.RWMutex
+	comboCounts map[keyHash]*model.Combo
+	curState    []*keyState
+	keys        []*model.ComboKey
+	minComboLen int
+	l           sync.RWMutex
 }
 
-func NewComboTracker() *ComboTracker {
+func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 	return &ComboTracker{
-		counter:  make(map[keyHash]*model.Combo),
-		curState: make([]*keyState, 100),
-		keys:     make([]*model.ComboKey, 100),
+		comboCounts: make(map[keyHash]*model.Combo),
+		curState:    make([]*keyState, keyCount),
+		keys:        make([]*model.ComboKey, keyCount),
+		minComboLen: minComboLen,
 
 		l: sync.RWMutex{},
 	}
 }
 
 func NewComboTrackerFromDb(db *sql.DB) (*ComboTracker, error) {
-	nullTracker := NewComboTracker()
+	nullTracker := newComboTracker(100, 2)
 	err := nullTracker.initComboCounter(db)
 	if err != nil {
 		return nil, err
@@ -172,11 +173,11 @@ func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time)
 		}
 	}
 
-	if len(pressedKeys) >= 2 {
+	if len(pressedKeys) >= c.minComboLen {
 		id := comboKeyIdFast(pressedKeys)
-		v, ok := c.counter[id]
+		v, ok := c.comboCounts[id]
 		if !ok {
-			c.counter[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
+			c.comboCounts[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
 		} else {
 			v.Pressed++
 		}
@@ -190,8 +191,8 @@ func (c *ComboTracker) HandleKeyNow(position int, pressed bool) {
 func (c *ComboTracker) GatherCombos() []model.Combo {
 	c.l.RLock()
 	defer c.l.RUnlock()
-	result := make([]model.Combo, 0, len(c.counter))
-	for _, v := range c.counter {
+	result := make([]model.Combo, 0, len(c.comboCounts))
+	for _, v := range c.comboCounts {
 		result = append(result, *v)
 	}
 	return result

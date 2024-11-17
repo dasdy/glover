@@ -1,7 +1,7 @@
 .PHONY: test
 test:
 	mkdir -p ./tmp
-	go test -race -v -coverprofile=./tmp/c.out ./...
+	go test -race  -coverprofile=./tmp/c.out ./...
 
 .PHONY: benchmark
 benchmark:
