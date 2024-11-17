@@ -30,6 +30,7 @@ func mockEvents(keyPositions []int) []model.KeyEvent {
 		} else {
 			event.Pressed = !event.Pressed
 		}
+
 		state[pos] = event
 		values = append(values, event)
 	}
@@ -53,11 +54,12 @@ func sortCombos(result []model.Combo) {
 		for i := 0; i < len(a.Keys); i++ {
 			ak := a.Keys[i]
 			bk := b.Keys[i]
-			keyCmp := cmp.Compare(ak.Position, bk.Position)
-			if keyCmp != 0 {
+
+			if keyCmp := cmp.Compare(ak.Position, bk.Position); keyCmp != 0 {
 				return keyCmp
 			}
 		}
+
 		return 0
 	})
 }
@@ -92,12 +94,12 @@ func TestConnectToMemoryDB(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, items, []model.MinimalKeyEvent{
-			{0, 0, 0, 5},
-			{12, 1, 0, 1},
-			{13, 3, 0, 1},
-			{14, 5, 0, 1},
-			{15, 7, 0, 1},
-			{16, 9, 0, 1},
+			{Row: 0, Col: 0, Position: 0, Count: 5},
+			{Row: 12, Col: 1, Position: 0, Count: 1},
+			{Row: 13, Col: 3, Position: 0, Count: 1},
+			{Row: 14, Col: 5, Position: 0, Count: 1},
+			{Row: 15, Col: 7, Position: 0, Count: 1},
+			{Row: 16, Col: 9, Position: 0, Count: 1},
 		})
 	})
 }
@@ -112,10 +114,12 @@ func TestRaceCondition(t *testing.T) {
 		assert.NoError(t, err)
 
 		var wg sync.WaitGroup
+
 		done := make(chan bool, 2)
 
 		wg.Add(2)
-		go func() {
+
+		routine := func() {
 			event := model.KeyEvent{}
 		out:
 			for i := range 16_000 {
@@ -134,10 +138,11 @@ func TestRaceCondition(t *testing.T) {
 			}
 			wg.Done()
 			done <- true
-			log.Println("Done writing")
-		}()
 
-		go func() {
+			log.Println("Done writing")
+		}
+
+		routine2 := func() {
 		out:
 			for range 6_000 {
 				_, err := storage.GatherAll()
@@ -155,8 +160,12 @@ func TestRaceCondition(t *testing.T) {
 			}
 			wg.Done()
 			done <- true
+
 			log.Println("Done reading")
-		}()
+		}
+
+		go routine()
+		go routine2()
 
 		wg.Wait()
 
@@ -203,6 +212,7 @@ func TestGatherCombos(t *testing.T) {
 
 		storage, err := db.NewStorage(conn)
 		assert.NoError(t, err)
+
 		combos := storage.GatherCombos()
 
 		assert.Equal(t, []model.Combo{
@@ -242,6 +252,7 @@ func TestGatherCombos(t *testing.T) {
 
 		storage, err := db.NewStorage(conn)
 		assert.NoError(t, err)
+
 		combos := storage.GatherCombos()
 
 		sortCombos(combos)
@@ -281,12 +292,13 @@ func copyToMem(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	memConn, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		return nil, err
 	}
-	err = db.InitDbStorage(memConn)
-	if err != nil {
+
+	if db.InitDbStorage(memConn) != nil {
 		return nil, err
 	}
 
@@ -300,12 +312,13 @@ func copyToMem(path string) (*sql.DB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var row, col, position int
-		var pressed bool
-		var ts time.Time
+		var (
+			row, col, position int
+			pressed            bool
+			ts                 time.Time
+		)
 
-		err := rows.Scan(&row, &col, &position, &pressed, &ts)
-		if err != nil {
+		if rows.Scan(&row, &col, &position, &pressed, &ts) != nil {
 			return nil, err
 		}
 
@@ -326,9 +339,9 @@ func BenchmarkComboScan(b *testing.B) {
 		b.Fatal(err)
 	}
 	defer conn.Close()
+
 	for i := 0; i < b.N; i++ {
-		_, err = db.NewComboTrackerFromDb(conn)
-		if err != nil {
+		if _, err = db.NewComboTrackerFromDb(conn); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -344,13 +357,16 @@ func TestMergeDatabases(t *testing.T) {
 		storage1, err := db.ConnectDB(file1.Name())
 		assert.NoError(t, err)
 		defer storage1.Close()
+
 		storage2, err := db.ConnectDB(file2.Name())
 		assert.NoError(t, err)
 		defer storage2.Close()
+
 		event1 := model.KeyEvent{
 			Row: 5, Col: 100, Position: 5, Pressed: false,
 		}
 		assert.NoError(t, storage1.Store(&event1))
+
 		event2 := model.KeyEvent{
 			Row: 102, Col: 110, Position: 6, Pressed: true,
 		}
@@ -370,9 +386,12 @@ func TestMergeDatabases(t *testing.T) {
         order by ts`)
 
 		assert.True(t, rows.Next())
-		var row, col, position int
-		var pressed bool
-		var ts time.Time
+
+		var (
+			row, col, position int
+			pressed            bool
+			ts                 time.Time
+		)
 
 		assert.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
 		assert.Equal(t,

@@ -16,6 +16,7 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 		pressed                        bool
 		err                            error
 	)
+
 	ix := 0
 	limit := len(splits) - 1 // We always care about the next token, so stop before it's too late
 
@@ -29,22 +30,28 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 			if err != nil {
 				return nil, fmt.Errorf("could not parse row: %w. Full line: '%s'", err, line)
 			}
+
 			ix++
 			foundCount++
+
 		case "col:":
 			col, err = strconv.Atoi(nextItem)
 			if err != nil {
 				return nil, fmt.Errorf("could not parse col: %w. Full line: '%s'", err, line)
 			}
+
 			ix++
 			foundCount++
+
 		case "position:":
 			position, err = strconv.Atoi(nextItem)
 			if err != nil {
 				return nil, fmt.Errorf("could not parse position: %w. Full line: '%s'", err, line)
 			}
+
 			foundCount++
 			ix++
+
 		case "pressed:":
 			// Trim the reset escape code from the output. Maybe we can do it another way implicitly?
 			nextItem = strings.TrimSuffix(nextItem, "\x1b[0m")
@@ -56,6 +63,7 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 			default:
 				return nil, fmt.Errorf("pressed value unexpected: '%s'", nextItem)
 			}
+
 			ix++
 			foundCount++
 		default:
@@ -63,8 +71,10 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 
 		ix++
 	}
+
 	if foundCount == 4 {
-		return &model.KeyEvent{row, col, position, pressed}, nil
+		return &model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed}, nil
 	}
+
 	return nil, nil
 }

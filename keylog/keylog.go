@@ -7,7 +7,7 @@ import (
 	"github.com/dasdy/glover/keylog/parser"
 )
 
-func KeyLogLoop(ch <-chan string, storage db.Storage, enableLogs bool) {
+func Loop(ch <-chan string, storage db.Storage, enableLogs bool) {
 	for line := range ch {
 		parsed, err := parser.ParseLine(line)
 		if err != nil {
@@ -18,8 +18,8 @@ func KeyLogLoop(ch <-chan string, storage db.Storage, enableLogs bool) {
 			if enableLogs {
 				log.Printf("Event! %v", *parsed)
 			}
-			err := storage.Store(parsed)
-			if err != nil {
+
+			if storage.Store(parsed) != nil {
 				log.Printf("Could not log item: %s", err.Error())
 			}
 		}

@@ -21,6 +21,7 @@ func TestBuildStatsContext(t *testing.T) {
 		for i, v := range items.Items {
 			if v.Visible {
 				assert.Equal(t, "0", v.Label, "Bad label on %d: %s", i, v.Label)
+
 				visibleItems++
 			} else {
 				assert.Equal(t, "-", v.Label, "Bad label on %d: %s", i, v.Label)
@@ -44,6 +45,7 @@ func TestBuildCombosContext(t *testing.T) {
 		for i, v := range items.Items {
 			if v.Visible {
 				assert.Equal(t, "0", v.Label, "Bad label on %d: %s", i, v.Label)
+
 				visibleItems++
 			} else {
 				assert.Equal(t, "-", v.Label, "Bad label on %d: %s", i, v.Label)

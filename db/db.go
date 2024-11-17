@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dasdy/glover/model"
+	// This registers sqlite3 as sql connection provider.
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/schollz/progressbar/v3"
 )
@@ -28,6 +29,7 @@ func NewStorage(db *sql.DB) (*SQLiteStorage, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &SQLiteStorage{db: db, comboTracker: tracker}, nil
 }
 
@@ -43,11 +45,13 @@ func InitDbStorage(db *sql.DB) error {
 	}
 
 	sqlStmt = ` create index if not exists keypresses_tsix on keypresses (ts ASC);`
+
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
 		return err
 	}
+
 	return nil
 }
 
@@ -140,6 +144,7 @@ func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 
 func NewComboTrackerFromDb(db *sql.DB) (*ComboTracker, error) {
 	nullTracker := newComboTracker(100, 2)
+
 	err := nullTracker.initComboCounter(db)
 	if err != nil {
 		return nil, err
@@ -151,6 +156,7 @@ func NewComboTrackerFromDb(db *sql.DB) (*ComboTracker, error) {
 func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time) {
 	c.l.Lock()
 	defer c.l.Unlock()
+
 	if c.keys[position] == nil {
 		key := model.ComboKey{Position: position}
 		c.keys[position] = &key
@@ -159,6 +165,7 @@ func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time)
 	c.curState[position] = &keyState{pressed: pressed, timeWhen: timeWhen}
 
 	pressedKeys := make([]model.ComboKey, 0)
+
 	for k, p := range c.curState {
 		if p == nil {
 			continue
@@ -174,7 +181,8 @@ func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time)
 	}
 
 	if len(pressedKeys) >= c.minComboLen {
-		id := comboKeyIdFast(pressedKeys)
+		id := comboKeyID(pressedKeys)
+
 		v, ok := c.comboCounts[id]
 		if !ok {
 			c.comboCounts[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
@@ -191,10 +199,12 @@ func (c *ComboTracker) HandleKeyNow(position int, pressed bool) {
 func (c *ComboTracker) GatherCombos() []model.Combo {
 	c.l.RLock()
 	defer c.l.RUnlock()
+
 	result := make([]model.Combo, 0, len(c.comboCounts))
 	for _, v := range c.comboCounts {
 		result = append(result, *v)
 	}
+
 	return result
 }
 
@@ -217,14 +227,16 @@ func (c *ComboTracker) initComboCounter(db *sql.DB) error {
 
 func (c *ComboTracker) initialRead(cursor *sql.Rows) error {
 	for cursor.Next() {
-		var position int
-		var pressed bool
-		var ts time.Time
+		var (
+			position int
+			pressed  bool
+			ts       time.Time
+		)
 
-		err := cursor.Scan(&position, &pressed, &ts)
-		if err != nil {
+		if err := cursor.Scan(&position, &pressed, &ts); err != nil {
 			return err
 		}
+
 		c.HandleKey(position, pressed, ts)
 	}
 
@@ -236,7 +248,7 @@ type keyHash struct {
 	low  int64
 }
 
-func comboKeyIdFast(keys []model.ComboKey) keyHash {
+func comboKeyID(keys []model.ComboKey) keyHash {
 	result := keyHash{}
 
 	for _, key := range keys {
@@ -261,10 +273,10 @@ func (s *SQLiteStorage) count() (int, error) {
 
 	rows.Next()
 
-	err = rows.Scan(&count)
-	if err != nil {
+	if err := rows.Scan(&count); err != nil {
 		return -1, err
 	}
+
 	return count, nil
 }
 
@@ -289,9 +301,12 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 
 		for rows.Next() {
 			bar.Add(1)
-			var row, col, position int
-			var pressed bool
-			var ts time.Time
+
+			var (
+				row, col, position int
+				pressed            bool
+				ts                 time.Time
+			)
 
 			err = rows.Scan(&row, &col, &position, &pressed, &ts)
 			if err != nil {
@@ -307,6 +322,7 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 			}
 		}
 	}
+
 	return nil
 }
 

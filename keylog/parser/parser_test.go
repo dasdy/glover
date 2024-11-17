@@ -25,17 +25,17 @@ func TestParseLine(t *testing.T) {
 		{
 			"correct full line",
 			`[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false`,
-			&model.KeyEvent{2, 1, 23, false},
+			&model.KeyEvent{Row: 2, Col: 1, Position: 23, Pressed: false},
 		},
 		{
 			"trims escape code at end",
 			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m",
-			&model.KeyEvent{2, 1, 23, false},
+			&model.KeyEvent{Row: 2, Col: 1, Position: 23, Pressed: false},
 		},
 		{
 			"pressed=true",
 			"[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: true",
-			&model.KeyEvent{2, 1, 23, true},
+			&model.KeyEvent{Row: 2, Col: 1, Position: 23, Pressed: true},
 		},
 	}
 
@@ -82,7 +82,9 @@ var result *model.KeyEvent
 
 func BenchmarkParseLine(b *testing.B) {
 	line := "[23:09:36.886,444] <dbg> zmk: zmk_kscan_process_msgq: Row: 2, col: 1, position: 23, pressed: false\x1b[0m"
+
 	var r *model.KeyEvent
+
 	for i := 0; i < b.N; i++ {
 		r, _ = parser.ParseLine(line)
 	}

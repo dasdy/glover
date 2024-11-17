@@ -26,9 +26,11 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 	groupedItems := make(map[cs.Location]model.MinimalKeyEvent)
 	for _, key := range locationsOnGrid {
 		groupedItems[key] = model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
+
 		if key.Row > totalRows {
 			totalRows = key.Row
 		}
+
 		if key.Col > totalCols {
 			totalCols = key.Col
 		}
@@ -40,12 +42,15 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 		if !ok {
 			log.Printf("Could not find position %d, wtf", key.Position)
 		}
+
 		if loc.Row > totalRows {
 			totalRows = loc.Row
 		}
+
 		if loc.Col > totalCols {
 			totalCols = loc.Col
 		}
+
 		if maxVal < key.Count {
 			maxVal = key.Count
 		}
@@ -57,6 +62,7 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 	// TODO: can this be done without a bunch of hidden items?
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
+
 	for i := 0; i <= totalRows; i++ {
 		for j := 0; j <= totalCols; j++ {
 			l.Row = i
@@ -71,10 +77,11 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 			}
 		}
 	}
+
 	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
 }
 
-func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
+func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	log.Print("Got request to stats page")
 
 	curStats, err := s.Storage.GatherAll()
@@ -82,6 +89,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Could not get stats: %s", err.Error())
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -89,11 +97,12 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
+
 	component := cs.HeatMap(&renderContext)
-	err = component.Render(context.Background(), &buf)
-	if err != nil {
+	if err = component.Render(context.Background(), &buf); err != nil {
 		log.Printf("Could not render: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -101,8 +110,8 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, r *http.Request) {
 	// Now, copy it over to the ResponseWriter
 	// This implies a 200 OK status code
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	_, err = buf.WriteTo(w)
-	if err != nil {
+
+	if _, err = buf.WriteTo(w); err != nil {
 		log.Printf("Could not render: %s", err.Error())
 		return
 	}
@@ -115,6 +124,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 		if len(c.Keys) > 2 {
 			continue
 		}
+
 		for _, k := range c.Keys {
 			if int64(k.Position) == position {
 				combosToDisplay = append(combosToDisplay, c)
@@ -132,9 +142,11 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 	groupedItems := make(map[cs.Location]*model.MinimalKeyEvent)
 	for pos, key := range locationsOnGrid {
 		groupedItems[key] = &model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Position: pos, Count: 0}
+
 		if key.Row > totalRows {
 			totalRows = key.Row
 		}
+
 		if key.Col > totalCols {
 			totalCols = key.Col
 		}
@@ -152,6 +164,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 
 			groupedItems[mapLoc].Count += combo.Pressed
 		}
+
 		if maxVal < combo.Pressed {
 			maxVal = combo.Pressed
 		}
@@ -161,6 +174,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 	// TODO: can this be done without a bunch of hidden items?
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
+
 	for i := 0; i <= totalRows; i++ {
 		for j := 0; j <= totalCols; j++ {
 			l.Row = i
@@ -180,6 +194,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 			}
 		}
 	}
+
 	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
 }
 
@@ -187,8 +202,8 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	log.Print("Got request to combos page")
 
 	combos := s.Storage.GatherCombos()
-
 	positionString := r.URL.Query().Get("position")
+
 	position, err := strconv.ParseInt(positionString, 10, 32)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -199,12 +214,13 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
+
 	component := cs.HeatMap(&renderContext)
-	err = component.Render(context.Background(), &buf)
-	if err != nil {
+	if err = component.Render(context.Background(), &buf); err != nil {
 		log.Printf("Could not render: %s", err.Error())
 		// fmt.Fprintf(w, "Could not render: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -212,8 +228,8 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	// Now, copy it over to the ResponseWriter
 	// This implies a 200 OK status code
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	_, err = buf.WriteTo(w)
-	if err != nil {
+
+	if _, err = buf.WriteTo(w); err != nil {
 		log.Printf("Could not render: %s", err.Error())
 		return
 	}
@@ -223,6 +239,7 @@ func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	if !dev {
 		return next
 	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		next.ServeHTTP(w, r)
@@ -236,14 +253,17 @@ func BuildServer(storage db.Storage, dev bool) *http.ServeMux {
 		disableCacheInDevMode(dev,
 			http.StripPrefix("/assets",
 				http.FileServer(http.Dir("assets")))))
+
 	handler := ServerHandler{storage}
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
 	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
+
 	return mux
 }
 
 func StartServer(port int, storage db.Storage, dev bool) {
 	log.Printf("Running interface on port %d\n", port)
+
 	err := http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
 		BuildServer(storage, dev))

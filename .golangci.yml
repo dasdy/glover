@@ -16,9 +16,7 @@ linters:
     - gochecknoglobals
 
     # TODO: enable these one-by-one and fix
-    - revive
     - testifylint
-    - wsl
     - nilnil
     - err113
     - wrapcheck

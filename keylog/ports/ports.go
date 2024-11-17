@@ -24,6 +24,7 @@ func NewDeviceReader(devices ...io.ReadCloser) *DeviceReader {
 
 func (r *DeviceReader) Close() error {
 	es := make([]error, 0)
+
 	for _, p := range r.ports {
 		err := p.Close()
 		if err != nil {
@@ -34,12 +35,15 @@ func (r *DeviceReader) Close() error {
 	if len(es) > 0 {
 		return errors.Join(es...)
 	}
+
 	return nil
 }
 
 func (r *DeviceReader) Channel() <-chan string {
 	outputChan := make(chan string, 5)
+
 	var wg sync.WaitGroup
+
 	wg.Add(len(r.ports))
 
 	for i, p := range r.ports {
@@ -48,6 +52,7 @@ func (r *DeviceReader) Channel() <-chan string {
 			for v := range ch {
 				outputChan <- v
 			}
+
 			wg.Done()
 			log.Printf("Read channel %d routine fin", i)
 		}()
@@ -71,19 +76,20 @@ func Open(path string) (*DeviceReader, error) {
 	}
 
 	// TODO make this configurable.
-	err = port.SetReadTimeout(10 * time.Hour)
-	if err != nil {
-		innerErr := port.Close()
-		if innerErr != nil {
+	if err := port.SetReadTimeout(10 * time.Hour); err != nil {
+		if innerErr := port.Close(); innerErr != nil {
 			return nil, fmt.Errorf("error during closing of port: %w, outer error: %w", innerErr, err)
 		}
+
 		return nil, err
 	}
+
 	return NewDeviceReader(port), nil
 }
 
 func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
 	es := []error{outerError}
+
 	for i, item := range itemsToClose {
 		err := item.Close()
 		if err != nil {
@@ -93,13 +99,14 @@ func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
 
 	if len(es) > 1 {
 		return errors.Join(es...)
-	} else {
-		return outerError
 	}
+
+	return outerError
 }
 
 func OpenMultiple(paths ...string) (*DeviceReader, error) {
 	ports := make([]io.ReadCloser, len(paths))
+
 	for i, p := range paths {
 		reader, err := Open(p)
 		if err != nil {

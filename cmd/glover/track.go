@@ -24,6 +24,7 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 			}
 		}
 	}
+
 	return true
 }
 
@@ -40,6 +41,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 		if err != nil {
 			return nil, err
 		}
+
 		log.Printf("Suggested devices: %+v ", names)
 
 		if autoConnect && len(names) == 2 {
@@ -70,7 +72,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 			return GetInputsChannel(names, false)
 
 		case len(names) > 0:
-			return nil, fmt.Errorf("error opening files: %w.", err)
+			return nil, fmt.Errorf("error opening files: %w", err)
 
 		default:
 			return nil, fmt.Errorf("error opening files: %w. It does not seem like any keyboard is connected", err)
@@ -86,7 +88,7 @@ var trackCmd = &cobra.Command{
 	Short: "Connect to attached keyboard and log keypresses",
 	Long: `Provide two paths to files to connect to, or leave empty to read from stdin.
 		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		deviceReader, err := GetInputsChannel(filenames, autoConnect)
 		if err != nil {
 			return fmt.Errorf("could not open inputs channel: %w", err)
@@ -105,10 +107,8 @@ var trackCmd = &cobra.Command{
 		}
 
 		log.Print("Main loop")
-		keylog.KeyLogLoop(deviceReader.Channel(), storage, verbose)
-		// In order for air to auto-restart, we need to return error code. It does not do this if
-		// the code is 0
-		return fmt.Errorf("I shall not accept just closure of file! Restart me!")
+		keylog.Loop(deviceReader.Channel(), storage, verbose)
+		return nil
 	},
 }
 

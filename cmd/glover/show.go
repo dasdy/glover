@@ -17,7 +17,7 @@ var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show collected statistics",
 	Long:  `Use log data collected by track command to show web interface with statistics.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		fmt.Println("show called")
 
 		log.Printf("Output file: %s\n", storagePath)

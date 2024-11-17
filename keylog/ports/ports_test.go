@@ -16,6 +16,7 @@ func readChanLines(c <-chan string) []string {
 	for line := range c {
 		result = append(result, line)
 	}
+
 	return result
 }
 
