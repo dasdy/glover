@@ -19,7 +19,7 @@ var showCmd = &cobra.Command{
 	Long:  `Use log data collected by track command to show web interface with statistics.`,
 	RunE: func(_ *cobra.Command, _ []string) error {
 		log.Printf("Output file: %s\n", storagePath)
-		storage, err := db.ConnectDB(storagePath)
+		storage, err := db.NewStorageFromPath(storagePath)
 		if err != nil {
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}

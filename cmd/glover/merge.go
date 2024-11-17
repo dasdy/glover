@@ -16,7 +16,7 @@ var mergeCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, _ []string) error {
 		inputs := make([]*db.SQLiteStorage, len(filenames))
 		for i, fn := range filenames {
-			store, err := db.ConnectDB(fn)
+			store, err := db.NewStorageFromPath(fn)
 			if err != nil {
 				return err
 			}
@@ -27,7 +27,7 @@ var mergeCmd = &cobra.Command{
 			return fmt.Errorf("output file %s already exists", storagePath)
 		}
 
-		output, err := db.ConnectDB(storagePath)
+		output, err := db.NewStorageFromPath(storagePath)
 		if err != nil {
 			return err
 		}

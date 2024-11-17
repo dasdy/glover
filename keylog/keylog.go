@@ -17,11 +17,11 @@ func Loop(ch <-chan string, storage db.Storage, enableLogs bool) {
 
 		if parsed != nil {
 			if enableLogs {
-				log.Printf("Event! %v", *parsed)
+				log.Printf("got keypress: %+v", *parsed)
 			}
 
 			if storage.Store(parsed) != nil {
-				log.Printf("Could not log item: %s", err.Error())
+				log.Printf("could not log item: %s", err.Error())
 			}
 		}
 	}
