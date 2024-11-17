@@ -67,7 +67,7 @@ func sortCombos(result []model.Combo) {
 
 func TestConnectToMemoryDB(t *testing.T) {
 	t.Run("should insert and gather correctly", func(t *testing.T) {
-		storage, err := db.NewStorageFromPath(":memory:")
+		storage, err := db.NewStorageFromPath(":memory:", false)
 
 		require.NoError(t, err)
 
@@ -111,7 +111,7 @@ func TestRaceCondition(t *testing.T) {
 		file, err := os.CreateTemp("/tmp", "*.sqlite")
 		require.NoError(t, err)
 		log.Printf("Created file: %s", file.Name())
-		storage, err := db.NewStorageFromPath(file.Name())
+		storage, err := db.NewStorageFromPath(file.Name(), false)
 
 		require.NoError(t, err)
 
@@ -175,7 +175,7 @@ func TestRaceCondition(t *testing.T) {
 
 func TestGatherCombos(t *testing.T) {
 	t.Run("returns empty combos by default", func(t *testing.T) {
-		storage, err := db.NewStorageFromPath(":memory:")
+		storage, err := db.NewStorageFromPath(":memory:", false)
 		require.NoError(t, err)
 
 		items := storage.GatherCombos()
@@ -208,7 +208,7 @@ func TestGatherCombos(t *testing.T) {
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
-		storage, err := db.NewStorageFromConnection(conn)
+		storage, err := db.NewStorageFromConnection(conn, false)
 		require.NoError(t, err)
 
 		combos := storage.GatherCombos()
@@ -248,7 +248,7 @@ func TestGatherCombos(t *testing.T) {
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
-		storage, err := db.NewStorageFromConnection(conn)
+		storage, err := db.NewStorageFromConnection(conn, false)
 		require.NoError(t, err)
 
 		combos := storage.GatherCombos()
@@ -357,11 +357,11 @@ func TestMergeDatabases(t *testing.T) {
 		file2, err := os.CreateTemp("/tmp", "*.sqlite")
 		require.NoError(t, err)
 
-		storage1, err := db.NewStorageFromPath(file1.Name())
+		storage1, err := db.NewStorageFromPath(file1.Name(), false)
 		require.NoError(t, err)
 		defer storage1.Close()
 
-		storage2, err := db.NewStorageFromPath(file2.Name())
+		storage2, err := db.NewStorageFromPath(file2.Name(), false)
 		require.NoError(t, err)
 		defer storage2.Close()
 
@@ -378,7 +378,7 @@ func TestMergeDatabases(t *testing.T) {
 		file3, err := os.CreateTemp("/tmp", "*.sqlite")
 		require.NoError(t, err)
 
-		output, err := db.NewStorageFromPath(file3.Name())
+		output, err := db.NewStorageFromPath(file3.Name(), false)
 		require.NoError(t, err)
 
 		require.NoError(t, db.Merge([]*db.SQLiteStorage{storage1, storage2}, output))

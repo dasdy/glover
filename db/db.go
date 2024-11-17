@@ -21,6 +21,7 @@ type Storage interface {
 type SQLiteStorage struct {
 	db           *sql.DB
 	comboTracker *ComboTracker
+	verbose      bool
 }
 
 func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
@@ -31,7 +32,7 @@ func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 		return err
 	}
 
-	s.comboTracker.HandleKeyNow(event.Position, event.Pressed)
+	s.comboTracker.HandleKeyNow(event.Position, event.Pressed, s.verbose)
 
 	return nil
 }
@@ -126,17 +127,18 @@ func InitDBStorage(db *sql.DB) error {
 	return nil
 }
 
-func NewStorageFromConnection(db *sql.DB) (*SQLiteStorage, error) {
+func NewStorageFromConnection(db *sql.DB, verbose bool) (*SQLiteStorage, error) {
 	tracker, err := NewComboTrackerFromDB(db)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SQLiteStorage{db: db, comboTracker: tracker}, nil
+	// TODO: replace verbosity thing by structured logging config
+	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
 }
 
 // Given a path to storage, connect to it and initialize everything.
-func NewStorageFromPath(path string) (*SQLiteStorage, error) {
+func NewStorageFromPath(path string, verbose bool) (*SQLiteStorage, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		log.Fatal(err)
@@ -154,7 +156,7 @@ func NewStorageFromPath(path string) (*SQLiteStorage, error) {
 		return nil, err
 	}
 
-	return &SQLiteStorage{db, tracker}, nil
+	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
 }
 
 func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {

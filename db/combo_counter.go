@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 	"sync"
 	"time"
 
@@ -43,7 +44,7 @@ func NewComboTrackerFromDB(db *sql.DB) (*ComboTracker, error) {
 	return nullTracker, nil
 }
 
-func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time) {
+func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time, verbose bool) {
 	c.l.Lock()
 	defer c.l.Unlock()
 
@@ -75,15 +76,20 @@ func (c *ComboTracker) HandleKey(position int, pressed bool, timeWhen time.Time)
 
 		v, ok := c.comboCounts[id]
 		if !ok {
-			c.comboCounts[id] = &model.Combo{Keys: pressedKeys, Pressed: 1}
+			v = &model.Combo{Keys: pressedKeys, Pressed: 1}
+			c.comboCounts[id] = v
 		} else {
 			v.Pressed++
+		}
+
+		if verbose {
+			log.Printf("combo counting (%d keys, pressed: %d): %+v", len(pressedKeys), v.Pressed, pressedKeys)
 		}
 	}
 }
 
-func (c *ComboTracker) HandleKeyNow(position int, pressed bool) {
-	c.HandleKey(position, pressed, time.Now())
+func (c *ComboTracker) HandleKeyNow(position int, pressed bool, verbose bool) {
+	c.handleKey(position, pressed, time.Now(), verbose)
 }
 
 func (c *ComboTracker) GatherCombos() []model.Combo {
@@ -108,22 +114,22 @@ func (c *ComboTracker) initComboCounter(db *sql.DB) error {
 	}
 	defer rows.Close()
 
-	return c.initialRead(rows)
-}
-
-func (c *ComboTracker) initialRead(cursor *sql.Rows) error {
-	for cursor.Next() {
+	for rows.Next() {
 		var (
 			position int
 			pressed  bool
 			ts       time.Time
 		)
 
-		if err := cursor.Scan(&position, &pressed, &ts); err != nil {
+		if err := rows.Scan(&position, &pressed, &ts); err != nil {
 			return err
 		}
 
-		c.HandleKey(position, pressed, ts)
+		c.handleKey(position, pressed, ts, false)
+	}
+
+	if err := rows.Err(); err != nil {
+		return err
 	}
 
 	return nil

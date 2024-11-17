@@ -99,7 +99,7 @@ var trackCmd = &cobra.Command{
 		defer deviceReader.Close()
 
 		log.Printf("connected successfully. Output file: %s\n", storagePath)
-		storage, err := db.NewStorageFromPath(storagePath)
+		storage, err := db.NewStorageFromPath(storagePath, verbose)
 		if err != nil {
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}
