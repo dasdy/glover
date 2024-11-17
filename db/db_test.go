@@ -13,6 +13,7 @@ import (
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func mockEvents(keyPositions []int) []model.KeyEvent {
@@ -68,50 +69,51 @@ func TestConnectToMemoryDB(t *testing.T) {
 	t.Run("should insert and gather correctly", func(t *testing.T) {
 		storage, err := db.ConnectDB(":memory:")
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		items, err := storage.GatherAll()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Empty(t, items)
 
 		item := model.KeyEvent{Row: 0, Col: 0, Position: 0, Pressed: false}
 		for range 10 {
 			item.Pressed = !item.Pressed
-			assert.NoError(t, storage.Store(&item))
+			require.NoError(t, storage.Store(&item))
 		}
 
 		item.Pressed = false
 		for i := range 5 {
 			item.Col = i*2 + 1
 			item.Row = i + 12
-			assert.NoError(t, storage.Store(&item))
+			require.NoError(t, storage.Store(&item))
 		}
 
 		items, err = storage.GatherAll()
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
-		assert.Equal(t, items, []model.MinimalKeyEvent{
+		assert.Equal(t, []model.MinimalKeyEvent{
 			{Row: 0, Col: 0, Position: 0, Count: 5},
 			{Row: 12, Col: 1, Position: 0, Count: 1},
 			{Row: 13, Col: 3, Position: 0, Count: 1},
 			{Row: 14, Col: 5, Position: 0, Count: 1},
 			{Row: 15, Col: 7, Position: 0, Count: 1},
 			{Row: 16, Col: 9, Position: 0, Count: 1},
-		})
+		},
+			items)
 	})
 }
 
 func TestRaceCondition(t *testing.T) {
 	t.Run("Should not fail due to race condition on db connection", func(t *testing.T) {
 		file, err := os.CreateTemp("/tmp", "*.sqlite")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		log.Printf("Created file: %s", file.Name())
 		storage, err := db.ConnectDB(file.Name())
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		var wg sync.WaitGroup
 
@@ -123,7 +125,7 @@ func TestRaceCondition(t *testing.T) {
 			event := model.KeyEvent{}
 		out:
 			for i := range 16_000 {
-				assert.NoError(t, storage.Store(&event))
+				require.NoError(t, storage.Store(&event))
 				// Writes can take all the cake from reads - give them some time to rest
 				if i%2000 == 0 {
 					// log.Println("Another 2k items written")
@@ -146,11 +148,7 @@ func TestRaceCondition(t *testing.T) {
 		out:
 			for range 6_000 {
 				_, err := storage.GatherAll()
-
-				// if i%500 == 0 {
-				// log.Println("Another 500 items read")
-				// }
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				select {
 				case <-done:
 					break out
@@ -170,7 +168,7 @@ func TestRaceCondition(t *testing.T) {
 		wg.Wait()
 
 		items, err := storage.GatherAll()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Len(t, items, 1)
 	})
 }
@@ -178,19 +176,19 @@ func TestRaceCondition(t *testing.T) {
 func TestGatherCombos(t *testing.T) {
 	t.Run("returns empty combos by default", func(t *testing.T) {
 		storage, err := db.ConnectDB(":memory:")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		items := storage.GatherCombos()
 
-		assert.Len(t, items, 0)
+		assert.Empty(t, items)
 	})
 
 	t.Run("returns one combo", func(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
-		assert.NoError(t, db.InitDbStorage(conn))
+		require.NoError(t, db.InitDBStorage(conn))
 
 		positions := []int{
 			1, 2,
@@ -205,13 +203,13 @@ func TestGatherCombos(t *testing.T) {
 			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, ?)`,
 				event.Row, event.Col, event.Position, event.Pressed, curTime)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
 		storage, err := db.NewStorage(conn)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		combos := storage.GatherCombos()
 
@@ -229,7 +227,7 @@ func TestGatherCombos(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
 
 		assert.NoError(t, err)
-		assert.NoError(t, db.InitDbStorage(conn))
+		assert.NoError(t, db.InitDBStorage(conn))
 
 		positions := []int{
 			1, 2,
@@ -245,13 +243,13 @@ func TestGatherCombos(t *testing.T) {
 			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, ?)`,
 				event.Row, event.Col, event.Position, event.Pressed, curTime)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			curTime = curTime.Add(100 * time.Millisecond)
 		}
 
 		storage, err := db.NewStorage(conn)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		combos := storage.GatherCombos()
 
@@ -292,13 +290,14 @@ func copyToMem(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
 
 	memConn, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		return nil, err
 	}
 
-	if db.InitDbStorage(memConn) != nil {
+	if db.InitDBStorage(memConn) != nil {
 		return nil, err
 	}
 
@@ -330,6 +329,10 @@ func copyToMem(path string) (*sql.DB, error) {
 		}
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return memConn, err
 }
 
@@ -341,7 +344,7 @@ func BenchmarkComboScan(b *testing.B) {
 	defer conn.Close()
 
 	for i := 0; i < b.N; i++ {
-		if _, err = db.NewComboTrackerFromDb(conn); err != nil {
+		if _, err = db.NewComboTrackerFromDB(conn); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -350,43 +353,45 @@ func BenchmarkComboScan(b *testing.B) {
 func TestMergeDatabases(t *testing.T) {
 	t.Run("merges two storages successfully", func(t *testing.T) {
 		file1, err := os.CreateTemp("/tmp", "*.sqlite")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		file2, err := os.CreateTemp("/tmp", "*.sqlite")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		storage1, err := db.ConnectDB(file1.Name())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer storage1.Close()
 
 		storage2, err := db.ConnectDB(file2.Name())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer storage2.Close()
 
 		event1 := model.KeyEvent{
 			Row: 5, Col: 100, Position: 5, Pressed: false,
 		}
-		assert.NoError(t, storage1.Store(&event1))
+		require.NoError(t, storage1.Store(&event1))
 
 		event2 := model.KeyEvent{
 			Row: 102, Col: 110, Position: 6, Pressed: true,
 		}
-		assert.NoError(t, storage2.Store(&event2))
+		require.NoError(t, storage2.Store(&event2))
 
 		file3, err := os.CreateTemp("/tmp", "*.sqlite")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		output, err := db.ConnectDB(file3.Name())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
-		assert.NoError(t, db.Merge([]*db.SQLiteStorage{storage1, storage2}, output))
+		require.NoError(t, db.Merge([]*db.SQLiteStorage{storage1, storage2}, output))
 
 		conn, err := sql.Open("sqlite3", file3.Name())
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		rows, err := conn.Query(
 			`select row, col, position, pressed, ts 
         from keypresses
         order by ts`)
-		assert.NoError(t, err)
+		require.NoError(t, err)
+
+		defer rows.Close()
 
 		assert.True(t, rows.Next())
 
@@ -396,19 +401,21 @@ func TestMergeDatabases(t *testing.T) {
 			ts                 time.Time
 		)
 
-		assert.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
+		require.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
 		assert.Equal(t,
-			event1,
 			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+			event1,
 		)
 
 		assert.True(t, rows.Next())
-		assert.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
+		require.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
 		assert.Equal(t,
-			event2,
 			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+			event2,
 		)
 
 		assert.False(t, rows.Next())
+
+		assert.NoError(t, rows.Err())
 	})
 }

@@ -25,7 +25,7 @@ type SQLiteStorage struct {
 }
 
 func NewStorage(db *sql.DB) (*SQLiteStorage, error) {
-	tracker, err := NewComboTrackerFromDb(db)
+	tracker, err := NewComboTrackerFromDB(db)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func NewStorage(db *sql.DB) (*SQLiteStorage, error) {
 	return &SQLiteStorage{db: db, comboTracker: tracker}, nil
 }
 
-func InitDbStorage(db *sql.DB) error {
+func InitDBStorage(db *sql.DB) error {
 	// TODO: add indices over row-col-position?
 	sqlStmt := `
 	create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);`
@@ -65,12 +65,12 @@ func ConnectDB(path string) (*SQLiteStorage, error) {
 		return nil, err
 	}
 
-	err = InitDbStorage(db)
+	err = InitDBStorage(db)
 	if err != nil {
 		return nil, err
 	}
 
-	tracker, err := NewComboTrackerFromDb(db)
+	tracker, err := NewComboTrackerFromDB(db)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +118,10 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 		result = append(result, model.MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
 	}
 
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return result, nil
 }
 
@@ -145,7 +149,7 @@ func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 	}
 }
 
-func NewComboTrackerFromDb(db *sql.DB) (*ComboTracker, error) {
+func NewComboTrackerFromDB(db *sql.DB) (*ComboTracker, error) {
 	nullTracker := newComboTracker(100, 2)
 
 	err := nullTracker.initComboCounter(db)
@@ -271,12 +275,17 @@ func (s *SQLiteStorage) count() (int, error) {
 	if err != nil {
 		return -1, err
 	}
+	defer rows.Close()
 
 	var count int
 
 	rows.Next()
 
 	if err := rows.Scan(&count); err != nil {
+		return -1, err
+	}
+
+	if err = rows.Err(); err != nil {
 		return -1, err
 	}
 
@@ -303,7 +312,10 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 		bar := progressbar.Default(int64(count), "Writing...")
 
 		for rows.Next() {
-			bar.Add(1)
+			err := bar.Add(1)
+			if err != nil {
+				return err
+			}
 
 			var (
 				row, col, position int
@@ -316,13 +328,17 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 				return err
 			}
 
-			_, err := out.db.Exec(`
+			_, err = out.db.Exec(`
                 insert into keypresses(row, col, position, pressed, ts)
 	            values(?, ?, ?, ?, ?)`,
 				row, col, position, pressed, ts)
 			if err != nil {
 				return err
 			}
+		}
+
+		if err = rows.Err(); err != nil {
+			return err
 		}
 	}
 

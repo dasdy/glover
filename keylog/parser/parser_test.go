@@ -6,6 +6,7 @@ import (
 	"github.com/dasdy/glover/keylog/parser"
 	"github.com/dasdy/glover/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type parseLineTest struct {
@@ -41,9 +42,9 @@ func TestParseLine(t *testing.T) {
 		t.Run("parses "+item.name, func(t *testing.T) {
 			res, err := parser.ParseLine(item.line)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
-			assert.Equal(t, res, item.expectedResult)
+			assert.Equal(t, item.expectedResult, res)
 		})
 	}
 
@@ -71,7 +72,7 @@ func TestParseLine(t *testing.T) {
 		t.Run("does not parse "+item.name, func(t *testing.T) {
 			res, err := parser.ParseLine(item.line)
 
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Nil(t, res)
 		})
 	}

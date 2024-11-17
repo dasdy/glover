@@ -82,7 +82,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 		}
 	}
 
-	return nil, fmt.Errorf("Strange count of devices provided: %d: %+v", len(filenames), filenames)
+	return nil, fmt.Errorf("strange count of devices provided: %d: %+v", len(filenames), filenames)
 }
 
 // trackCmd represents the track command.

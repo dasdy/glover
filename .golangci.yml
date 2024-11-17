@@ -16,16 +16,9 @@ linters:
     - gochecknoglobals
 
     # TODO: enable these one-by-one and fix
-    - testifylint
     - err113
     - wrapcheck
     - exhaustruct
-    - ineffassign
     - paralleltest
-    - stylecheck
-    - sqlclosecheck
-    - rowserrcheck
-    - nonamedreturns
     - contextcheck
     - gosec
-    - errcheck
