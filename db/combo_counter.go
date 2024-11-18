@@ -62,7 +62,8 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 			continue
 		}
 		// Ignore key states that have been "true" for too long - for cases when keypress was kost
-		if p.pressed && timeWhen.Sub(p.timeWhen) > 2*time.Second {
+		if p.pressed && timeWhen.Sub(p.timeWhen) > 10*time.Second {
+			log.Printf("Ignoring key in position %d: pressed %v ago", k, timeWhen.Sub(p.timeWhen))
 			p.pressed = false
 		}
 
