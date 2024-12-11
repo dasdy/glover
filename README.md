@@ -42,7 +42,7 @@ In case if you don't need active key tracking, you can only run the web interfac
 
 ### Live-reload
 
-For development, it's easy to use [air](github.com/air-verse/air).
+For development, it's easy to use [air](https://github.com/air-verse/air).
 I tested this repo with `v1.61.1`. You will also need a [tailwind-cli](https://tailwindcss.com/blog/standalone-cli)
 and [templ](https://templ.guide/quick-start/installation#go-install) in your PATH.
 
