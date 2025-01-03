@@ -4,7 +4,7 @@ tmp_dir = "tmp"
 [build]
 args_bin = []
 bin = "./tmp/glover track -v --dev"
-# bin = "./bin/glover show --dev"
+# bin = "./tmp/glover show --dev"
 cmd = "make build"
 delay = 500
 exclude_dir = ["bin", "tmp", "assets", "vendor", "testdata"]
