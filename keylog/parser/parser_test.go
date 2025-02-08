@@ -85,7 +85,7 @@ func BenchmarkParseLine(b *testing.B) {
 
 	var r *model.KeyEvent
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		r, _ = parser.ParseLine(line)
 	}
 

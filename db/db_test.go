@@ -343,7 +343,7 @@ func BenchmarkComboScan(b *testing.B) {
 	}
 	defer conn.Close()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err = db.NewComboTrackerFromDB(conn); err != nil {
 			b.Fatal(err)
 		}
