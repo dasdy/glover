@@ -14,6 +14,8 @@ linters:
     - gochecknoinits
     - gocognit
     - gochecknoglobals
+    - execinquery
+    - gomnd
 
     # TODO: enable these one-by-one and fix
     - err113
