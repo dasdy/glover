@@ -11,6 +11,11 @@ type MinimalKeyEvent struct {
 	Row, Col, Position, Count int
 }
 
+type MinimalKeyEventWithLabel struct {
+	Row, Col, Position, Count int
+	KeyLabel                  string
+}
+
 type ComboKey struct {
 	Position int
 }

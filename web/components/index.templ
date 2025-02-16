@@ -46,22 +46,22 @@ templ key(item *Item) {
 			if item.Visible {
 				if !item.Highlight {
 					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4">
-						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
+						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }> { item.KeyName } </span>
 						<span
 							id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
 							class="keys-pressed font-semibold inline-block min-w-9 text-center"
 						>
-							{ item.Label }
+							{ item.KeypressAmount }
 						</span>
 					</div>
 				} else {
 					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 border-solid border-red-500 p-4">
-						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }>A </span>
+						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }> { item.KeyName } </span>
 						<span
 							id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
 							class="keys-pressed font-semibold inline-block min-w-9 text-center"
 						>
-							{ item.Label }
+							{ item.KeypressAmount }
 						</span>
 					</div>
 				}

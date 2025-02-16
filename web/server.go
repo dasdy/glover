@@ -3,19 +3,61 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 
 	"github.com/a-h/templ"
 	"github.com/dasdy/glover/db"
+	"github.com/dasdy/glover/layout"
 	"github.com/dasdy/glover/model"
 	cs "github.com/dasdy/glover/web/components"
 )
 
 type ServerHandler struct {
 	Storage db.Storage
+}
+
+func GetKeyLabels(filename string) ([]string, error) {
+	// TODO: parameterize;
+	_, b, _, _ := runtime.Caller(0)
+
+	// Root folder of this project
+	fp := filepath.Join(filepath.Dir(b), "..")
+
+	file, err := os.Open(filepath.Join(fp, "data", filename))
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	keymap, err := layout.Parse(file)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(keymap.Layers) < 1 {
+		return nil, errors.New("Expected at least 1 layer in layout")
+	}
+	results := make([]string, 0, len(keymap.Layers[0].Bindings))
+
+	for _, b := range keymap.Layers[0].Bindings {
+		if b.Action == "&kp" {
+			if len(b.Modifiers) > 1 {
+				results = append(results, fmt.Sprintf("%+v", b.Modifiers))
+			} else {
+				results = append(results, b.Modifiers[0])
+			}
+		} else {
+			results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
+		}
+	}
+	return results, nil
 }
 
 func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error {
@@ -47,10 +89,17 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 	totalCols := 0
 	maxVal := 0
 
+	names, _ := GetKeyLabels("glove80.keymap")
+
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[cs.Location]model.MinimalKeyEvent)
-	for _, key := range locationsOnGrid {
-		groupedItems[key] = model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Count: 0}
+	groupedItems := make(map[cs.Location]model.MinimalKeyEventWithLabel)
+	for i, key := range locationsOnGrid {
+		name := "<OOB>"
+		if i < len(names) {
+			name = names[i]
+		}
+
+		groupedItems[key] = model.MinimalKeyEventWithLabel{Row: key.Row, Col: key.Col, Count: 0, KeyLabel: name}
 
 		if key.Row > totalRows {
 			totalRows = key.Row
@@ -72,7 +121,14 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 			maxVal = key.Count
 		}
 
-		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}] = key
+		name := "<OOB>"
+		if key.Position < len(names) {
+			name = names[key.Position]
+		}
+
+		keyWithLabel := model.MinimalKeyEventWithLabel{Row: key.Row, Col: key.Col, Count: key.Count, KeyLabel: name, Position: key.Position}
+
+		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}] = keyWithLabel
 	}
 
 	// Iterate over total grid and add real and hidden items.
@@ -88,9 +144,9 @@ func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
 			item, ok := groupedItems[l]
 			if ok {
 				// items = append(items, Item{fmt.Sprintf("(%d %d): %d", item.Row, item.Col, item.Count), true})
-				items = append(items, cs.Item{Position: item.Position, Label: strconv.Itoa(item.Count), Visible: true})
+				items = append(items, cs.Item{Position: item.Position, KeypressAmount: strconv.Itoa(item.Count), KeyName: item.KeyLabel, Visible: true})
 			} else {
-				items = append(items, cs.Item{Position: item.Position, Label: "-", Visible: false})
+				items = append(items, cs.Item{Position: item.Position, KeypressAmount: "-", Visible: false})
 			}
 		}
 	}
@@ -135,10 +191,16 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 	totalCols := 0
 	maxVal := 0
 
+	names, _ := GetKeyLabels("glove80.keymap")
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[cs.Location]*model.MinimalKeyEvent)
+	groupedItems := make(map[cs.Location]*model.MinimalKeyEventWithLabel)
 	for pos, key := range locationsOnGrid {
-		groupedItems[key] = &model.MinimalKeyEvent{Row: key.Row, Col: key.Col, Position: pos, Count: 0}
+		name := "<OOB>"
+		if pos < len(names) {
+			name = names[pos]
+		}
+
+		groupedItems[key] = &model.MinimalKeyEventWithLabel{Row: key.Row, Col: key.Col, Count: 0, KeyLabel: name}
 
 		if key.Row > totalRows {
 			totalRows = key.Row
@@ -181,13 +243,14 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 			if ok {
 				highlight := int64(item.Position) == position
 				items = append(items, cs.Item{
-					Position:  item.Position,
-					Label:     strconv.Itoa(item.Count),
-					Visible:   true,
-					Highlight: highlight,
+					Position:       item.Position,
+					KeypressAmount: strconv.Itoa(item.Count),
+					KeyName:        item.KeyLabel,
+					Visible:        true,
+					Highlight:      highlight,
 				})
 			} else {
-				items = append(items, cs.Item{Position: -1, Label: "-", Visible: false})
+				items = append(items, cs.Item{Position: -1, KeypressAmount: "-", Visible: false})
 			}
 		}
 	}

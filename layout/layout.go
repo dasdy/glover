@@ -1,5 +1,10 @@
 package layout
 
+/*
+* This is an almost direct copy of the way https://github.com/MrMarble/zmk-viewer parses qmk files.
+* Hopefully this should also work on zmk configurations
+ */
+
 import (
 	"context"
 	"io"
