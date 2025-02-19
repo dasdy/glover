@@ -40,29 +40,27 @@ templ HeatMap(c *RenderContext) {
 	</html>
 }
 
+templ keyContent(item *Item) {
+	<span id={ fmt.Sprintf("key-msg-%d", item.Position) } class="text-s absolute top-0 left-1">{ item.KeyName } </span>
+	<span
+		id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
+		class="keys-pressed font-semibold inline-block min-w-9 text-center"
+	>
+		{ item.KeypressAmount }
+	</span>
+}
+
 templ key(item *Item) {
 	<a href={ templ.URL(fmt.Sprintf("/combo?position=%d", item.Position)) }>
 		<div class="aspect-square">
 			if item.Visible {
 				if !item.Highlight {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border border-solid border-gray-50 p-4">
-						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }> { item.KeyName } </span>
-						<span
-							id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-							class="keys-pressed font-semibold inline-block min-w-9 text-center"
-						>
-							{ item.KeypressAmount }
-						</span>
+					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-gray-50 p-4">
+						@keyContent(item)
 					</div>
 				} else {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 border-solid border-red-500 p-4">
-						<span id={ fmt.Sprintf("key-msg-%d", item.Position) }> { item.KeyName } </span>
-						<span
-							id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-							class="keys-pressed font-semibold inline-block min-w-9 text-center"
-						>
-							{ item.KeypressAmount }
-						</span>
+					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-red-500 p-4">
+						@keyContent(item)
 					</div>
 				}
 			} else {

@@ -42,18 +42,26 @@ func GetKeyLabels(filename string) ([]string, error) {
 	}
 
 	if len(keymap.Layers) < 1 {
-		return nil, errors.New("Expected at least 1 layer in layout")
+		return nil, errors.New("expected at least 1 layer in layout")
 	}
 	results := make([]string, 0, len(keymap.Layers[0].Bindings))
 
 	for _, b := range keymap.Layers[0].Bindings {
-		if b.Action == "&kp" {
+		switch b.Action {
+		case "&kp":
+			for i := range b.Modifiers {
+				if v, ok := labels[b.Modifiers[i]]; ok {
+					b.Modifiers[i] = v
+				}
+			}
 			if len(b.Modifiers) > 1 {
 				results = append(results, fmt.Sprintf("%+v", b.Modifiers))
 			} else {
 				results = append(results, b.Modifiers[0])
 			}
-		} else {
+		case "&magic":
+			results = append(results, "🪄")
+		default:
 			results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
 		}
 	}
