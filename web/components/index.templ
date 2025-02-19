@@ -13,7 +13,7 @@ templ HeatMap(c *RenderContext) {
 			<link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
 		</head>
 		<body
-			class="bg-amber-100"
+			class="bg-theme-2"
 		>
 			<div class="items-center justify-center flex flex-col ">
 				<h1 class="text-xl mt-10"><a href="/">Home</a></h1>
@@ -55,11 +55,11 @@ templ key(item *Item) {
 		<div class="aspect-square">
 			if item.Visible {
 				if !item.Highlight {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-gray-50 p-4">
+					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-theme-3 p-4">
 						@keyContent(item)
 					</div>
 				} else {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-red-500 p-4">
+					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-theme-4 p-4">
 						@keyContent(item)
 					</div>
 				}

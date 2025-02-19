@@ -31,7 +31,7 @@ func HeatMap(c *RenderContext) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"600\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Glove80 Key Heatmap</title><link rel=\"stylesheet\" href=\"/assets/css/styles.css\"><link rel=\"stylesheet\" href=\"/assets/css/tailwind_output.css\"></head><body class=\"bg-amber-100\"><div class=\"items-center justify-center flex flex-col \"><h1 class=\"text-xl mt-10\"><a href=\"/\">Home</a></h1><div id=\"keysgrid\" class=\"mt-4 inline-grid grid-cols-12 gap-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"600\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Glove80 Key Heatmap</title><link rel=\"stylesheet\" href=\"/assets/css/styles.css\"><link rel=\"stylesheet\" href=\"/assets/css/tailwind_output.css\"></head><body class=\"bg-theme-2\"><div class=\"items-center justify-center flex flex-col \"><h1 class=\"text-xl mt-10\"><a href=\"/\">Home</a></h1><div id=\"keysgrid\" class=\"mt-4 inline-grid grid-cols-12 gap-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -174,7 +174,7 @@ func key(item *Item) templ.Component {
 		}
 		if item.Visible {
 			if !item.Highlight {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-gray-50 p-4\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-theme-3 p-4\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -187,7 +187,7 @@ func key(item *Item) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-red-500 p-4\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-theme-4 p-4\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

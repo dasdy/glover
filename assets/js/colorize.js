@@ -55,10 +55,10 @@ function translate(n, min1, max1, min2, max2) {
 
 function interpolateColor(value, schema) {
   if (schema === undefined) {
-    schema = defaultGradient;
+    // schema = defaultGradient;
     // schema = viridis.slice().reverse();
     // schema = magma.slice().reverse();
-    // schema = inferno.slice().reverse();
+    schema = inferno.slice().reverse();
   }
 
   let r, g, b;

@@ -17,3 +17,10 @@
     border-color: var(--color-gray-200, currentColor);
   }
 }
+@theme {
+  --color-theme-1: #9abdad;
+  --color-theme-2: #e6e6c2;
+  --color-theme-3: #ead7a2;
+  --color-theme-4: #c89691;
+  --color-theme-5: #e1b78d;
+}
