@@ -41,10 +41,10 @@ templ HeatMap(c *RenderContext) {
 }
 
 templ keyContent(item *Item) {
-	<span id={ fmt.Sprintf("key-msg-%d", item.Position) } class="text-s absolute top-0 left-1">{ item.KeyName } </span>
+	<span id={ fmt.Sprintf("key-msg-%d", item.Position) } class="text-s absolute top-0 left-1 min-w-12">{ item.KeyName } </span>
 	<span
 		id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-		class="keys-pressed font-semibold inline-block min-w-9 text-center"
+		class="keys-pressed font-semibold inline-block min-w-12 text-center"
 	>
 		{ item.KeypressAmount }
 	</span>
@@ -59,7 +59,7 @@ templ key(item *Item) {
 						@keyContent(item)
 					</div>
 				} else {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border-4 relative border-solid border-theme-4 p-4">
+					<div class="grid-item flex h-full w-full flex-col items-center justify-center outline-4 rounded-md border relative border-solid outline-theme-4 p-4">
 						@keyContent(item)
 					</div>
 				}
