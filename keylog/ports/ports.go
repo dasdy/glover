@@ -14,15 +14,27 @@ import (
 	"go.bug.st/serial"
 )
 
-type DeviceReader struct {
+type RealDeviceReader struct {
 	ports []io.ReadCloser
 }
 
-func NewDeviceReader(devices ...io.ReadCloser) *DeviceReader {
-	return &DeviceReader{ports: devices}
+type DeviceReader interface {
+	Close() error
+	Channel() <-chan string
 }
 
-func (r *DeviceReader) Close() error {
+type DeviceOpener interface {
+	OpenMultiple(paths ...string) (DeviceReader, error)
+	GetAvailableDevices() ([]string, error)
+}
+
+type RealDeviceOpener struct{}
+
+func NewDeviceReader(devices ...io.ReadCloser) *RealDeviceReader {
+	return &RealDeviceReader{ports: devices}
+}
+
+func (r *RealDeviceReader) Close() error {
 	es := make([]error, 0)
 
 	for _, p := range r.ports {
@@ -39,7 +51,7 @@ func (r *DeviceReader) Close() error {
 	return nil
 }
 
-func (r *DeviceReader) Channel() <-chan string {
+func (r *RealDeviceReader) Channel() <-chan string {
 	outputChan := make(chan string, 5)
 
 	var wg sync.WaitGroup
@@ -67,7 +79,7 @@ func (r *DeviceReader) Channel() <-chan string {
 	return outputChan
 }
 
-func Open(path string) (*DeviceReader, error) {
+func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
 	port, err := serial.Open(path, &serial.Mode{
 		BaudRate: 9600,
 	})
@@ -104,11 +116,11 @@ func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
 	return outerError
 }
 
-func OpenMultiple(paths ...string) (*DeviceReader, error) {
+func (r *RealDeviceOpener) OpenMultiple(paths ...string) (DeviceReader, error) {
 	ports := make([]io.ReadCloser, len(paths))
 
 	for i, p := range paths {
-		reader, err := Open(p)
+		reader, err := r.Open(p)
 		if err != nil {
 			outerError := fmt.Errorf("error on opening path %s: %w", p, err)
 
@@ -146,7 +158,7 @@ func LooksLikeZMKDevice(path string) bool {
 	return strings.HasPrefix(filepath.Base(path), "tty.usbmodem")
 }
 
-func GetAvailableDevices() ([]string, error) {
+func (r *RealDeviceOpener) GetAvailableDevices() ([]string, error) {
 	names, err := serial.GetPortsList()
 	if err != nil {
 		return nil, err

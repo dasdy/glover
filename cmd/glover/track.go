@@ -28,7 +28,7 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 	return true
 }
 
-func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader, error) {
+func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect bool) (ports.DeviceReader, error) {
 	fileCount := len(filenames)
 
 	if fileCount != 2 && fileCount != 0 {
@@ -37,7 +37,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 
 	switch fileCount {
 	case 0:
-		names, err := ports.GetAvailableDevices()
+		names, err := opener.GetAvailableDevices()
 		if err != nil {
 			return nil, err
 		}
@@ -47,21 +47,21 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 		if autoConnect && len(names) == 2 {
 			log.Print("Will proceed to autoconnect to devices")
 
-			return GetInputsChannel(names, false)
+			return GetInputsChannel(opener, names, false)
 		} else {
 			log.Print("Will proceed to read from stdin...")
 
 			return ports.NewDeviceReader(os.Stdin), nil
 		}
 	case 2:
-		deviceReader, err := ports.OpenMultiple(filenames[0], filenames[1])
+		deviceReader, err := opener.OpenMultiple(filenames[0], filenames[1])
 
 		if err == nil {
 			return deviceReader, nil
 		}
 
 		// Try suggesting devices
-		names, errInner := ports.GetAvailableDevices()
+		names, errInner := opener.GetAvailableDevices()
 		if errInner != nil {
 			return nil, fmt.Errorf("could not open file: %w; Could not suggest devices: %w", err, errInner)
 		}
@@ -72,7 +72,7 @@ func GetInputsChannel(filenames []string, autoConnect bool) (*ports.DeviceReader
 		case len(names) > 0 && shouldTryConnect(filenames, names, autoConnect):
 			log.Print("autoconnect enabled. Trying to connect to candidates")
 
-			return GetInputsChannel(names, false)
+			return GetInputsChannel(opener, names, false)
 
 		case len(names) > 0:
 			return nil, fmt.Errorf("error opening files: %w", err)
@@ -92,7 +92,11 @@ var trackCmd = &cobra.Command{
 	Long: `Provide two paths to files to connect to, or leave empty to read from stdin.
 		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
 	RunE: func(_ *cobra.Command, _ []string) error {
-		deviceReader, err := GetInputsChannel(filenames, autoConnect)
+		deviceReader, err := GetInputsChannel(
+			&ports.RealDeviceOpener{},
+			filenames,
+			autoConnect,
+		)
 		if err != nil {
 			return fmt.Errorf("could not open inputs channel: %w", err)
 		}
