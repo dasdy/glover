@@ -4,7 +4,6 @@ linters:
   # enable:
   disable:
     - funlen
-    - exportloopref
     - lll # NOTE: configure length larger?
     - cyclop
     - depguard
@@ -14,8 +13,7 @@ linters:
     - gochecknoinits
     - gocognit
     - gochecknoglobals
-    - execinquery
-    - gomnd
+    - tenv
 
     # TODO: enable these one-by-one and fix
     - err113

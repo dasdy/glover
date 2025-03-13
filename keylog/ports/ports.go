@@ -24,7 +24,7 @@ type DeviceReader interface {
 }
 
 type DeviceOpener interface {
-	OpenMultiple(paths ...string) (DeviceReader, error)
+	OpenMultiple(paths ...string) (*RealDeviceReader, error)
 	GetAvailableDevices() ([]string, error)
 }
 
@@ -116,7 +116,7 @@ func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
 	return outerError
 }
 
-func (r *RealDeviceOpener) OpenMultiple(paths ...string) (DeviceReader, error) {
+func (r *RealDeviceOpener) OpenMultiple(paths ...string) (*RealDeviceReader, error) {
 	ports := make([]io.ReadCloser, len(paths))
 
 	for i, p := range paths {

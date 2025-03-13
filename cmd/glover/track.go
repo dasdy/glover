@@ -28,7 +28,7 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 	return true
 }
 
-func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect bool) (ports.DeviceReader, error) {
+func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect bool) (*ports.RealDeviceReader, error) {
 	fileCount := len(filenames)
 
 	if fileCount != 2 && fileCount != 0 {
@@ -48,11 +48,12 @@ func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect
 			log.Print("Will proceed to autoconnect to devices")
 
 			return GetInputsChannel(opener, names, false)
-		} else {
-			log.Print("Will proceed to read from stdin...")
-
-			return ports.NewDeviceReader(os.Stdin), nil
 		}
+
+		log.Print("Will proceed to read from stdin...")
+
+		return ports.NewDeviceReader(os.Stdin), nil
+
 	case 2:
 		deviceReader, err := opener.OpenMultiple(filenames[0], filenames[1])
 

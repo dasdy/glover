@@ -1,9 +1,8 @@
 package layout
 
-/*
-* This is an almost direct copy of the way https://github.com/MrMarble/zmk-viewer parses qmk files.
-* Hopefully this should also work on zmk configurations
- */
+// #cgo CFLAGS: -std=c11 -fPIC
+// #include "./tree-sitter-devicetree/src/parser.c"
+import "C"
 
 import (
 	"context"
@@ -14,12 +13,9 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-// #cgo CFLAGS: -std=c11 -fPIC
-// #include "./tree-sitter-devicetree/src/parser.c"
-import "C"
-
 func GetLanguage() *sitter.Language {
 	ptr := unsafe.Pointer(C.tree_sitter_devicetree())
+
 	return sitter.NewLanguage(ptr)
 }
 
@@ -62,8 +58,10 @@ func getKeymap(tree *sitter.Tree, source []byte) (*sitter.Node, error) {
 		if m == nil || len(m.Captures) == 0 {
 			continue
 		}
+
 		if m.Captures[0].Node != nil {
 			keymap = m.Captures[0].Node
+
 			break
 		}
 	}
@@ -89,35 +87,46 @@ func getLayers(keymap *sitter.Node, source []byte) ([]*sitter.Node, error) {
 		if m == nil || len(m.Captures) == 0 {
 			continue
 		}
+
 		if m.Captures[0].Node != nil {
 			layers = append(layers, m.Captures[0].Node)
 		}
 	}
+
 	return layers, nil
 }
 
 func parseLayer(layer *sitter.Node, source []byte) (*Layer, error) {
 	l := &Layer{}
 	l.Name = layer.Child(0).Content(source)
-	for i := 0; i < int(layer.ChildCount()); i++ {
+
+	for i := range int(layer.ChildCount()) {
 		if layer.Child(i).Type() == "property" && layer.Child(i).Content(source)[:8] == "bindings" {
 			var bindings []Binding
+
 			b := layer.Child(i).Child(2).Child(1)
+
 			for {
 				action := b.Content(source)
 				if action == "&bootloader" {
 					b = b.NextSibling()
+
 					continue
 				}
+
 				var modifiers []string
+
 				for {
 					if b.NextSibling() == nil || b.NextSibling().Type() == ">" {
 						break
 					}
+
 					modifier := b.NextSibling().Content(source)
+
 					if strings.HasPrefix(modifier, "&") {
 						break
 					}
+
 					modifiers = append(modifiers, modifier)
 					b = b.NextSibling()
 				}
@@ -129,9 +138,11 @@ func parseLayer(layer *sitter.Node, source []byte) (*Layer, error) {
 					break
 				}
 			}
+
 			l.Bindings = bindings
 		}
 	}
+
 	return l, nil
 }
 
@@ -157,11 +168,13 @@ func Parse(r io.Reader) (*Keymap, error) {
 	}
 
 	parsedLayers := make([]*Layer, 0, len(layers))
+
 	for _, layer := range layers {
 		parsedLayer, err := parseLayer(layer, source)
 		if err != nil {
 			return nil, err
 		}
+
 		parsedLayers = append(parsedLayers, parsedLayer)
 	}
 

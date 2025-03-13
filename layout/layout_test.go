@@ -39,7 +39,7 @@ func TestGlove80ParseLayout(t *testing.T) {
 			log.Printf("Layer %d: '%s' (%d)", i, l.Name, len(l.Bindings))
 		}
 
-		assert.Equal(t, 4, len(keymap.Layers), "Unexpected amt of layers")
-		assert.Equal(t, 80, len(keymap.Layers[0].Bindings), "Unexpected amt of bindings on layer 0")
+		assert.Len(t, keymap.Layers, 4, "Unexpected amt of layers")
+		assert.Len(t, keymap.Layers[0].Bindings, 80, "Unexpected amt of bindings on layer 0")
 	})
 }

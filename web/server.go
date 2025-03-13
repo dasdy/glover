@@ -25,16 +25,17 @@ type ServerHandler struct {
 
 func GetKeyLabels(filename string) ([]string, error) {
 	// TODO: parameterize;
+	//nolint:dogsled
 	_, b, _, _ := runtime.Caller(0)
 
 	// Root folder of this project
 	fp := filepath.Join(filepath.Dir(b), "..")
 
 	file, err := os.Open(filepath.Join(fp, "data", filename))
-	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	keymap, err := layout.Parse(file)
 	if err != nil {
@@ -44,6 +45,7 @@ func GetKeyLabels(filename string) ([]string, error) {
 	if len(keymap.Layers) < 1 {
 		return nil, errors.New("expected at least 1 layer in layout")
 	}
+
 	results := make([]string, 0, len(keymap.Layers[0].Bindings))
 
 	for _, b := range keymap.Layers[0].Bindings {
@@ -54,6 +56,7 @@ func GetKeyLabels(filename string) ([]string, error) {
 					b.Modifiers[i] = v
 				}
 			}
+
 			if len(b.Modifiers) > 1 {
 				results = append(results, fmt.Sprintf("%+v", b.Modifiers))
 			} else {
@@ -65,6 +68,7 @@ func GetKeyLabels(filename string) ([]string, error) {
 			results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
 		}
 	}
+
 	return results, nil
 }
 
@@ -157,6 +161,7 @@ func initEmptyMap(name string) (map[cs.Location]*model.MinimalKeyEventWithLabel,
 	names, _ := GetKeyLabels(name)
 	// put empty items in the map so that we show them later properly
 	groupedItems := make(map[cs.Location]*model.MinimalKeyEventWithLabel)
+
 	for pos, key := range locationsOnGrid {
 		name := "<OOB>"
 		if pos < len(names) {

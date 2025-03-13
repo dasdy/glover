@@ -53,4 +53,4 @@ tailwind-watch:
 .PHONY: lint
 lint:
 	prettier . --write
-	golangci-lint run
+	golangci-lint run --fix
