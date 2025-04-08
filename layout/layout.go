@@ -116,11 +116,7 @@ func parseLayer(layer *sitter.Node, source []byte) (*Layer, error) {
 
 				var modifiers []string
 
-				for {
-					if b.NextSibling() == nil || b.NextSibling().Type() == ">" {
-						break
-					}
-
+				for b.NextSibling() != nil && b.NextSibling().Type() != ">" {
 					modifier := b.NextSibling().Content(source)
 
 					if strings.HasPrefix(modifier, "&") {
