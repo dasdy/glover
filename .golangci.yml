@@ -1,24 +1,43 @@
+version: "2"
 linters:
-  # disable-all: false
-  enable-all: true
-  # enable:
+  default: all
   disable:
-    - funlen
-    - lll # NOTE: configure length larger?
+    - contextcheck
     - cyclop
     - depguard
-    - mnd
-    - godox
-    - varnamelen
+    - err113
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
     - gochecknoinits
     - gocognit
-    - gochecknoglobals
-    - tenv
-
-    # TODO: enable these one-by-one and fix
-    - err113
-    - wrapcheck
-    - exhaustruct
-    - paralleltest
-    - contextcheck
+    - godox
     - gosec
+    - lll
+    - mnd
+    - paralleltest
+    - varnamelen
+    - wrapcheck
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
