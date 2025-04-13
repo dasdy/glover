@@ -24,6 +24,38 @@ type SQLiteStorage struct {
 	verbose      bool
 }
 
+func NewStorageFromConnection(db *sql.DB, verbose bool) (*SQLiteStorage, error) {
+	tracker, err := NewComboTrackerFromDB(db)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: replace verbosity thing by structured logging config
+	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
+}
+
+// Given a path to storage, connect to it and initialize everything.
+func NewStorageFromPath(path string, verbose bool) (*SQLiteStorage, error) {
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		log.Fatal(err)
+
+		return nil, err
+	}
+
+	err = InitDBStorage(db)
+	if err != nil {
+		return nil, err
+	}
+
+	tracker, err := NewComboTrackerFromDB(db)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
+}
+
 func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 	_, err := s.db.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, datetime('now', 'subsec'))`,
@@ -125,38 +157,6 @@ func InitDBStorage(db *sql.DB) error {
 	}
 
 	return nil
-}
-
-func NewStorageFromConnection(db *sql.DB, verbose bool) (*SQLiteStorage, error) {
-	tracker, err := NewComboTrackerFromDB(db)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: replace verbosity thing by structured logging config
-	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
-}
-
-// Given a path to storage, connect to it and initialize everything.
-func NewStorageFromPath(path string, verbose bool) (*SQLiteStorage, error) {
-	db, err := sql.Open("sqlite3", path)
-	if err != nil {
-		log.Fatal(err)
-
-		return nil, err
-	}
-
-	err = InitDBStorage(db)
-	if err != nil {
-		return nil, err
-	}
-
-	tracker, err := NewComboTrackerFromDB(db)
-	if err != nil {
-		return nil, err
-	}
-
-	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
 }
 
 func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {

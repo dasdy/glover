@@ -283,6 +283,61 @@ func TestGatherCombos(t *testing.T) {
 			},
 		}, combos)
 	})
+	t.Run("ignores items that happened too long ago", func(t *testing.T) {
+		conn, err := sql.Open("sqlite3", ":memory:")
+		require.NoError(t, err)
+
+		require.NoError(t, db.InitDBStorage(conn))
+
+		positions := []int{
+			1, 2, 1, 2, // Valid combo
+			3, 4, // Too old
+		}
+		events := mockEvents(positions)
+
+		curTime := time.Now()
+
+		// Insert valid combo events
+		for _, event := range events[:4] {
+			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
+	    values(?, ?, ?, ?, ?)`,
+				event.Row, event.Col, event.Position, event.Pressed, curTime)
+			require.NoError(t, err)
+
+			curTime = curTime.Add(100 * time.Millisecond)
+		}
+
+		// Insert old events
+		oldTime := curTime.Add(-10 * time.Minute)
+		for _, event := range events[4:] {
+			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
+	    values(?, ?, ?, ?, ?)`,
+				event.Row, event.Col, event.Position, event.Pressed, oldTime)
+			require.NoError(t, err)
+		}
+
+		storage, err := db.NewStorageFromConnection(conn, false)
+		require.NoError(t, err)
+
+		combos := storage.GatherCombos()
+
+		assert.ElementsMatch(t, []model.Combo{
+			{
+				Keys: []model.ComboKey{
+					{Position: 1},
+					{Position: 2},
+				},
+				Pressed: 1,
+			},
+			{
+				Keys: []model.ComboKey{
+					{Position: 3},
+					{Position: 4},
+				},
+				Pressed: 1,
+			},
+		}, combos)
+	})
 }
 
 func copyToMem(path string) (*sql.DB, error) {

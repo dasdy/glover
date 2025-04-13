@@ -12,7 +12,11 @@ func TestBuildStatsContext(t *testing.T) {
 	t.Run("builds empty context", func(t *testing.T) {
 		stats := make([]model.MinimalKeyEvent, 0)
 
-		items := web.BuildStatsRenderContext(stats)
+		handler := web.ServerHandler{
+			Storage:    nil,
+			KeymapFile: "glove80.keymap",
+		}
+		items := handler.BuildStatsRenderContext(stats)
 
 		assert.Len(t, items.Items, 96)
 
@@ -35,8 +39,12 @@ func TestBuildStatsContext(t *testing.T) {
 func TestBuildCombosContext(t *testing.T) {
 	t.Run("builds empty context", func(t *testing.T) {
 		stats := make([]model.Combo, 0)
+		handler := web.ServerHandler{
+			Storage:    nil,
+			KeymapFile: "glove80.keymap",
+		}
 
-		items := web.BuildCombosRenderContext(stats, 10)
+		items := handler.BuildCombosRenderContext(stats, 10)
 
 		assert.Len(t, items.Items, 96)
 

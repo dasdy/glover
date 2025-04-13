@@ -111,7 +111,7 @@ var trackCmd = &cobra.Command{
 		defer storage.Close()
 
 		if !disableInterface {
-			go web.StartServer(port, storage, dev)
+			go web.StartServer(port, storage, keymapFile, dev)
 		}
 
 		log.Print("Main loop")
@@ -124,6 +124,7 @@ var trackCmd = &cobra.Command{
 var (
 	filenames        []string
 	storagePath      string
+	keymapFile       string
 	port             int
 	disableInterface bool
 	verbose          bool
@@ -173,4 +174,10 @@ func init() {
 		true,
 		`If true, try connecting to available devices if provided ones do not work/nothing was provided. 
         If no devices can be found, use stdin. If auto-connect is false, always use stdin when no input devices are provided.`)
+
+	trackCmd.Flags().StringVar(
+		&keymapFile,
+		"keymap-file",
+		"glove80.keymap",
+		"Path to the keymap file used for rendering the interface")
 }

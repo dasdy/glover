@@ -20,7 +20,8 @@ import (
 )
 
 type ServerHandler struct {
-	Storage db.Storage
+	Storage    db.Storage
+	KeymapFile string
 }
 
 func GetKeyLabels(filename string) ([]string, error) {
@@ -96,8 +97,8 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 	return nil
 }
 
-func BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
-	groupedItems, maxVal, totalCols, totalRows := initEmptyMap("glove80.keymap")
+func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
+	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
 
 	// set non-zero items in the map
 	for _, key := range dbStats {
@@ -149,7 +150,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	renderContext := BuildStatsRenderContext(curStats)
+	renderContext := s.BuildStatsRenderContext(curStats)
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
@@ -182,7 +183,7 @@ func initEmptyMap(name string) (map[cs.Location]*model.MinimalKeyEventWithLabel,
 	return groupedItems, maxVal, totalCols, totalRows
 }
 
-func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderContext {
+func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderContext {
 	combosToDisplay := make([]model.Combo, 0)
 
 	for _, c := range combos {
@@ -199,7 +200,7 @@ func BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderCon
 
 	log.Printf("Found combos: %d", len(combosToDisplay))
 
-	groupedItems, maxVal, totalCols, totalRows := initEmptyMap("glove80.keymap")
+	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
 
 	// set non-zero items in the map
 	for _, combo := range combosToDisplay {
@@ -260,7 +261,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderContext := BuildCombosRenderContext(combos, position)
+	renderContext := s.BuildCombosRenderContext(combos, position)
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
@@ -275,7 +276,7 @@ func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	})
 }
 
-func BuildServer(storage db.Storage, dev bool) *http.ServeMux {
+func BuildServer(storage db.Storage, keymapFile string, dev bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	// Serve the JS bundle.
 	mux.Handle("/assets/",
@@ -283,19 +284,22 @@ func BuildServer(storage db.Storage, dev bool) *http.ServeMux {
 			http.StripPrefix("/assets",
 				http.FileServer(http.Dir("assets")))))
 
-	handler := ServerHandler{storage}
+	handler := ServerHandler{
+		Storage:    storage,
+		KeymapFile: keymapFile,
+	}
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
 	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
 
 	return mux
 }
 
-func StartServer(port int, storage db.Storage, dev bool) {
+func StartServer(port int, storage db.Storage, keymapFile string, dev bool) {
 	log.Printf("Running interface on port %d\n", port)
 
 	err := http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
-		BuildServer(storage, dev))
+		BuildServer(storage, keymapFile, dev))
 	if err != nil {
 		log.Fatalf("Could not run server: %s", err)
 	}

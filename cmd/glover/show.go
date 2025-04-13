@@ -24,7 +24,7 @@ var showCmd = &cobra.Command{
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}
 		defer storage.Close()
-		web.StartServer(port, storage, dev)
+		web.StartServer(port, storage, keymapFile, dev)
 
 		return nil
 	},
@@ -49,4 +49,10 @@ func init() {
 		"dev",
 		false,
 		"Enable developer mode")
+
+	showCmd.Flags().StringVar(
+		&keymapFile,
+		"keymap-file",
+		"glove80.keymap",
+		"Path to the keymap file used for rendering the interface")
 }
