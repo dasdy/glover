@@ -2,9 +2,10 @@ package components
 
 type Item struct {
 	Position       int
+	Row            int
+	Col            int
 	KeyName        string
 	KeypressAmount string
-	Visible        bool
 	Highlight      bool
 }
 

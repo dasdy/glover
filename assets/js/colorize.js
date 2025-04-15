@@ -100,13 +100,14 @@ function interpolateColor(value, schema) {
 }
 
 function colorize(maxVal) {
-  // Apply the gradient-based color to all .grid-item elements
-  document.querySelectorAll(".keys-pressed").forEach(function (item) {
-    let value = parseFloat(item.textContent.trim()); // Get the number from 0 to 1
+  // Apply the gradient-based color to all SVG key elements
+  document.querySelectorAll(".key-rect").forEach(function (rect) {
+    let presses = rect.getAttribute("data-presses");
+    let value = parseFloat(presses);
+
     if (!isNaN(value)) {
       const color = interpolateColor(value / maxVal); // Calculate the color based on the value
-      let parentItem = item.parentNode;
-      parentItem.style.backgroundColor = color; // Set the background color
+      rect.setAttribute("fill", color); // Set the fill color for SVG rect
     }
   });
 }

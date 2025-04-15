@@ -126,11 +126,13 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 
 			item, ok := groupedItems[l]
 			if ok {
-				// items = append(items, Item{fmt.Sprintf("(%d %d): %d", item.Row, item.Col, item.Count), true})
-				items = append(items, cs.Item{Position: item.Position, KeypressAmount: strconv.Itoa(item.Count), KeyName: item.KeyLabel, Visible: true})
-			} else {
-				// TODO: fix position
-				items = append(items, cs.Item{Position: -1, KeypressAmount: "-", Visible: false})
+				items = append(items, cs.Item{
+					Position:       item.Position,
+					Row:            i,
+					Col:            j,
+					KeypressAmount: strconv.Itoa(item.Count),
+					KeyName:        item.KeyLabel,
+				})
 			}
 		}
 	}
@@ -219,7 +221,6 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	}
 
 	// Iterate over total grid and add real and hidden items.
-	// TODO: can this be done without a bunch of hidden items?
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
 
@@ -233,14 +234,12 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 				highlight := int64(item.Position) == position
 				items = append(items, cs.Item{
 					Position:       item.Position,
+					Row:            item.Row,
+					Col:            item.Col,
 					KeypressAmount: strconv.Itoa(item.Count),
 					KeyName:        item.KeyLabel,
-					Visible:        true,
 					Highlight:      highlight,
 				})
-			} else {
-				// TODO: put better position if possible
-				items = append(items, cs.Item{Position: -1, KeypressAmount: "-", Visible: false})
 			}
 		}
 	}

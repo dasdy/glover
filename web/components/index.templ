@@ -3,71 +3,98 @@ package components
 import "fmt"
 
 templ HeatMap(c *RenderContext) {
-	<html>
-		<head>
-			<meta charset="UTF-8"/>
-			<meta http-equiv="refresh" content="600"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<title>Glove80 Key Heatmap</title>
-			<link rel="stylesheet" href="/assets/css/styles.css"/>
-			<link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
-		</head>
-		<body
-			class="bg-theme-2"
-		>
-			<div class="items-center justify-center flex flex-col ">
-				<h1 class="text-xl mt-10"><a href="/">Home</a></h1>
-				<div id="keysgrid" class="mt-4 inline-grid grid-cols-12 gap-1">
-					for _, item := range c.Items {
-						@key(&item)
-					}
-				</div>
-				@slider(fmt.Sprintf("%d", c.MaxVal))
-			</div>
-			<script src="/assets/js/colorize.js"></script>
+    <html>
+        <head>
+            <meta charset="UTF-8"/>
+            <meta http-equiv="refresh" content="600"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>Glove80 Key Heatmap</title>
+            <link rel="stylesheet" href="/assets/css/styles.css"/>
+            <link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
+        </head>
+        <body
+            class="bg-theme-2"
+        >
+            <div class="items-center justify-center flex flex-col ">
+                <h1 class="text-xl mt-10"><a href="/">Home</a></h1>
+                @keyboardSvg(c)
+                @slider(fmt.Sprintf("%d", c.MaxVal))
+            </div>
+            <script src="/assets/js/colorize.js"></script>
 			<script>
-        var slider = document.getElementById("colorClipRange");
-        var output = document.getElementById("colorClipSpan");
+				var slider = document.getElementById("colorClipRange");
+				var output = document.getElementById("colorClipSpan");
 
-        // Update the current slider value (each time you drag the slider handle)
-        slider.oninput = function () {
-            output.innerHTML = this.value;
-            colorize(this.value)
-        }
-        slider.oninput()
-    </script>
-		</body>
-	</html>
-}
-
-templ keyContent(item *Item) {
-	<span id={ fmt.Sprintf("key-msg-%d", item.Position) } class="text-s absolute top-0 left-1 min-w-12">{ item.KeyName } </span>
-	<span
-		id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-		class="keys-pressed font-semibold inline-block min-w-12 text-center"
-	>
-		{ item.KeypressAmount }
-	</span>
-}
-
-templ key(item *Item) {
-	<a href={ templ.URL(fmt.Sprintf("/combo?position=%d", item.Position)) }>
-		<div class="aspect-square">
-			if item.Visible {
-				if !item.Highlight {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center rounded-md border relative border-solid border-theme-3 p-4">
-						@keyContent(item)
-					</div>
-				} else {
-					<div class="grid-item flex h-full w-full flex-col items-center justify-center outline-4 rounded-md border relative border-solid outline-theme-4 p-4">
-						@keyContent(item)
-					</div>
+				// Update the current slider value (each time you drag the slider handle)
+				slider.oninput = function () {
+					output.innerHTML = this.value;
+					colorize(this.value)
 				}
-			} else {
-				<div class="grid-item-hidden"></div>
-			}
-		</div>
-	</a>
+				slider.oninput()
+			</script>
+	</body>
+    </html>
+}
+
+// New SVG keyboard template
+templ keyboardSvg(c *RenderContext) {
+    <svg id="keysgrid" class="mt-4" width="960" height="640" viewBox="0 0 960 640">
+        <g>
+            for _, item := range c.Items {
+                @svgKey(&item)
+            }
+        </g>
+    </svg>
+}
+
+// SVG key element
+templ svgKey(item *Item) {
+        // Use Row and Col directly for positioning
+        // Each key is 70x70 with 10px gap
+        <g transform={ fmt.Sprintf("translate(%d, %d)", item.Col*80, item.Row*80) }>
+            <a href={ templ.URL(fmt.Sprintf("/combo?position=%d", item.Position)) }>
+                if !item.Highlight {
+                    <rect 
+                        width="70" 
+                        height="70" 
+                        rx="5" 
+                        class="key-rect" 
+                        data-position={ fmt.Sprintf("%d", item.Position) }
+                        data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
+                        fill="#e5e7eb" 
+                        stroke="#a1a1aa"
+                    ></rect>
+                } else {
+                    <rect 
+                        width="70" 
+                        height="70" 
+                        rx="5"
+                        class="key-rect"
+                        data-position={ fmt.Sprintf("%d", item.Position) }
+                        data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
+                        fill="#e5e7eb"
+                        stroke="#6366f1"
+                        stroke-width="4"
+                    ></rect>
+                }
+                <text
+                    id={ fmt.Sprintf("key-msg-%d", item.Position) }
+                    x="5" 
+                    y="15" 
+                    class="text-s"
+                    font-size="12"
+                >{ item.KeyName }</text>
+                <text
+                    id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
+                    class="keys-pressed"
+                    x="35" 
+                    y="40" 
+                    text-anchor="middle"
+                    font-size="14"
+                    font-weight="600"
+                >{ item.KeypressAmount }</text>
+            </a>
+        </g>
 }
 
 templ slider(maxVal string) {
