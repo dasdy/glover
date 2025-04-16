@@ -10,6 +10,7 @@ import (
 	"github.com/dasdy/glover/keylog/ports"
 	"github.com/dasdy/glover/web"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
@@ -92,7 +93,13 @@ var trackCmd = &cobra.Command{
 	Short: "Connect to attached keyboard and log keypresses",
 	Long: `Provide two paths to files to connect to, or leave empty to read from stdin.
 		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
+	PersistentPreRun: bindFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
+		log.Printf("Config file: %s\n", viper.ConfigFileUsed())
+		log.Printf("Config parameters: %v\n", viper.AllSettings())
+		log.Printf("kmapfile: %s", viper.GetString("keymap-file"))
+		log.Printf("Output file: %s\n", storagePath)
+
 		deviceReader, err := GetInputsChannel(
 			&ports.RealDeviceOpener{},
 			filenames,
@@ -134,6 +141,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(trackCmd)
+
 	trackCmd.Flags().StringSliceVarP(
 		&filenames,
 		"file",

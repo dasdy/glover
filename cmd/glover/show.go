@@ -10,15 +10,21 @@ import (
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/web"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // showCmd represents the show command.
 var showCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show collected statistics",
-	Long:  `Use log data collected by track command to show web interface with statistics.`,
+	Use:              "show",
+	Short:            "Show collected statistics",
+	Long:             `Use log data collected by track command to show web interface with statistics.`,
+	PersistentPreRun: bindFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
+		log.Printf("Config file: %s\n", viper.ConfigFileUsed())
+		log.Printf("Config parameters: %v\n", viper.AllSettings())
+		log.Printf("kmapfile: %s", viper.GetString("keymap-file"))
 		log.Printf("Output file: %s\n", storagePath)
+
 		storage, err := db.NewStorageFromPath(storagePath, true)
 		if err != nil {
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
@@ -33,9 +39,7 @@ var showCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(showCmd)
 
-	// Variables themselves are defined elsewhere
-	showCmd.Flags().IntVarP(
-		&port, "port", "p", 3000,
+	showCmd.Flags().IntVarP(&port, "port", "p", 9000,
 		"Port on which server should be watching")
 
 	showCmd.Flags().StringVarP(

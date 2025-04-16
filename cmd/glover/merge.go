@@ -10,9 +10,10 @@ import (
 
 // mergeCmd represents the merge command.
 var mergeCmd = &cobra.Command{
-	Use:   "merge",
-	Short: "Merge two databases into one",
-	Long:  `Given two log files, create a third one, which is just a union of input databases`,
+	Use:              "merge",
+	Short:            "Merge two databases into one",
+	Long:             `Given two log files, create a third one, which is just a union of input databases`,
+	PersistentPreRun: bindFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
 		inputs := make([]*db.SQLiteStorage, len(filenames))
 		for i, fn := range filenames {
@@ -60,4 +61,5 @@ func init() {
 		"o",
 		"./merged.sqlite",
 		"Output path for statistics")
+	// viper.BindPFlags(mergeCmd.Flags())
 }
