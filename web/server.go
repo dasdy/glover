@@ -264,6 +264,88 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
+func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int64) cs.RenderContext {
+	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
+
+	// set non-zero items in the map
+	for _, combo := range neighbors {
+		// Get the key position which is not the target position
+		var neighborPosition int
+		for _, key := range combo.Keys {
+			if int64(key.Position) != position {
+				neighborPosition = key.Position
+				break
+			}
+		}
+
+		loc, ok := locationsOnGrid[neighborPosition]
+		if !ok {
+			log.Printf("Could not find position %d, wtf", neighborPosition)
+			continue
+		}
+
+		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
+
+		if maxVal < combo.Pressed {
+			maxVal = combo.Pressed
+		}
+	}
+
+	// Highlight the selected key
+	targetLoc, ok := locationsOnGrid[int(position)]
+	if ok {
+		groupedItems[targetLoc].Count = 0 // We don't care about the count for the highlighted key
+	}
+
+	// Iterate over total grid and add real and hidden items.
+	items := make([]cs.Item, 0)
+	l := cs.Location{Row: 0, Col: 0}
+
+	for i := 0; i <= totalRows; i++ {
+		for j := 0; j <= totalCols; j++ {
+			l.Row = i
+			l.Col = j
+
+			item, ok := groupedItems[l]
+			if ok {
+				highlight := int64(item.Position) == position
+				items = append(items, cs.Item{
+					Position:       item.Position,
+					Row:            item.Row,
+					Col:            item.Col,
+					KeypressAmount: strconv.Itoa(item.Count),
+					KeyName:        item.KeyLabel,
+					Highlight:      highlight,
+				})
+			}
+		}
+	}
+
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+}
+
+func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) {
+	log.Print("Got request to neighbors page")
+
+	positionString := r.URL.Query().Get("position")
+
+	position, err := strconv.ParseInt(positionString, 10, 32)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	neighbors, err := s.Storage.GatherNeighbors(int(position))
+	if err != nil {
+		log.Printf("Could not get neighbors: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	renderContext := s.BuildNeighborsRenderContext(neighbors, position)
+	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
+}
+
 func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	if !dev {
 		return next
@@ -288,6 +370,7 @@ func BuildServer(storage db.Storage, keymapFile string, dev bool) *http.ServeMux
 		KeymapFile: keymapFile,
 	}
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
+	mux.Handle("/neighbors", http.HandlerFunc(handler.NeighborsHandle))
 	mux.Handle("/", http.HandlerFunc(handler.StatsHandle))
 
 	return mux

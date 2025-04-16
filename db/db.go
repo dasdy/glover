@@ -15,6 +15,7 @@ type Storage interface {
 	Store(event *model.KeyEvent) error
 	GatherAll() ([]model.MinimalKeyEvent, error)
 	GatherCombos() []model.Combo
+	GatherNeighbors(position int) ([]model.Combo, error)
 	Close()
 }
 
@@ -105,6 +106,85 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 
 func (s *SQLiteStorage) GatherCombos() []model.Combo {
 	return s.comboTracker.GatherCombos()
+}
+
+func (s *SQLiteStorage) GatherNeighbors(position int) ([]model.Combo, error) {
+	// This query finds the previous and next key pressed around each instance of the target position
+	// We're using self-joins with the keypresses table to find adjacent events
+	rows, err := s.db.Query(`
+		WITH target_keys AS (
+			SELECT position, ts, row, col
+			FROM keypresses 
+			WHERE position = ? AND pressed = true
+		)
+		SELECT 
+			t.position AS target_position,
+			COALESCE(prev.position, -1) AS prev_position,
+			COALESCE(next.position, -1) AS next_position,
+			COUNT(*) AS occurrence_count
+		FROM target_keys t
+		LEFT JOIN keypresses prev ON prev.ts < t.ts AND prev.pressed = true
+		LEFT JOIN keypresses next ON next.ts > t.ts AND next.pressed = true
+		WHERE 
+			(prev.ts IS NULL OR NOT EXISTS (
+				SELECT 1 FROM keypresses p2 
+				WHERE p2.ts > prev.ts AND p2.ts < t.ts AND p2.pressed = true
+			))
+		AND
+			(next.ts IS NULL OR NOT EXISTS (
+				SELECT 1 FROM keypresses n2 
+				WHERE n2.ts > t.ts AND n2.ts < next.ts AND n2.pressed = true
+			))
+		GROUP BY target_position, prev_position, next_position
+		ORDER BY occurrence_count DESC
+	`, position)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make([]model.Combo, 0)
+
+	for rows.Next() {
+		var (
+			targetPosition, prevPosition, nextPosition, count int
+		)
+
+		if err := rows.Scan(&targetPosition, &prevPosition, &nextPosition, &count); err != nil {
+			return nil, err
+		}
+
+		// Create a combo entry for the preceding key + target key if there was a preceding key
+		if prevPosition >= 0 {
+			combo := model.Combo{
+				Keys: []model.ComboKey{
+					{Position: prevPosition},
+					{Position: targetPosition},
+				},
+				Pressed: count,
+			}
+			result = append(result, combo)
+		}
+
+		// Create a combo entry for the target key + following key if there was a following key
+		if nextPosition >= 0 {
+			combo := model.Combo{
+				Keys: []model.ComboKey{
+					{Position: targetPosition},
+					{Position: nextPosition},
+				},
+				Pressed: count,
+			}
+			result = append(result, combo)
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (s *SQLiteStorage) Close() {
