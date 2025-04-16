@@ -1,6 +1,7 @@
 package components
 
 import "fmt"
+import "math"
 
 // getLinkForPosition returns the appropriate URL based on the page type
 func getLinkForPosition(position int, pageType PageType) string {
@@ -103,6 +104,49 @@ templ keyboardSvg(c *RenderContext) {
             for _, item := range c.Items {
                 @svgKey(&item, c)
             }
+        if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
+            // Draw connection paths for combos
+            <g class="connection-paths">
+                for _, conn := range c.ComboConnections {
+                    // Find positions of the connected keys
+                    {{ var fromKey, toKey *Item 
+                    for i := range c.Items {
+                        if c.Items[i].Position == conn.FromPosition {
+                            fromKey = &c.Items[i]
+                        }
+                        if c.Items[i].Position == conn.ToPosition {
+                            toKey = &c.Items[i]
+                        }
+                    }
+                    }}
+                    
+                    if fromKey != nil && toKey != nil {
+                        // Calculate centers of keys
+                        {{
+                        fromX := fromKey.Col*80 + 35
+                        fromY := fromKey.Row*80 + 35
+                        toX := toKey.Col*80 + 35
+                        toY := toKey.Row*80 + 35
+                        
+                        // Calculate control points for a curved path
+                        midX := (fromX + toX) / 2
+                        midY := (fromY + toY) / 2 - 40 // Curve upward
+                        
+                        // Draw a curved path with thickness based on press count
+                        strokeWidth := math.Min(10, 1 + float64(conn.PressCount) / 100)
+                        }}
+                        <path 
+                            d={ fmt.Sprintf("M %d %d Q %d %d %d %d", fromX, fromY, midX, midY, toX, toY) }
+                            fill="none"
+                            stroke="#6366f1"
+                            stroke-width={ fmt.Sprintf("%f", strokeWidth) }
+                            stroke-opacity="0.7"
+                            stroke-linecap="round"
+                        ></path>
+                    }
+                }
+            </g>
+        }
         </g>
     </svg>
 }

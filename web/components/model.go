@@ -9,6 +9,11 @@ type Item struct {
 	Highlight      bool
 }
 
+type ComboConnection struct {
+	FromPosition int
+	ToPosition   int
+	PressCount   int
+}
 type PageType string
 
 const (
@@ -22,6 +27,9 @@ type RenderContext struct {
 	Items     []Item
 	MaxVal    int
 	Page      PageType
+
+	HighlightPosition int               // The position being highlighted
+	ComboConnections  []ComboConnection // Top 5 combo connections for highlighted key
 }
 
 type Location struct {

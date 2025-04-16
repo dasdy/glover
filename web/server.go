@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 
 	"github.com/a-h/templ"
@@ -202,6 +204,16 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 
 	log.Printf("Found combos: %d", len(combosToDisplay))
 
+	// Sort combos by press count to get top 5
+	slices.SortFunc(combosToDisplay, func(a, b model.Combo) int {
+		return -cmp.Compare(a.Pressed, b.Pressed) // Negative to sort in descending order
+	})
+
+	// Keep only top 5 combos
+	// if len(combosToDisplay) > 5 {
+	// 	combosToDisplay = combosToDisplay[:5]
+	// }
+
 	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
 
 	// set non-zero items in the map
@@ -244,7 +256,40 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeCombo}
+	// Create combo connections for the top combos
+	connections := make([]cs.ComboConnection, 0, 5)
+
+	for _, combo := range combosToDisplay {
+		var otherPos int
+
+		for _, key := range combo.Keys {
+			if int64(key.Position) != position {
+				otherPos = key.Position
+
+				break
+			}
+		}
+
+		connections = append(connections, cs.ComboConnection{
+			FromPosition: int(position),
+			ToPosition:   otherPos,
+			PressCount:   combo.Pressed,
+		})
+		if len(connections) >= 5 {
+			break
+		}
+	}
+
+	log.Printf("Found connections: %d", len(connections))
+
+	return cs.RenderContext{
+		TotalCols:         18,
+		Items:             items,
+		MaxVal:            maxVal,
+		HighlightPosition: int(position),
+		ComboConnections:  connections,
+		Page:              cs.PageTypeCombo,
+	}
 }
 
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
