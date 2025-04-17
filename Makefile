@@ -32,15 +32,15 @@ run-dev:
 
 .PHONY: server-watch
 server-watch:
-	air
+	go tool air
 
 .PHONY: templates
 templates:
-	templ generate web/components
+	go tool templ generate web/components
 
 .PHONY: templates-watch
 templates-watch:
-	templ generate --watch web/components
+	go tool templ generate --watch web/components
 
 .PHONY: tailwind
 tailwind:

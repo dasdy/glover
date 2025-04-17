@@ -42,9 +42,8 @@ In case if you don't need active key tracking, you can only run the web interfac
 
 ### Live-reload
 
-For development, it's easy to use [air](https://github.com/air-verse/air).
-I tested this repo with `v1.61.1`. You will also need a [tailwind-cli](https://tailwindcss.com/blog/standalone-cli)
-and [templ](https://templ.guide/quick-start/installation#go-install) in your PATH.
+For development, it's easy to use [air](https://github.com/air-verse/air). Make sure to install npm to make changes
+to the css/js related things.
 
 ```shell
 make run-dev
@@ -55,4 +54,17 @@ make run-dev
 ```shell
 go test ./...
 go test -bench -benchtime=10s ./...
+```
+
+### Lint
+
+Make sure you have `prettier`, `tailwindcss` and `golangci-lint` installed.
+
+```shell
+brew install golangci-lint
+npm install
+```
+
+```shell
+make lint
 ```
