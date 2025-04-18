@@ -269,11 +269,12 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 
 	// set non-zero items in the map
 	for _, combo := range neighbors {
-		// Get the key position which is not the target position
-		var neighborPosition int
+		neighborPosition := int(position)
+
 		for _, key := range combo.Keys {
 			if int64(key.Position) != position {
 				neighborPosition = key.Position
+
 				break
 			}
 		}
@@ -291,13 +292,6 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	// Highlight the selected key
-	targetLoc, ok := locationsOnGrid[int(position)]
-	if ok {
-		groupedItems[targetLoc].Count = 0 // We don't care about the count for the highlighted key
-	}
-
-	// Iterate over total grid and add real and hidden items.
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
 
@@ -332,6 +326,7 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 	position, err := strconv.ParseInt(positionString, 10, 32)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -339,6 +334,7 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Printf("Could not get neighbors: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 

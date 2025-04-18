@@ -144,30 +144,39 @@ func (s *SQLiteStorage) GatherNeighbors(position int) ([]model.Combo, error) {
 		WHERE targetPosition = ? AND neighborSymbol IS NOT NULL
 		GROUP BY r.neighborSymbol
 	`, position)
-
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	result := make([]model.Combo, 0)
 
 	for rows.Next() {
-		var (
-			targetPosition, neighborSymbol, count int
-		)
+		var targetPosition, neighborSymbol, count int
 
 		if err := rows.Scan(&targetPosition, &neighborSymbol, &count); err != nil {
 			return nil, err
 		}
 
-		combo := model.Combo{
-			Keys: []model.ComboKey{
-				{Position: neighborSymbol},
-				{Position: targetPosition},
-			},
-			Pressed: count,
+		var combo model.Combo
+		if neighborSymbol != targetPosition {
+			combo = model.Combo{
+				Keys: []model.ComboKey{
+					{Position: neighborSymbol},
+					{Position: targetPosition},
+				},
+				Pressed: count,
+			}
+		} else {
+			combo = model.Combo{
+				Keys: []model.ComboKey{
+					{Position: neighborSymbol},
+				},
+				Pressed: count,
+			}
 		}
+
 		result = append(result, combo)
 	}
 

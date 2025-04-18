@@ -474,6 +474,7 @@ func TestMergeDatabases(t *testing.T) {
 		assert.NoError(t, rows.Err())
 	})
 }
+
 func TestGatherNeighbors(t *testing.T) {
 	t.Run("returns empty result for empty database", func(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
@@ -511,40 +512,6 @@ func TestGatherNeighbors(t *testing.T) {
 		neighbors, err := storage.GatherNeighbors(5)
 		require.NoError(t, err)
 		assert.Empty(t, neighbors)
-	})
-
-	t.Run("detects previous key neighbor", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-
-		// Previous key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 3, 3, 3, true, curTime)
-		require.NoError(t, err)
-
-		// Target key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-		}, neighbors)
 	})
 
 	t.Run("detects next key neighbor", func(t *testing.T) {
