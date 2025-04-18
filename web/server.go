@@ -269,6 +269,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 				break
 			}
 		}
+		log.Printf("pressCount: %d", combo.Pressed)
 
 		connections = append(connections, cs.ComboConnection{
 			FromPosition: int(position),
@@ -361,7 +362,47 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeNeighbors}
+	// Create combo connections for the top combos
+	connections := make([]cs.ComboConnection, 0, 5)
+
+	// Sort combos by press count to get top 5
+	slices.SortFunc(neighbors, func(a, b model.Combo) int {
+		return -cmp.Compare(a.Pressed, b.Pressed) // Negative to sort in descending order
+	})
+
+	for _, combo := range neighbors {
+		var otherPos int
+
+		for _, key := range combo.Keys {
+			if int64(key.Position) != position {
+				otherPos = key.Position
+
+				break
+			}
+		}
+
+		log.Printf("pressCount: %d", combo.Pressed)
+
+		connections = append(connections, cs.ComboConnection{
+			FromPosition: int(position),
+			ToPosition:   otherPos,
+			PressCount:   combo.Pressed,
+		})
+		if len(connections) >= 5 {
+			break
+		}
+	}
+
+	log.Printf("Found connections: %d", len(connections))
+
+	return cs.RenderContext{
+		TotalCols:         18,
+		Items:             items,
+		MaxVal:            maxVal,
+		HighlightPosition: int(position),
+		ComboConnections:  connections,
+		Page:              cs.PageTypeNeighbors,
+	}
 }
 
 func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) {

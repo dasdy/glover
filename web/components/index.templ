@@ -133,6 +133,8 @@ templ keyboardSvg(c *RenderContext) {
                         midY := (fromY + toY) / 2 - 40 // Curve upward
                         
                         // Draw a curved path with thickness based on press count
+                        // TODO: scaling by 100 is arbirary, we should adjust it based on total keystrokes in db
+                        // or something.
                         strokeWidth := math.Min(10, 1 + float64(conn.PressCount) / 100)
                         }}
                         <path 
