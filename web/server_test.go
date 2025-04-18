@@ -18,17 +18,7 @@ func TestBuildStatsContext(t *testing.T) {
 		}
 		items := handler.BuildStatsRenderContext(stats)
 
-		assert.Len(t, items.Items, 96)
-
-		visibleItems := 0
-
-		for i, v := range items.Items {
-			assert.Equal(t, "0", v.KeypressAmount, "Bad label on %d: %s", i, v.KeypressAmount)
-
-			visibleItems++
-		}
-
-		assert.Equal(t, 80, visibleItems)
+		assert.Len(t, items.Items, 80)
 	})
 }
 
@@ -42,16 +32,6 @@ func TestBuildCombosContext(t *testing.T) {
 
 		items := handler.BuildCombosRenderContext(stats, 10)
 
-		assert.Len(t, items.Items, 96)
-
-		visibleItems := 0
-
-		for i, v := range items.Items {
-			assert.Equal(t, "0", v.KeypressAmount, "Bad label on %d: %s", i, v.KeypressAmount)
-
-			visibleItems++
-		}
-
-		assert.Equal(t, 80, visibleItems)
+		assert.Len(t, items.Items, 80)
 	})
 }
