@@ -2,6 +2,44 @@ package components
 
 import "fmt"
 
+// getLinkForPosition returns the appropriate URL based on the page type
+func getLinkForPosition(position int, pageType PageType) string {
+	switch pageType {
+	case PageTypeCombo:
+		return fmt.Sprintf("/combo?position=%d", position)
+	case PageTypeNeighbors:
+		return fmt.Sprintf("/neighbors?position=%d", position)
+	case PageTypeStats:
+		return fmt.Sprintf("/stats?position=%d", position)
+	default:
+		return fmt.Sprintf("/stats?position=%d", position)
+	}
+}
+
+// getSwitchModeLink returns the appropriate URL to switch between combo and neighbors modes
+func getSwitchModeLink(position int, currentPageType PageType) string {
+	switch currentPageType {
+	case PageTypeCombo:
+		return fmt.Sprintf("/neighbors?position=%d", position)
+	case PageTypeNeighbors:
+		return fmt.Sprintf("/combo?position=%d", position)
+	default:
+		return "/"
+	}
+}
+
+// getSwitchModeButtonText returns the appropriate button text for switching modes
+func getSwitchModeButtonText(currentPageType PageType) string {
+	switch currentPageType {
+	case PageTypeCombo:
+		return "View Neighbors"
+	case PageTypeNeighbors:
+		return "View Combos"
+	default:
+		return ""
+	}
+}
+
 templ HeatMap(c *RenderContext) {
     <html>
         <head>
@@ -17,6 +55,7 @@ templ HeatMap(c *RenderContext) {
         >
             <div class="items-center justify-center flex flex-col ">
                 <h1 class="text-xl mt-10"><a href="/">Home</a></h1>
+                @switchMode(c)
                 @keyboardSvg(c)
                 @slider(fmt.Sprintf("%d", c.MaxVal))
             </div>
@@ -36,23 +75,44 @@ templ HeatMap(c *RenderContext) {
     </html>
 }
 
+templ switchMode(c *RenderContext) {
+    if c.Page == PageTypeCombo || c.Page == PageTypeNeighbors {
+        // Find the first highlighted item to get its position for the toggle link
+        {{
+            var highlightedPosition int
+            for _, item := range c.Items {
+                if item.Highlight {
+                    highlightedPosition = item.Position
+                    break
+                }
+            }
+        }}
+        <div class="mb-4">
+            <a href={ templ.SafeURL(getSwitchModeLink(highlightedPosition, c.Page)) } 
+                class="px-4 py-2 bg-theme-5 text-white rounded hover:bg-indigo-700 transition duration-200">
+                { getSwitchModeButtonText(c.Page) }
+            </a>
+        </div>
+    }
+}
+
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
     <svg id="keysgrid" class="mt-4" width="960" height="640" viewBox="0 0 960 640">
         <g>
             for _, item := range c.Items {
-                @svgKey(&item)
+                @svgKey(&item, c)
             }
         </g>
     </svg>
 }
 
 // SVG key element
-templ svgKey(item *Item) {
+templ svgKey(item *Item, c *RenderContext) {
         // Use Row and Col directly for positioning
         // Each key is 70x70 with 10px gap
         <g transform={ fmt.Sprintf("translate(%d, %d)", item.Col*80, item.Row*80) }>
-            <a href={ templ.URL(fmt.Sprintf("/combo?position=%d", item.Position)) }>
+            <a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
                 if !item.Highlight {
                     <rect 
                         width="70" 

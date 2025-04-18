@@ -34,14 +34,17 @@ func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 }
 
 func NewComboTrackerFromDB(db *sql.DB) (*ComboTracker, error) {
-	nullTracker := newComboTracker(100, 2)
+	tracker := newComboTracker(100, 2)
 
-	err := nullTracker.initComboCounter(db)
-	if err != nil {
-		return nil, err
-	}
+	// TODO: make the init stage a bit clearer? forbid combos page calls until this init is done?
+	go func() {
+		err := tracker.initComboCounter(db)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
-	return nullTracker, nil
+	return tracker, nil
 }
 
 func (c *ComboTracker) HandleKeyNow(position int, pressed bool, verbose bool) {

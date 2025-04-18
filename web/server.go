@@ -137,7 +137,7 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeStats}
 }
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
@@ -244,7 +244,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeCombo}
 }
 
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
@@ -282,6 +282,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		loc, ok := locationsOnGrid[neighborPosition]
 		if !ok {
 			log.Printf("Could not find position %d, wtf", neighborPosition)
+
 			continue
 		}
 
@@ -315,7 +316,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal}
+	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeNeighbors}
 }
 
 func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) {

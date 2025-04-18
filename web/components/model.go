@@ -9,10 +9,19 @@ type Item struct {
 	Highlight      bool
 }
 
+type PageType string
+
+const (
+	PageTypeStats     PageType = "stats"
+	PageTypeCombo     PageType = "combo"
+	PageTypeNeighbors PageType = "neighbors"
+)
+
 type RenderContext struct {
 	TotalCols int
 	Items     []Item
 	MaxVal    int
+	Page      PageType
 }
 
 type Location struct {

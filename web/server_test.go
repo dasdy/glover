@@ -5,6 +5,7 @@ import (
 
 	"github.com/dasdy/glover/model"
 	"github.com/dasdy/glover/web"
+	"github.com/dasdy/glover/web/components"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,6 +20,7 @@ func TestBuildStatsContext(t *testing.T) {
 		items := handler.BuildStatsRenderContext(stats)
 
 		assert.Len(t, items.Items, 80)
+		assert.Equal(t, components.PageTypeStats, items.Page)
 	})
 }
 
@@ -33,5 +35,6 @@ func TestBuildCombosContext(t *testing.T) {
 		items := handler.BuildCombosRenderContext(stats, 10)
 
 		assert.Len(t, items.Items, 80)
+		assert.Equal(t, components.PageTypeCombo, items.Page)
 	})
 }
