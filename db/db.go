@@ -112,31 +112,37 @@ func (s *SQLiteStorage) GatherNeighbors(position int) ([]model.Combo, error) {
 	// This query finds the previous and next key pressed around each instance of the target position
 	// We're using self-joins with the keypresses table to find adjacent events
 	rows, err := s.db.Query(`
-		WITH target_keys AS (
-			SELECT position, ts, row, col
-			FROM keypresses 
-			WHERE position = ? AND pressed = true
+		WITH keypresses_sequence AS (
+			SELECT
+				position,
+				ts,
+				LAG(position) OVER (ORDER BY ts) AS prev_key,
+				LAG(ts) OVER (ORDER BY ts) AS prev_ts,
+				LEAD(position) OVER (ORDER BY ts) AS next_key,
+				LEAD(ts) OVER (ORDER BY ts) AS next_ts
+			FROM keypresses
+			WHERE pressed = true
+			ORDER BY ts
 		)
-		SELECT 
-			t.position AS target_position,
-			COALESCE(prev.position, -1) AS prev_position,
-			COALESCE(next.position, -1) AS next_position,
-			COUNT(*) AS occurrence_count
-		FROM target_keys t
-		LEFT JOIN keypresses prev ON prev.ts < t.ts AND prev.pressed = true
-		LEFT JOIN keypresses next ON next.ts > t.ts AND next.pressed = true
-		WHERE 
-			(prev.ts IS NULL OR NOT EXISTS (
-				SELECT 1 FROM keypresses p2 
-				WHERE p2.ts > prev.ts AND p2.ts < t.ts AND p2.pressed = true
-			))
-		AND
-			(next.ts IS NULL OR NOT EXISTS (
-				SELECT 1 FROM keypresses n2 
-				WHERE n2.ts > t.ts AND n2.ts < next.ts AND n2.pressed = true
-			))
-		GROUP BY target_position, prev_position, next_position
-		ORDER BY occurrence_count DESC
+		select r.targetPosition, r.neighborSymbol, count(*) from (
+			-- Find keys that appear before the target position
+			SELECT
+				position AS targetPosition,
+				prev_key AS neighborSymbol,
+				prev_ts AS neighborTs
+			FROM keypresses_sequence
+
+			UNION ALL
+
+			-- Find keys that appear after the target position
+			SELECT
+				position AS targetPosition,
+				next_key AS neighborSymbol,
+				next_ts AS neighborTs
+			FROM keypresses_sequence
+		) as r
+		WHERE targetPosition = ? AND neighborSymbol IS NOT NULL
+		GROUP BY r.neighborSymbol
 	`, position)
 
 	if err != nil {
@@ -148,36 +154,21 @@ func (s *SQLiteStorage) GatherNeighbors(position int) ([]model.Combo, error) {
 
 	for rows.Next() {
 		var (
-			targetPosition, prevPosition, nextPosition, count int
+			targetPosition, neighborSymbol, count int
 		)
 
-		if err := rows.Scan(&targetPosition, &prevPosition, &nextPosition, &count); err != nil {
+		if err := rows.Scan(&targetPosition, &neighborSymbol, &count); err != nil {
 			return nil, err
 		}
 
-		// Create a combo entry for the preceding key + target key if there was a preceding key
-		if prevPosition >= 0 {
-			combo := model.Combo{
-				Keys: []model.ComboKey{
-					{Position: prevPosition},
-					{Position: targetPosition},
-				},
-				Pressed: count,
-			}
-			result = append(result, combo)
+		combo := model.Combo{
+			Keys: []model.ComboKey{
+				{Position: neighborSymbol},
+				{Position: targetPosition},
+			},
+			Pressed: count,
 		}
-
-		// Create a combo entry for the target key + following key if there was a following key
-		if nextPosition >= 0 {
-			combo := model.Combo{
-				Keys: []model.ComboKey{
-					{Position: targetPosition},
-					{Position: nextPosition},
-				},
-				Pressed: count,
-			}
-			result = append(result, combo)
-		}
+		result = append(result, combo)
 	}
 
 	if err = rows.Err(); err != nil {

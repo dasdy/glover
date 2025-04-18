@@ -573,8 +573,8 @@ func TestGatherNeighbors(t *testing.T) {
 		assert.Equal(t, []model.Combo{
 			{
 				Keys: []model.ComboKey{
-					{Position: 5},
 					{Position: 7},
+					{Position: 5},
 				},
 				Pressed: 1,
 			},
@@ -623,8 +623,8 @@ func TestGatherNeighbors(t *testing.T) {
 			},
 			{
 				Keys: []model.ComboKey{
-					{Position: 5},
 					{Position: 7},
+					{Position: 5},
 				},
 				Pressed: 1,
 			},
@@ -668,7 +668,7 @@ func TestGatherNeighbors(t *testing.T) {
 					{Position: 3},
 					{Position: 5},
 				},
-				Pressed: 2,
+				Pressed: 3,
 			},
 		}, neighbors)
 	})
@@ -725,8 +725,8 @@ func TestGatherNeighbors(t *testing.T) {
 			},
 			{
 				Keys: []model.ComboKey{
-					{Position: 5},
 					{Position: 7},
+					{Position: 5},
 				},
 				Pressed: 1,
 			},
