@@ -3,44 +3,6 @@ package components
 import "fmt"
 import "math"
 
-// getLinkForPosition returns the appropriate URL based on the page type
-func getLinkForPosition(position int, pageType PageType) string {
-	switch pageType {
-	case PageTypeCombo:
-		return fmt.Sprintf("/combo?position=%d", position)
-	case PageTypeNeighbors:
-		return fmt.Sprintf("/neighbors?position=%d", position)
-	case PageTypeStats:
-		return fmt.Sprintf("/stats?position=%d", position)
-	default:
-		return fmt.Sprintf("/stats?position=%d", position)
-	}
-}
-
-// getSwitchModeLink returns the appropriate URL to switch between combo and neighbors modes
-func getSwitchModeLink(position int, currentPageType PageType) string {
-	switch currentPageType {
-	case PageTypeCombo:
-		return fmt.Sprintf("/neighbors?position=%d", position)
-	case PageTypeNeighbors:
-		return fmt.Sprintf("/combo?position=%d", position)
-	default:
-		return "/"
-	}
-}
-
-// getSwitchModeButtonText returns the appropriate button text for switching modes
-func getSwitchModeButtonText(currentPageType PageType) string {
-	switch currentPageType {
-	case PageTypeCombo:
-		return "View Neighbors"
-	case PageTypeNeighbors:
-		return "View Combos"
-	default:
-		return ""
-	}
-}
-
 templ HeatMap(c *RenderContext) {
     <html>
         <head>
@@ -101,41 +63,42 @@ templ switchMode(c *RenderContext) {
 templ keyboardSvg(c *RenderContext) {
     <svg id="keysgrid" class="mt-4" width="960" height="640" viewBox="0 0 960 640">
         <g>
-            for _, item := range c.Items {
-                @svgKey(&item, c)
-            }
+        for _, item := range c.Items {
+            @svgKey(&item, c)
+        }
         if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
             // Draw connection paths for combos
             <g class="connection-paths">
                 for _, conn := range c.ComboConnections {
                     // Find positions of the connected keys
-                    {{ var fromKey, toKey *Item 
-                    for i := range c.Items {
-                        if c.Items[i].Position == conn.FromPosition {
-                            fromKey = &c.Items[i]
+                    {{ 
+                        var fromKey, toKey *Item 
+                        for i := range c.Items {
+                            if c.Items[i].Position == conn.FromPosition {
+                                fromKey = &c.Items[i]
+                            }
+                            if c.Items[i].Position == conn.ToPosition {
+                                toKey = &c.Items[i]
+                            }
                         }
-                        if c.Items[i].Position == conn.ToPosition {
-                            toKey = &c.Items[i]
-                        }
-                    }
                     }}
                     
                     if fromKey != nil && toKey != nil {
                         // Calculate centers of keys
                         {{
-                        fromX := fromKey.Col*80 + 35
-                        fromY := fromKey.Row*80 + 35
-                        toX := toKey.Col*80 + 35
-                        toY := toKey.Row*80 + 35
-                        
-                        // Calculate control points for a curved path
-                        midX := (fromX + toX) / 2
-                        midY := (fromY + toY) / 2 - 40 // Curve upward
-                        
-                        // Draw a curved path with thickness based on press count
-                        // TODO: scaling by 100 is arbirary, we should adjust it based on total keystrokes in db
-                        // or something.
-                        strokeWidth := math.Min(10, 1 + float64(conn.PressCount) / 100)
+                            fromX := fromKey.Col*80 + 35
+                            fromY := fromKey.Row*80 + 35
+                            toX := toKey.Col*80 + 35
+                            toY := toKey.Row*80 + 35
+                            
+                            // Calculate control points for a curved path
+                            midX := (fromX + toX) / 2
+                            midY := (fromY + toY) / 2 - 40 // Curve upward
+                            
+                            // Draw a curved path with thickness based on press count
+                            // TODO: scaling by 100 is arbirary, we should adjust it based on total keystrokes in db
+                            // or something.
+                            strokeWidth := math.Min(10, 1 + float64(conn.PressCount) / 100)
                         }}
                         <path 
                             d={ fmt.Sprintf("M %d %d Q %d %d %d %d", fromX, fromY, midX, midY, toX, toY) }
