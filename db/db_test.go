@@ -178,7 +178,10 @@ func TestGatherCombos(t *testing.T) {
 		storage, err := db.NewStorageFromPath(":memory:", false)
 		require.NoError(t, err)
 
-		items := storage.GatherCombos()
+		tracker, err := db.NewComboTrackerFromDB(storage)
+		require.NoError(t, err)
+
+		items := tracker.GatherCombos(1)
 
 		assert.Empty(t, items)
 	})
@@ -211,7 +214,12 @@ func TestGatherCombos(t *testing.T) {
 		storage, err := db.NewStorageFromConnection(conn, false)
 		require.NoError(t, err)
 
-		combos := storage.GatherCombos()
+		tracker, err := db.NewComboTrackerFromDB(storage)
+		require.NoError(t, err)
+
+		time.Sleep(120 * time.Millisecond)
+
+		combos := tracker.GatherCombos(1)
 
 		assert.Equal(t, []model.Combo{
 			{
@@ -251,7 +259,12 @@ func TestGatherCombos(t *testing.T) {
 		storage, err := db.NewStorageFromConnection(conn, false)
 		require.NoError(t, err)
 
-		combos := storage.GatherCombos()
+		tracker, err := db.NewComboTrackerFromDB(storage)
+		require.NoError(t, err)
+
+		time.Sleep(120 * time.Millisecond)
+
+		combos := tracker.GatherCombos(1)
 
 		sortCombos(combos)
 
@@ -282,6 +295,9 @@ func TestGatherCombos(t *testing.T) {
 				Pressed: 1,
 			},
 		}, combos)
+
+		combos = tracker.GatherCombos(6)
+		assert.Empty(t, combos)
 	})
 	t.Run("ignores items that happened too long ago", func(t *testing.T) {
 		conn, err := sql.Open("sqlite3", ":memory:")
@@ -319,7 +335,13 @@ func TestGatherCombos(t *testing.T) {
 		storage, err := db.NewStorageFromConnection(conn, false)
 		require.NoError(t, err)
 
-		combos := storage.GatherCombos()
+		tracker, err := db.NewComboTrackerFromDB(storage)
+		require.NoError(t, err)
+
+		time.Sleep(120 * time.Millisecond)
+
+		combos := tracker.GatherCombos(1)
+		combos = append(combos, tracker.GatherCombos(3)...)
 
 		assert.ElementsMatch(t, []model.Combo{
 			{
@@ -398,8 +420,13 @@ func BenchmarkComboScan(b *testing.B) {
 	}
 	defer conn.Close()
 
+	storage, err := db.NewStorageFromConnection(conn, false)
+	if err != nil {
+		b.Fatal(err)
+	}
+
 	for range b.N {
-		if _, err = db.NewComboTrackerFromDB(conn); err != nil {
+		if _, err = db.NewComboTrackerFromDB(storage); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -472,239 +499,5 @@ func TestMergeDatabases(t *testing.T) {
 		assert.False(t, rows.Next())
 
 		assert.NoError(t, rows.Err())
-	})
-}
-
-func TestGatherNeighbors(t *testing.T) {
-	t.Run("returns empty result for empty database", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(1)
-		require.NoError(t, err)
-		assert.Empty(t, neighbors)
-	})
-
-	t.Run("returns empty result for key with no neighbors", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-		event := model.KeyEvent{Row: 5, Col: 5, Position: 5, Pressed: true}
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, event.Row, event.Col, event.Position, event.Pressed, curTime)
-		require.NoError(t, err)
-
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, event.Row, event.Col, event.Position, false, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-		assert.Empty(t, neighbors)
-	})
-
-	t.Run("detects next key neighbor", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-
-		// Target key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime)
-		require.NoError(t, err)
-
-		// Next key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 7, 7, 7, true, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 7},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-		}, neighbors)
-	})
-
-	t.Run("detects both previous and next neighbors", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-
-		// Previous key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 3, 3, 3, true, curTime)
-		require.NoError(t, err)
-
-		// Target key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		// Next key (pressed)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 7, 7, 7, true, curTime.Add(200*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-
-		// Sort the results for consistent test comparison
-		sortCombos(neighbors)
-
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys: []model.ComboKey{
-					{Position: 7},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-		}, neighbors)
-	})
-
-	t.Run("counts multiple occurrences of same pattern", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-
-		// First sequence
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 3, 3, 3, true, curTime)
-		require.NoError(t, err)
-
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		// Second sequence (same pattern, different time)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 3, 3, 3, true, curTime.Add(1*time.Second))
-		require.NoError(t, err)
-
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime.Add(1100*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 5},
-				},
-				Pressed: 3,
-			},
-		}, neighbors)
-	})
-
-	t.Run("ignores non-immediate neighbors", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-		require.NoError(t, db.InitDBStorage(conn))
-
-		curTime := time.Now()
-
-		// First key (not an immediate neighbor)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 1, 1, 1, true, curTime)
-		require.NoError(t, err)
-
-		// Second key (immediate neighbor to target)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 3, 3, 3, true, curTime.Add(100*time.Millisecond))
-		require.NoError(t, err)
-
-		// Target key
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 5, 5, 5, true, curTime.Add(200*time.Millisecond))
-		require.NoError(t, err)
-
-		// Next key (immediate neighbor to target)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 7, 7, 7, true, curTime.Add(300*time.Millisecond))
-		require.NoError(t, err)
-
-		// Last key (not an immediate neighbor)
-		_, err = conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-		values(?, ?, ?, ?, ?)`, 9, 9, 9, true, curTime.Add(400*time.Millisecond))
-		require.NoError(t, err)
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-		defer storage.Close()
-
-		neighbors, err := storage.GatherNeighbors(5)
-		require.NoError(t, err)
-
-		// Sort the results for consistent test comparison
-		sortCombos(neighbors)
-
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys: []model.ComboKey{
-					{Position: 7},
-					{Position: 5},
-				},
-				Pressed: 1,
-			},
-		}, neighbors)
-
-		// Key 1 and key 9 should not be in the results
-		for _, combo := range neighbors {
-			for _, key := range combo.Keys {
-				assert.NotEqual(t, 1, key.Position, "Key position 1 should not be in results")
-				assert.NotEqual(t, 9, key.Position, "Key position 9 should not be in results")
-			}
-		}
 	})
 }

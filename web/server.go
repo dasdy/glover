@@ -22,8 +22,10 @@ import (
 )
 
 type ServerHandler struct {
-	Storage    db.Storage
-	KeymapFile string
+	Storage         db.Storage
+	KeymapFile      string
+	ComboTracker    db.Tracker
+	NeighborTracker db.Tracker
 }
 
 func GetKeyLabels(filename string) ([]string, error) {
@@ -187,25 +189,11 @@ func initEmptyMap(name string) (map[cs.Location]*model.MinimalKeyEventWithLabel,
 	return groupedItems, maxVal, totalCols, totalRows
 }
 
-func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int64) cs.RenderContext {
-	combosToDisplay := make([]model.Combo, 0)
-
-	for _, c := range combos {
-		if len(c.Keys) > 2 {
-			continue
-		}
-
-		for _, k := range c.Keys {
-			if int64(k.Position) == position {
-				combosToDisplay = append(combosToDisplay, c)
-			}
-		}
-	}
-
-	log.Printf("Found combos: %d", len(combosToDisplay))
+func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int) cs.RenderContext {
+	log.Printf("Found combos: %d", len(combos))
 
 	// Sort combos by press count to get top 5
-	slices.SortFunc(combosToDisplay, func(a, b model.Combo) int {
+	slices.SortFunc(combos, func(a, b model.Combo) int {
 		return -cmp.Compare(a.Pressed, b.Pressed) // Negative to sort in descending order
 	})
 
@@ -217,7 +205,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
 
 	// set non-zero items in the map
-	for _, combo := range combosToDisplay {
+	for _, combo := range combos {
 		for _, key := range combo.Keys {
 			loc, ok := locationsOnGrid[key.Position]
 			if !ok {
@@ -243,7 +231,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 
 			item, ok := groupedItems[l]
 			if ok {
-				highlight := int64(item.Position) == position
+				highlight := item.Position == position
 				items = append(items, cs.Item{
 					Position:       item.Position,
 					Row:            item.Row,
@@ -259,20 +247,21 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	// Create combo connections for the top combos
 	connections := make([]cs.ComboConnection, 0, 5)
 
-	for _, combo := range combosToDisplay {
+	for _, combo := range combos {
 		var otherPos int
 
 		for _, key := range combo.Keys {
-			if int64(key.Position) != position {
+			if key.Position != position {
 				otherPos = key.Position
 
 				break
 			}
 		}
+
 		log.Printf("pressCount: %d", combo.Pressed)
 
 		connections = append(connections, cs.ComboConnection{
-			FromPosition: int(position),
+			FromPosition: position,
 			ToPosition:   otherPos,
 			PressCount:   combo.Pressed,
 		})
@@ -287,7 +276,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		TotalCols:         18,
 		Items:             items,
 		MaxVal:            maxVal,
-		HighlightPosition: int(position),
+		HighlightPosition: position,
 		ComboConnections:  connections,
 		Page:              cs.PageTypeCombo,
 	}
@@ -296,7 +285,6 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 	log.Print("Got request to combos page")
 
-	combos := s.Storage.GatherCombos()
 	positionString := r.URL.Query().Get("position")
 
 	position, err := strconv.ParseInt(positionString, 10, 32)
@@ -306,19 +294,21 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderContext := s.BuildCombosRenderContext(combos, position)
+	combos := s.ComboTracker.GatherCombos(int(position))
+
+	renderContext := s.BuildCombosRenderContext(combos, int(position))
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int64) cs.RenderContext {
+func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int) cs.RenderContext {
 	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
 
 	// set non-zero items in the map
 	for _, combo := range neighbors {
-		neighborPosition := int(position)
+		neighborPosition := position
 
 		for _, key := range combo.Keys {
-			if int64(key.Position) != position {
+			if key.Position != position {
 				neighborPosition = key.Position
 
 				break
@@ -349,7 +339,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 
 			item, ok := groupedItems[l]
 			if ok {
-				highlight := int64(item.Position) == position
+				highlight := item.Position == position
 				items = append(items, cs.Item{
 					Position:       item.Position,
 					Row:            item.Row,
@@ -374,7 +364,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		var otherPos int
 
 		for _, key := range combo.Keys {
-			if int64(key.Position) != position {
+			if key.Position != position {
 				otherPos = key.Position
 
 				break
@@ -384,7 +374,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		log.Printf("pressCount: %d", combo.Pressed)
 
 		connections = append(connections, cs.ComboConnection{
-			FromPosition: int(position),
+			FromPosition: position,
 			ToPosition:   otherPos,
 			PressCount:   combo.Pressed,
 		})
@@ -399,7 +389,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		TotalCols:         18,
 		Items:             items,
 		MaxVal:            maxVal,
-		HighlightPosition: int(position),
+		HighlightPosition: position,
 		ComboConnections:  connections,
 		Page:              cs.PageTypeNeighbors,
 	}
@@ -417,7 +407,8 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	neighbors, err := s.Storage.GatherNeighbors(int(position))
+	neighbors := s.NeighborTracker.GatherCombos(int(position))
+
 	if err != nil {
 		log.Printf("Could not get neighbors: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -425,7 +416,7 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	renderContext := s.BuildNeighborsRenderContext(neighbors, position)
+	renderContext := s.BuildNeighborsRenderContext(neighbors, int(position))
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
@@ -440,7 +431,7 @@ func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	})
 }
 
-func BuildServer(storage db.Storage, keymapFile string, dev bool) *http.ServeMux {
+func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, dev bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	// Serve the JS bundle.
 	mux.Handle("/assets/",
@@ -449,8 +440,10 @@ func BuildServer(storage db.Storage, keymapFile string, dev bool) *http.ServeMux
 				http.FileServer(http.Dir("assets")))))
 
 	handler := ServerHandler{
-		Storage:    storage,
-		KeymapFile: keymapFile,
+		Storage:         storage,
+		KeymapFile:      keymapFile,
+		ComboTracker:    comboTracker,
+		NeighborTracker: neighborTracker,
 	}
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
 	mux.Handle("/neighbors", http.HandlerFunc(handler.NeighborsHandle))
@@ -459,12 +452,12 @@ func BuildServer(storage db.Storage, keymapFile string, dev bool) *http.ServeMux
 	return mux
 }
 
-func StartServer(port int, storage db.Storage, keymapFile string, dev bool) {
+func StartServer(port int, storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, dev bool) {
 	log.Printf("Running interface on port %d\n", port)
 
 	err := http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
-		BuildServer(storage, keymapFile, dev))
+		BuildServer(storage, comboTracker, neighborTracker, keymapFile, dev))
 	if err != nil {
 		log.Fatalf("Could not run server: %s", err)
 	}

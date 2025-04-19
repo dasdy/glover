@@ -1,10 +1,20 @@
 package model
 
+import "time"
+
 type KeyEvent struct {
 	Row      int
 	Col      int
 	Position int
 	Pressed  bool
+}
+
+type KeyEventWithTimestamp struct {
+	Row       int
+	Col       int
+	Position  int
+	Pressed   bool
+	Timestamp time.Time
 }
 
 type MinimalKeyEvent struct {

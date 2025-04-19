@@ -29,8 +29,16 @@ var showCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
 		}
+		comboTracker, err := db.NewComboTrackerFromDB(storage)
+		if err != nil {
+			return fmt.Errorf("could not create combo tracker: %w", err)
+		}
+		neighborTracker, err := db.NewNeighborCounterFromDb(storage)
+		if err != nil {
+			return fmt.Errorf("could not create neighbor tracker: %w", err)
+		}
 		defer storage.Close()
-		web.StartServer(port, storage, keymapFile, dev)
+		web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, dev)
 
 		return nil
 	},

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"iter"
 	"log"
 	"time"
 
@@ -11,28 +12,14 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-type Storage interface {
-	Store(event *model.KeyEvent) error
-	GatherAll() ([]model.MinimalKeyEvent, error)
-	GatherCombos() []model.Combo
-	GatherNeighbors(position int) ([]model.Combo, error)
-	Close()
-}
-
 type SQLiteStorage struct {
-	db           *sql.DB
-	comboTracker *ComboTracker
-	verbose      bool
+	db      *sql.DB
+	verbose bool
 }
 
 func NewStorageFromConnection(db *sql.DB, verbose bool) (*SQLiteStorage, error) {
-	tracker, err := NewComboTrackerFromDB(db)
-	if err != nil {
-		return nil, err
-	}
-
 	// TODO: replace verbosity thing by structured logging config
-	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
+	return &SQLiteStorage{db: db, verbose: verbose}, nil
 }
 
 // Given a path to storage, connect to it and initialize everything.
@@ -49,12 +36,7 @@ func NewStorageFromPath(path string, verbose bool) (*SQLiteStorage, error) {
 		return nil, err
 	}
 
-	tracker, err := NewComboTrackerFromDB(db)
-	if err != nil {
-		return nil, err
-	}
-
-	return &SQLiteStorage{db: db, comboTracker: tracker, verbose: verbose}, nil
+	return &SQLiteStorage{db: db, verbose: verbose}, nil
 }
 
 func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
@@ -64,8 +46,6 @@ func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 	if err != nil {
 		return err
 	}
-
-	s.comboTracker.HandleKeyNow(event.Position, event.Pressed, s.verbose)
 
 	return nil
 }
@@ -104,87 +84,41 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 	return result, nil
 }
 
-func (s *SQLiteStorage) GatherCombos() []model.Combo {
-	return s.comboTracker.GatherCombos()
-}
-
-func (s *SQLiteStorage) GatherNeighbors(position int) ([]model.Combo, error) {
-	// This query finds the previous and next key pressed around each instance of the target position
-	// We're using self-joins with the keypresses table to find adjacent events
-	rows, err := s.db.Query(`
-		WITH keypresses_sequence AS (
-			SELECT
-				position,
-				ts,
-				LAG(position) OVER (ORDER BY ts) AS prev_key,
-				LAG(ts) OVER (ORDER BY ts) AS prev_ts,
-				LEAD(position) OVER (ORDER BY ts) AS next_key,
-				LEAD(ts) OVER (ORDER BY ts) AS next_ts
-			FROM keypresses
-			WHERE pressed = true
-			ORDER BY ts
-		)
-		select r.targetPosition, r.neighborSymbol, count(*) from (
-			-- Find keys that appear before the target position
-			SELECT
-				position AS targetPosition,
-				prev_key AS neighborSymbol,
-				prev_ts AS neighborTs
-			FROM keypresses_sequence
-
-			UNION ALL
-
-			-- Find keys that appear after the target position
-			SELECT
-				position AS targetPosition,
-				next_key AS neighborSymbol,
-				next_ts AS neighborTs
-			FROM keypresses_sequence
-		) as r
-		WHERE targetPosition = ? AND neighborSymbol IS NOT NULL
-		GROUP BY r.neighborSymbol
-	`, position)
+func (s *SQLiteStorage) AllIterator() (iter.Seq[model.KeyEventWithTimestamp], error) {
+	rows, err := s.db.Query("select row, col, position, pressed, ts from keypresses order by ts")
 	if err != nil {
 		return nil, err
 	}
 
-	defer rows.Close()
-
-	result := make([]model.Combo, 0)
-
-	for rows.Next() {
-		var targetPosition, neighborSymbol, count int
-
-		if err := rows.Scan(&targetPosition, &neighborSymbol, &count); err != nil {
-			return nil, err
-		}
-
-		var combo model.Combo
-		if neighborSymbol != targetPosition {
-			combo = model.Combo{
-				Keys: []model.ComboKey{
-					{Position: neighborSymbol},
-					{Position: targetPosition},
-				},
-				Pressed: count,
-			}
-		} else {
-			combo = model.Combo{
-				Keys: []model.ComboKey{
-					{Position: neighborSymbol},
-				},
-				Pressed: count,
-			}
-		}
-
-		result = append(result, combo)
+	if rows.Err() != nil {
+		return nil, rows.Err()
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
+	return func(yield func(model.KeyEventWithTimestamp) bool) {
+		defer rows.Close()
 
-	return result, nil
+		for rows.Next() {
+			var row, col, position int
+
+			var ts time.Time
+
+			var pressed bool
+
+			err = rows.Scan(&row, &col, &position, &pressed, &ts)
+
+			item := model.KeyEventWithTimestamp{
+				Row:       row,
+				Col:       col,
+				Position:  position,
+				Pressed:   pressed,
+				Timestamp: ts,
+			}
+
+			if !yield(item) {
+				return
+			}
+		}
+	}, nil
 }
 
 func (s *SQLiteStorage) Close() {

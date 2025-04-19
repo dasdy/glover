@@ -61,5 +61,4 @@ func init() {
 		"o",
 		"./merged.sqlite",
 		"Output path for statistics")
-	// viper.BindPFlags(mergeCmd.Flags())
 }

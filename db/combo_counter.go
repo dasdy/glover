@@ -1,7 +1,7 @@
 package db
 
 import (
-	"database/sql"
+	"iter"
 	"log"
 	"sync"
 	"time"
@@ -33,15 +33,17 @@ func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 	}
 }
 
-func NewComboTrackerFromDB(db *sql.DB) (*ComboTracker, error) {
+func NewComboTrackerFromDB(storage Storage) (*ComboTracker, error) {
 	tracker := newComboTracker(100, 2)
 
 	// TODO: make the init stage a bit clearer? forbid combos page calls until this init is done?
 	go func() {
-		err := tracker.initComboCounter(db)
+		iterator, err := storage.AllIterator()
 		if err != nil {
 			panic(err)
 		}
+
+		tracker.initComboCounter(iterator)
 	}()
 
 	return tracker, nil
@@ -51,13 +53,20 @@ func (c *ComboTracker) HandleKeyNow(position int, pressed bool, verbose bool) {
 	c.handleKey(position, pressed, time.Now(), verbose)
 }
 
-func (c *ComboTracker) GatherCombos() []model.Combo {
+func (c *ComboTracker) GatherCombos(position int) []model.Combo {
 	c.stateLock.RLock()
 	defer c.stateLock.RUnlock()
 
 	result := make([]model.Combo, 0, len(c.comboCounts))
+
 	for _, v := range c.comboCounts {
-		result = append(result, *v)
+		for _, k := range v.Keys {
+			if k.Position == position {
+				result = append(result, *v)
+
+				break
+			}
+		}
 	}
 
 	return result
@@ -108,35 +117,10 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 	}
 }
 
-func (c *ComboTracker) initComboCounter(db *sql.DB) error {
-	rows, err := db.Query(
-		`select position, pressed, ts 
-        from keypresses
-        order by ts`)
-	if err != nil {
-		return err
+func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimestamp]) {
+	for item := range items {
+		c.handleKey(item.Position, item.Pressed, item.Timestamp, false)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var (
-			position int
-			pressed  bool
-			ts       time.Time
-		)
-
-		if err := rows.Scan(&position, &pressed, &ts); err != nil {
-			return err
-		}
-
-		c.handleKey(position, pressed, ts, false)
-	}
-
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type keyHash struct {

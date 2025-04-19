@@ -8,7 +8,7 @@ import (
 	"github.com/dasdy/glover/keylog/parser"
 )
 
-func Loop(ch <-chan string, storage db.Storage, enableLogs bool) {
+func Loop(ch <-chan string, storage db.Storage, trackers []db.Tracker, enableLogs bool) {
 	for line := range ch {
 		parsed, err := parser.ParseLine(line)
 		if err != nil && !errors.Is(err, parser.ErrEmptyLine) {
@@ -22,6 +22,10 @@ func Loop(ch <-chan string, storage db.Storage, enableLogs bool) {
 
 			if storage.Store(parsed) != nil {
 				log.Printf("could not log item: %s", err.Error())
+			}
+
+			for _, tracker := range trackers {
+				tracker.HandleKeyNow(parsed.Position, parsed.Pressed, enableLogs)
 			}
 		}
 	}

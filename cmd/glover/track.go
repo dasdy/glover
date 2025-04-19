@@ -117,12 +117,23 @@ var trackCmd = &cobra.Command{
 		}
 		defer storage.Close()
 
+		comboTracker, err := db.NewComboTrackerFromDB(storage)
+		if err != nil {
+			return fmt.Errorf("could not create combo tracker: %w", err)
+		}
+		neighborTracker, err := db.NewNeighborCounterFromDb(storage)
+		if err != nil {
+			return fmt.Errorf("could not create neighbor tracker: %w", err)
+		}
+
+		trackers := []db.Tracker{comboTracker, neighborTracker}
+
 		if !disableInterface {
-			go web.StartServer(port, storage, keymapFile, dev)
+			go web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, dev)
 		}
 
 		log.Print("Main loop")
-		keylog.Loop(deviceReader.Channel(), storage, verbose)
+		keylog.Loop(deviceReader.Channel(), storage, trackers, verbose)
 
 		return nil
 	},
