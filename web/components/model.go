@@ -22,14 +22,27 @@ const (
 	PageTypeNeighbors PageType = "neighbors"
 )
 
+const (
+	KeySize           = 80
+	KeySizeWithoutGap = 70
+	KeyCenterOffset   = KeySizeWithoutGap / 2
+)
+
 type RenderContext struct {
 	TotalCols int
+	TotalRows int
 	Items     []Item
 	MaxVal    int
 	Page      PageType
 
 	HighlightPosition int               // The position being highlighted
 	ComboConnections  []ComboConnection // Top 5 combo connections for highlighted key
+}
+
+type KeyboardLayout struct {
+	Locations map[int]Location
+	Rows      int
+	Cols      int
 }
 
 type Location struct {

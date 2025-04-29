@@ -61,7 +61,7 @@ templ switchMode(c *RenderContext) {
 
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-    <svg id="keysgrid" class="mt-4" width="960" height="640" viewBox="0 0 960 640">
+    <svg id="keysgrid" class="mt-4 ml-4 mr-4" viewBox={ fmt.Sprintf("0 0 %d %d", KeySize * c.TotalCols, KeySize * c.TotalRows) }>
         <g>
         for _, item := range c.Items {
             @svgKey(&item, c)
@@ -86,10 +86,10 @@ templ keyboardSvg(c *RenderContext) {
                     if fromKey != nil && toKey != nil {
                         // Calculate centers of keys
                         {{
-                            fromX := fromKey.Col*80 + 35
-                            fromY := fromKey.Row*80 + 35
-                            toX := toKey.Col*80 + 35
-                            toY := toKey.Row*80 + 35
+                            fromX := fromKey.Col*KeySize + KeyCenterOffset
+                            fromY := fromKey.Row*KeySize + KeyCenterOffset
+                            toX := toKey.Col*KeySize + KeyCenterOffset
+                            toY := toKey.Row*KeySize + KeyCenterOffset
                             
                             // Calculate control points for a curved path
                             midX := (fromX + toX) / 2
@@ -120,12 +120,12 @@ templ keyboardSvg(c *RenderContext) {
 templ svgKey(item *Item, c *RenderContext) {
         // Use Row and Col directly for positioning
         // Each key is 70x70 with 10px gap
-        <g transform={ fmt.Sprintf("translate(%d, %d)", item.Col*80, item.Row*80) }>
+        <g transform={ fmt.Sprintf("translate(%d, %d)", item.Col*KeySize, item.Row*KeySize) }>
             <a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
                 if !item.Highlight {
                     <rect 
-                        width="70" 
-                        height="70" 
+                        width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+                        height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
                         rx="5" 
                         class="key-rect" 
                         data-position={ fmt.Sprintf("%d", item.Position) }
@@ -135,8 +135,8 @@ templ svgKey(item *Item, c *RenderContext) {
                     ></rect>
                 } else {
                     <rect 
-                        width="70" 
-                        height="70" 
+                        width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+                        height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
                         rx="5"
                         class="key-rect"
                         data-position={ fmt.Sprintf("%d", item.Position) }
@@ -156,8 +156,8 @@ templ svgKey(item *Item, c *RenderContext) {
                 <text
                     id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
                     class="keys-pressed"
-                    x="35" 
-                    y="40" 
+                    x={ fmt.Sprintf("%d", KeyCenterOffset) }
+                    y={ fmt.Sprintf("%d", KeyCenterOffset + 5) }
                     text-anchor="middle"
                     font-size="14"
                     font-weight="600"

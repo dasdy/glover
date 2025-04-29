@@ -1,3 +1,6 @@
 [submodule "layout/tree-sitter-devicetree"]
 	path = layout/tree-sitter-devicetree
 	url = https://github.com/joelspadin/tree-sitter-devicetree.git
+[submodule "data/zmk-keymap-jsons"]
+	path = data/zmk-keymap-jsons
+	url = git@github.com:nickcoutsos/keymap-editor-contrib.git

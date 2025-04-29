@@ -129,7 +129,7 @@ var trackCmd = &cobra.Command{
 		trackers := []db.Tracker{comboTracker, neighborTracker}
 
 		if !disableInterface {
-			go web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, dev)
+			go web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, infoJSONFile, dev)
 		}
 
 		log.Print("Main loop")
@@ -143,6 +143,7 @@ var (
 	filenames        []string
 	storagePath      string
 	keymapFile       string
+	infoJSONFile     string
 	port             int
 	disableInterface bool
 	verbose          bool
@@ -197,6 +198,12 @@ func init() {
 	trackCmd.Flags().StringVar(
 		&keymapFile,
 		"keymap-file",
-		"glove80.keymap",
+		"data/glove80.keymap",
 		"Path to the keymap file used for rendering the interface")
+
+	trackCmd.Flags().StringVar(
+		&infoJSONFile,
+		"info-json-file",
+		"data/info.json",
+		"Path to the info.json file used for rendering the interface")
 }

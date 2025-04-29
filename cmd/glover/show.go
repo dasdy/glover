@@ -38,7 +38,7 @@ var showCmd = &cobra.Command{
 			return fmt.Errorf("could not create neighbor tracker: %w", err)
 		}
 		defer storage.Close()
-		web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, dev)
+		web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, infoJSONFile, dev)
 
 		return nil
 	},
@@ -65,6 +65,12 @@ func init() {
 	showCmd.Flags().StringVar(
 		&keymapFile,
 		"keymap-file",
-		"glove80.keymap",
+		"data/glove80.keymap",
 		"Path to the keymap file used for rendering the interface")
+
+	showCmd.Flags().StringVar(
+		&infoJSONFile,
+		"info-json-file",
+		"data/info.json",
+		"Path to the info.json file used for rendering the interface")
 }

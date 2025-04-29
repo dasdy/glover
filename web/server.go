@@ -26,9 +26,10 @@ type ServerHandler struct {
 	KeymapFile      string
 	ComboTracker    db.Tracker
 	NeighborTracker db.Tracker
+	LocationsOnGrid *cs.KeyboardLayout
 }
 
-func GetKeyLabels(filename string) ([]string, error) {
+func GetBinaryPath() string {
 	// TODO: parameterize;
 	//nolint:dogsled
 	_, b, _, _ := runtime.Caller(0)
@@ -36,7 +37,11 @@ func GetKeyLabels(filename string) ([]string, error) {
 	// Root folder of this project
 	fp := filepath.Join(filepath.Dir(b), "..")
 
-	file, err := os.Open(filepath.Join(fp, "data", filename))
+	return fp
+}
+
+func GetKeyLabels(filename string) ([]string, error) {
+	file, err := os.Open(filepath.Join(GetBinaryPath(), filename))
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +107,12 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 }
 
 func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
-	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
+	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
 
+	maxVal := 0
 	// set non-zero items in the map
 	for _, key := range dbStats {
-		loc, ok := locationsOnGrid[key.Position]
+		loc, ok := s.LocationsOnGrid.Locations[key.Position]
 		if !ok {
 			log.Printf("Could not find position %d, wtf", key.Position)
 		}
@@ -123,8 +129,8 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
 
-	for i := 0; i <= totalRows; i++ {
-		for j := 0; j <= totalCols; j++ {
+	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
+		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
 			l.Row = i
 			l.Col = j
 
@@ -141,7 +147,7 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 		}
 	}
 
-	return cs.RenderContext{TotalCols: 18, Items: items, MaxVal: maxVal, Page: cs.PageTypeStats}
+	return cs.RenderContext{TotalCols: s.LocationsOnGrid.Cols, TotalRows: s.LocationsOnGrid.Rows, Items: items, MaxVal: maxVal, Page: cs.PageTypeStats}
 }
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
@@ -160,11 +166,7 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func initEmptyMap(name string) (map[cs.Location]*model.MinimalKeyEventWithLabel, int, int, int) {
-	totalRows := 0
-	totalCols := 0
-	maxVal := 0
-
+func initEmptyMap(name string, locationsOnGrid map[int]cs.Location) map[cs.Location]*model.MinimalKeyEventWithLabel {
 	names, _ := GetKeyLabels(name)
 	// put empty items in the map so that we show them later properly
 	groupedItems := make(map[cs.Location]*model.MinimalKeyEventWithLabel)
@@ -176,17 +178,9 @@ func initEmptyMap(name string) (map[cs.Location]*model.MinimalKeyEventWithLabel,
 		}
 
 		groupedItems[key] = &model.MinimalKeyEventWithLabel{Row: key.Row, Col: key.Col, Count: 0, Position: pos, KeyLabel: name}
-
-		if key.Row > totalRows {
-			totalRows = key.Row
-		}
-
-		if key.Col > totalCols {
-			totalCols = key.Col
-		}
 	}
 
-	return groupedItems, maxVal, totalCols, totalRows
+	return groupedItems
 }
 
 func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int) cs.RenderContext {
@@ -202,12 +196,13 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	// 	combosToDisplay = combosToDisplay[:5]
 	// }
 
-	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
+	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
+	maxVal := 0
 
 	// set non-zero items in the map
 	for _, combo := range combos {
 		for _, key := range combo.Keys {
-			loc, ok := locationsOnGrid[key.Position]
+			loc, ok := s.LocationsOnGrid.Locations[key.Position]
 			if !ok {
 				log.Printf("Could not find position %d, wtf", key.Position)
 			}
@@ -224,8 +219,8 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
 
-	for i := 0; i <= totalRows; i++ {
-		for j := 0; j <= totalCols; j++ {
+	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
+		for j := 0; j <= s.LocationsOnGrid.Rows; j++ {
 			l.Row = i
 			l.Col = j
 
@@ -273,7 +268,8 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	log.Printf("Found connections: %d", len(connections))
 
 	return cs.RenderContext{
-		TotalCols:         18,
+		TotalCols:         s.LocationsOnGrid.Cols,
+		TotalRows:         s.LocationsOnGrid.Rows,
 		Items:             items,
 		MaxVal:            maxVal,
 		HighlightPosition: position,
@@ -301,7 +297,8 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int) cs.RenderContext {
-	groupedItems, maxVal, totalCols, totalRows := initEmptyMap(s.KeymapFile)
+	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
+	maxVal := 0
 
 	// set non-zero items in the map
 	for _, combo := range neighbors {
@@ -315,7 +312,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 			}
 		}
 
-		loc, ok := locationsOnGrid[neighborPosition]
+		loc, ok := s.LocationsOnGrid.Locations[neighborPosition]
 		if !ok {
 			log.Printf("Could not find position %d, wtf", neighborPosition)
 
@@ -332,8 +329,8 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 	items := make([]cs.Item, 0)
 	l := cs.Location{Row: 0, Col: 0}
 
-	for i := 0; i <= totalRows; i++ {
-		for j := 0; j <= totalCols; j++ {
+	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
+		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
 			l.Row = i
 			l.Col = j
 
@@ -386,7 +383,8 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 	log.Printf("Found connections: %d", len(connections))
 
 	return cs.RenderContext{
-		TotalCols:         18,
+		TotalCols:         s.LocationsOnGrid.Cols,
+		TotalRows:         s.LocationsOnGrid.Rows,
 		Items:             items,
 		MaxVal:            maxVal,
 		HighlightPosition: position,
@@ -409,13 +407,6 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 
 	neighbors := s.NeighborTracker.GatherCombos(int(position))
 
-	if err != nil {
-		log.Printf("Could not get neighbors: %s", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-
 	renderContext := s.BuildNeighborsRenderContext(neighbors, int(position))
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
@@ -431,7 +422,23 @@ func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	})
 }
 
-func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, dev bool) *http.ServeMux {
+func loadLocationsOnGrid(infoJSONFile string) (*cs.KeyboardLayout, error) {
+	reader, err := os.Open(filepath.Join(GetBinaryPath(), infoJSONFile))
+	if err != nil {
+		log.Fatalf("Could not open info.json: %s", err)
+	}
+
+	defer reader.Close()
+
+	locationsParsed, err := loadZmkLocationsJSON(reader)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse info.json: %w", err)
+	}
+
+	return locationsParsed, nil
+}
+
+func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, infoFilePath string, dev bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	// Serve the JS bundle.
 	mux.Handle("/assets/",
@@ -439,11 +446,21 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 			http.StripPrefix("/assets",
 				http.FileServer(http.Dir("assets")))))
 
+	log.Printf("Parsing info.json from %s", infoFilePath)
+
+	locationsParsed, err := loadLocationsOnGrid(infoFilePath)
+	if err != nil {
+		log.Fatalf("Could not parse info.json: %s", err)
+	}
+
+	log.Printf("Successfully parsed info.json file, got %d locations (%d rows, %d cols)", len(locationsParsed.Locations), locationsParsed.Rows, locationsParsed.Cols)
+
 	handler := ServerHandler{
 		Storage:         storage,
 		KeymapFile:      keymapFile,
 		ComboTracker:    comboTracker,
 		NeighborTracker: neighborTracker,
+		LocationsOnGrid: locationsParsed,
 	}
 	mux.Handle("/combo", http.HandlerFunc(handler.CombosHandle))
 	mux.Handle("/neighbors", http.HandlerFunc(handler.NeighborsHandle))
@@ -452,12 +469,12 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 	return mux
 }
 
-func StartServer(port int, storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, dev bool) {
+func StartServer(port int, storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, infoFilePath string, dev bool) {
 	log.Printf("Running interface on port %d\n", port)
 
 	err := http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
-		BuildServer(storage, comboTracker, neighborTracker, keymapFile, dev))
+		BuildServer(storage, comboTracker, neighborTracker, keymapFile, infoFilePath, dev))
 	if err != nil {
 		log.Fatalf("Could not run server: %s", err)
 	}
