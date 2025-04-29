@@ -51,7 +51,6 @@ func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 }
 
 func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
-	// TODO: position should be same for each row-col, in reality, maybe groupby can be simpler. But double-check that.
 	rows, err := s.db.Query(
 		`select row, col, position, count(*) as cnt
         from keypresses
