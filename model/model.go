@@ -34,3 +34,14 @@ type Combo struct {
 	Keys    []ComboKey
 	Pressed int
 }
+
+type KeyboardLayout struct {
+	Locations map[int]Location
+	Rows      int
+	Cols      int
+}
+
+type Location struct {
+	Row int
+	Col int
+}

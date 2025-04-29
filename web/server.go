@@ -4,13 +4,9 @@ import (
 	"bytes"
 	"cmp"
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
-	"runtime"
 	"slices"
 	"strconv"
 
@@ -26,60 +22,7 @@ type ServerHandler struct {
 	KeymapFile      string
 	ComboTracker    db.Tracker
 	NeighborTracker db.Tracker
-	LocationsOnGrid *cs.KeyboardLayout
-}
-
-func GetBinaryPath() string {
-	// TODO: parameterize;
-	//nolint:dogsled
-	_, b, _, _ := runtime.Caller(0)
-
-	// Root folder of this project
-	fp := filepath.Join(filepath.Dir(b), "..")
-
-	return fp
-}
-
-func GetKeyLabels(filename string) ([]string, error) {
-	file, err := os.Open(filepath.Join(GetBinaryPath(), filename))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	keymap, err := layout.Parse(file)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(keymap.Layers) < 1 {
-		return nil, errors.New("expected at least 1 layer in layout")
-	}
-
-	results := make([]string, 0, len(keymap.Layers[0].Bindings))
-
-	for _, b := range keymap.Layers[0].Bindings {
-		switch b.Action {
-		case "&kp":
-			for i := range b.Modifiers {
-				if v, ok := labels[b.Modifiers[i]]; ok {
-					b.Modifiers[i] = v
-				}
-			}
-
-			if len(b.Modifiers) > 1 {
-				results = append(results, fmt.Sprintf("%+v", b.Modifiers))
-			} else {
-				results = append(results, b.Modifiers[0])
-			}
-		case "&magic":
-			results = append(results, "🪄")
-		default:
-			results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
-		}
-	}
-
-	return results, nil
+	LocationsOnGrid *model.KeyboardLayout
 }
 
 func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error {
@@ -121,13 +64,13 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 			maxVal = key.Count
 		}
 
-		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}].Count += key.Count
+		groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += key.Count
 	}
 
 	// Iterate over total grid and add real and hidden items.
 	// TODO: can this be done without a bunch of hidden items?
 	items := make([]cs.Item, 0)
-	l := cs.Location{Row: 0, Col: 0}
+	l := model.Location{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
 		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
@@ -166,10 +109,10 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func initEmptyMap(name string, locationsOnGrid map[int]cs.Location) map[cs.Location]*model.MinimalKeyEventWithLabel {
-	names, _ := GetKeyLabels(name)
+func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model.Location]*model.MinimalKeyEventWithLabel {
+	names, _ := layout.GetKeyLabels(name)
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[cs.Location]*model.MinimalKeyEventWithLabel)
+	groupedItems := make(map[model.Location]*model.MinimalKeyEventWithLabel)
 
 	for pos, key := range locationsOnGrid {
 		name := "<OOB>"
@@ -207,7 +150,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 				log.Printf("Could not find position %d, wtf", key.Position)
 			}
 
-			groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
+			groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
 		}
 
 		if maxVal < combo.Pressed {
@@ -217,10 +160,10 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 
 	// Iterate over total grid and add real and hidden items.
 	items := make([]cs.Item, 0)
-	l := cs.Location{Row: 0, Col: 0}
+	l := model.Location{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
-		for j := 0; j <= s.LocationsOnGrid.Rows; j++ {
+		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
 			l.Row = i
 			l.Col = j
 
@@ -319,7 +262,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 			continue
 		}
 
-		groupedItems[cs.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
+		groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
 
 		if maxVal < combo.Pressed {
 			maxVal = combo.Pressed
@@ -327,7 +270,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 	}
 
 	items := make([]cs.Item, 0)
-	l := cs.Location{Row: 0, Col: 0}
+	l := model.Location{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
 		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
@@ -422,15 +365,15 @@ func disableCacheInDevMode(dev bool, next http.Handler) http.Handler {
 	})
 }
 
-func loadLocationsOnGrid(infoJSONFile string) (*cs.KeyboardLayout, error) {
-	reader, err := os.Open(filepath.Join(GetBinaryPath(), infoJSONFile))
+func loadLocationsOnGrid(infoJSONFile string) (*model.KeyboardLayout, error) {
+	reader, err := layout.OpenPath(infoJSONFile)
 	if err != nil {
-		log.Fatalf("Could not open info.json: %s", err)
+		return nil, fmt.Errorf("could not open layout file %s. %w", infoJSONFile, err)
 	}
 
 	defer reader.Close()
 
-	locationsParsed, err := loadZmkLocationsJSON(reader)
+	locationsParsed, err := layout.LoadZmkLocationsJSON(reader)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse info.json: %w", err)
 	}

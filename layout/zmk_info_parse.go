@@ -1,11 +1,11 @@
-package web
+package layout
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/dasdy/glover/web/components"
+	"github.com/dasdy/glover/model"
 )
 
 type ZMKKeyDescriptor struct {
@@ -28,8 +28,8 @@ type ZmkInfoJSON struct {
 	Layouts map[string]ZMKLayoutCollection `json:"layouts"`
 }
 
-func loadZmkLocationsJSON(reader io.Reader) (*components.KeyboardLayout, error) {
-	locations := make(map[int]components.Location)
+func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
+	locations := make(map[int]model.Location)
 
 	decoder := json.NewDecoder(reader)
 
@@ -50,7 +50,7 @@ func loadZmkLocationsJSON(reader io.Reader) (*components.KeyboardLayout, error) 
 
 	for _, layout := range info.Layouts {
 		for _, key := range layout.Layout {
-			loc := components.Location{
+			loc := model.Location{
 				Row: key.Row,
 				Col: key.Col,
 			}
@@ -77,7 +77,7 @@ func loadZmkLocationsJSON(reader io.Reader) (*components.KeyboardLayout, error) 
 		}
 	}
 
-	return &components.KeyboardLayout{
+	return &model.KeyboardLayout{
 		Locations: locations,
 		Rows:      rows + 1,
 		Cols:      cols + 1,

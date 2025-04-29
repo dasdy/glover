@@ -38,14 +38,3 @@ type RenderContext struct {
 	HighlightPosition int               // The position being highlighted
 	ComboConnections  []ComboConnection // Top 5 combo connections for highlighted key
 }
-
-type KeyboardLayout struct {
-	Locations map[int]Location
-	Rows      int
-	Cols      int
-}
-
-type Location struct {
-	Row int
-	Col int
-}
