@@ -22,8 +22,9 @@ type MinimalKeyEvent struct {
 }
 
 type MinimalKeyEventWithLabel struct {
-	Row, Col, Position, Count int
-	KeyLabel                  string
+	Position, Count int
+	KeyLabel        string
+	Location        Location
 }
 
 type ComboKey struct {
@@ -41,7 +42,16 @@ type KeyboardLayout struct {
 	Cols      int
 }
 
-type Location struct {
+type RowCol struct {
 	Row int
 	Col int
+}
+
+type Location struct {
+	RowCol
+	X  float64
+	Y  float64
+	R  float64
+	Rx float64
+	Ry float64
 }

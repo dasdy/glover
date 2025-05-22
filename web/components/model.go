@@ -1,9 +1,10 @@
 package components
 
+import "github.com/dasdy/glover/model"
+
 type Item struct {
 	Position       int
-	Row            int
-	Col            int
+	Location       model.Location
 	KeyName        string
 	KeypressAmount string
 	Highlight      bool

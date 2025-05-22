@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/dasdy/glover/model"
 )
@@ -15,6 +16,7 @@ type ZMKKeyDescriptor struct {
 	Y     float64 `json:"y"`
 	R     float64 `json:"r"`
 	Rx    float64 `json:"rx"`
+	Ry    float64 `json:"ry"`
 	Label string  `json:"label"`
 }
 
@@ -50,10 +52,7 @@ func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
 
 	for _, layout := range info.Layouts {
 		for _, key := range layout.Layout {
-			loc := model.Location{
-				Row: key.Row,
-				Col: key.Col,
-			}
+			loc := model.Location{}
 			loc.Col = key.Col
 			loc.Row = key.Row
 
@@ -65,11 +64,13 @@ func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
 				cols = key.Col
 			}
 
-			// TODO: this info should be used for displaying the grid.
-			// loc.X = key.X
-			// loc.Y = key.Y
-			// loc.R = key.R
-			// loc.Rx = key.Rx
+			loc.X = key.X
+			loc.Y = key.Y
+			loc.R = key.R
+			loc.Rx = key.Rx
+			loc.Ry = key.Ry
+
+			log.Printf("Key %d: %+v", keyID, loc)
 			// loc.Label = key.Label
 			locations[keyID] = loc
 

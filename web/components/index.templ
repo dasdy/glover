@@ -1,28 +1,27 @@
 package components
 
 import "fmt"
-import "math"
 
 templ HeatMap(c *RenderContext) {
-    <html>
-        <head>
-            <meta charset="UTF-8"/>
-            <meta http-equiv="refresh" content="600"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <title>Glove80 Key Heatmap</title>
-            <link rel="stylesheet" href="/assets/css/styles.css"/>
-            <link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
-        </head>
-        <body
-            class="bg-theme-2"
-        >
-            <div class="items-center justify-center flex flex-col ">
-                <h1 class="text-xl mt-10"><a href="/">Home</a></h1>
-                @switchMode(c)
-                @keyboardSvg(c)
-                @slider(fmt.Sprintf("%d", c.MaxVal))
-            </div>
-            <script src="/assets/js/colorize.js"></script>
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta http-equiv="refresh" content="600"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Glove80 Key Heatmap</title>
+			<link rel="stylesheet" href="/assets/css/styles.css"/>
+			<link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
+		</head>
+		<body
+			class="bg-theme-2"
+		>
+			<div class="items-center justify-center flex flex-col ">
+				<h1 class="text-xl mt-10"><a href="/">Home</a></h1>
+				@switchMode(c)
+				@keyboardSvg(c)
+				@slider(fmt.Sprintf("%d", c.MaxVal))
+			</div>
+			<script src="/assets/js/colorize.js"></script>
 			<script>
 				var slider = document.getElementById("colorClipRange");
 				var output = document.getElementById("colorClipSpan");
@@ -34,136 +33,115 @@ templ HeatMap(c *RenderContext) {
 				}
 				slider.oninput()
 			</script>
-	</body>
-    </html>
+		</body>
+	</html>
 }
 
 templ switchMode(c *RenderContext) {
-    if c.Page == PageTypeCombo || c.Page == PageTypeNeighbors {
-        // Find the first highlighted item to get its position for the toggle link
-        {{
-            var highlightedPosition int
-            for _, item := range c.Items {
-                if item.Highlight {
-                    highlightedPosition = item.Position
-                    break
-                }
-            }
-        }}
-        <div class="mb-4">
-            <a href={ templ.SafeURL(getSwitchModeLink(highlightedPosition, c.Page)) } 
-                class="px-4 py-2 bg-theme-5 text-white rounded hover:bg-indigo-700 transition duration-200">
-                { getSwitchModeButtonText(c.Page) }
-            </a>
-        </div>
-    }
+	if c.Page == PageTypeCombo || c.Page == PageTypeNeighbors {
+		// Find the first highlighted item to get its position for the toggle link
+		{{
+	var highlightedPosition int
+	for _, item := range c.Items {
+		if item.Highlight {
+			highlightedPosition = item.Position
+			break
+		}
+	}
+		}}
+		<div class="mb-4">
+			<a
+				href={ templ.SafeURL(getSwitchModeLink(highlightedPosition, c.Page)) }
+				class="px-4 py-2 bg-theme-5 text-white rounded hover:bg-indigo-700 transition duration-200"
+			>
+				{ getSwitchModeButtonText(c.Page) }
+			</a>
+		</div>
+	}
 }
 
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-    <svg id="keysgrid" class="mt-4 ml-4 mr-4" viewBox={ fmt.Sprintf("0 0 %d %d", KeySize * c.TotalCols, KeySize * c.TotalRows) }>
-        <g>
-        for _, item := range c.Items {
-            @svgKey(&item, c)
-        }
-        if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
-            // Draw connection paths for combos
-            <g class="connection-paths">
-                for _, conn := range c.ComboConnections {
-                    // Find positions of the connected keys
-                    {{ 
-                        var fromKey, toKey *Item 
-                        for i := range c.Items {
-                            if c.Items[i].Position == conn.FromPosition {
-                                fromKey = &c.Items[i]
-                            }
-                            if c.Items[i].Position == conn.ToPosition {
-                                toKey = &c.Items[i]
-                            }
-                        }
-                    }}
-                    
-                    if fromKey != nil && toKey != nil {
-                        // Calculate centers of keys
-                        {{
-                            fromX := fromKey.Col*KeySize + KeyCenterOffset
-                            fromY := fromKey.Row*KeySize + KeyCenterOffset
-                            toX := toKey.Col*KeySize + KeyCenterOffset
-                            toY := toKey.Row*KeySize + KeyCenterOffset
-                            
-                            // Calculate control points for a curved path
-                            midX := (fromX + toX) / 2
-                            midY := (fromY + toY) / 2 - 40 // Curve upward
-                            
-                            // Draw a curved path with thickness based on press count
-                            // TODO: scaling by 100 is arbirary, we should adjust it based on total keystrokes in db
-                            // or something.
-                            strokeWidth := math.Min(10, 1 + float64(conn.PressCount) / 100)
-                        }}
-                        <path 
-                            d={ fmt.Sprintf("M %d %d Q %d %d %d %d", fromX, fromY, midX, midY, toX, toY) }
-                            fill="none"
-                            stroke="#6366f1"
-                            stroke-width={ fmt.Sprintf("%f", strokeWidth) }
-                            stroke-opacity="0.7"
-                            stroke-linecap="round"
-                        ></path>
-                    }
-                }
-            </g>
-        }
-        </g>
-    </svg>
+	<svg id="keysgrid" class="mt-4 ml-4 mr-4" viewBox={ c.ViewBoxSize() }>
+		<g>
+			for _, item := range c.Items {
+				@svgKey(&item, c)
+			}
+			if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
+				// Draw connection paths for combos
+				<g class="connection-paths">
+					for _, conn := range c.ComboConnections {
+						// Find positions of the connected keys
+						{{ fromKey, toKey := FindConnectionKey(c, &conn) }}
+						if fromKey != nil && toKey != nil {
+							// Calculate centers of keys
+							<path
+								d={ KeyPath(fromKey, toKey) }
+								fill="none"
+								stroke="#6366f1"
+								stroke-width={ KeyPathStrokeWidth(&conn) }
+								stroke-opacity="0.7"
+								stroke-linecap="round"
+							></path>
+						}
+					}
+				</g>
+			}
+		</g>
+	</svg>
 }
 
 // SVG key element
 templ svgKey(item *Item, c *RenderContext) {
-        // Use Row and Col directly for positioning
-        // Each key is 70x70 with 10px gap
-        <g transform={ fmt.Sprintf("translate(%d, %d)", item.Col*KeySize, item.Row*KeySize) }>
-            <a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
-                if !item.Highlight {
-                    <rect 
-                        width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
-                        height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
-                        rx="5" 
-                        class="key-rect" 
-                        data-position={ fmt.Sprintf("%d", item.Position) }
-                        data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
-                        fill="#e5e7eb" 
-                        stroke="#a1a1aa"
-                    ></rect>
-                } else {
-                    <rect 
-                        width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
-                        height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
-                        rx="5"
-                        class="key-rect"
-                        data-position={ fmt.Sprintf("%d", item.Position) }
-                        data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
-                        fill="#e5e7eb"
-                        stroke="#6366f1"
-                        stroke-width="4"
-                    ></rect>
-                }
-                <text
-                    id={ fmt.Sprintf("key-msg-%d", item.Position) }
-                    x="5" 
-                    y="15" 
-                    class="text-s"
-                    font-size="12"
-                >{ item.KeyName }</text>
-                <text
-                    id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-                    class="keys-pressed"
-                    x={ fmt.Sprintf("%d", KeyCenterOffset) }
-                    y={ fmt.Sprintf("%d", KeyCenterOffset + 5) }
-                    text-anchor="middle"
-                    font-size="14"
-                    font-weight="600"
-                >{ item.KeypressAmount }</text>
-            </a>
-        </g>
+	// Use Row and Col directly for positioning
+	// Each key is 70x70 with 10px gap
+	<g
+		transform-origin={ ToTransformOrigin(&item.Location) }
+		transform={ ToTransform(&item.Location) }
+	>
+		<a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
+			if !item.Highlight {
+				<rect
+					width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+					height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+					rx="5"
+					class="key-rect"
+					data-position={ fmt.Sprintf("%d", item.Position) }
+					data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
+					fill="#e5e7eb"
+					stroke="#a1a1aa"
+				></rect>
+			} else {
+				<rect
+					width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+					height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
+					rx="5"
+					class="key-rect"
+					data-position={ fmt.Sprintf("%d", item.Position) }
+					data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
+					fill="#e5e7eb"
+					stroke="#6366f1"
+					stroke-width="4"
+				></rect>
+			}
+			<text
+				id={ fmt.Sprintf("key-msg-%d", item.Position) }
+				x="5"
+				y="15"
+				class="text-s"
+				font-size="12"
+			>{ item.KeyName }</text>
+			<text
+				id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
+				class="keys-pressed"
+				x={ fmt.Sprintf("%d", KeyCenterOffset) }
+				y={ fmt.Sprintf("%d", KeyCenterOffset+5) }
+				text-anchor="middle"
+				font-size="14"
+				font-weight="600"
+			>{ item.KeypressAmount }</text>
+		</a>
+	</g>
 }
 
 templ slider(maxVal string) {

@@ -64,13 +64,13 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 			maxVal = key.Count
 		}
 
-		groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += key.Count
+		groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += key.Count
 	}
 
 	// Iterate over total grid and add real and hidden items.
 	// TODO: can this be done without a bunch of hidden items?
 	items := make([]cs.Item, 0)
-	l := model.Location{Row: 0, Col: 0}
+	l := model.RowCol{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
 		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
@@ -78,13 +78,14 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 			l.Col = j
 
 			item, ok := groupedItems[l]
+
 			if ok {
+				locationOnGrid := item.Location
 				items = append(items, cs.Item{
 					Position:       item.Position,
-					Row:            i,
-					Col:            j,
 					KeypressAmount: strconv.Itoa(item.Count),
 					KeyName:        item.KeyLabel,
+					Location:       locationOnGrid,
 				})
 			}
 		}
@@ -109,10 +110,10 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model.Location]*model.MinimalKeyEventWithLabel {
+func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model.RowCol]*model.MinimalKeyEventWithLabel {
 	names, _ := layout.GetKeyLabels(name)
 	// put empty items in the map so that we show them later properly
-	groupedItems := make(map[model.Location]*model.MinimalKeyEventWithLabel)
+	groupedItems := make(map[model.RowCol]*model.MinimalKeyEventWithLabel)
 
 	for pos, key := range locationsOnGrid {
 		name := "<OOB>"
@@ -120,7 +121,7 @@ func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model
 			name = names[pos]
 		}
 
-		groupedItems[key] = &model.MinimalKeyEventWithLabel{Row: key.Row, Col: key.Col, Count: 0, Position: pos, KeyLabel: name}
+		groupedItems[model.RowCol{Row: key.Row, Col: key.Col}] = &model.MinimalKeyEventWithLabel{Count: 0, Position: pos, KeyLabel: name, Location: key}
 	}
 
 	return groupedItems
@@ -150,7 +151,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 				log.Printf("Could not find position %d, wtf", key.Position)
 			}
 
-			groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
+			groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
 		}
 
 		if maxVal < combo.Pressed {
@@ -160,7 +161,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 
 	// Iterate over total grid and add real and hidden items.
 	items := make([]cs.Item, 0)
-	l := model.Location{Row: 0, Col: 0}
+	l := model.RowCol{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
 		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
@@ -169,14 +170,14 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 
 			item, ok := groupedItems[l]
 			if ok {
+				locationOnGrid := item.Location
 				highlight := item.Position == position
 				items = append(items, cs.Item{
 					Position:       item.Position,
-					Row:            item.Row,
-					Col:            item.Col,
 					KeypressAmount: strconv.Itoa(item.Count),
 					KeyName:        item.KeyLabel,
 					Highlight:      highlight,
+					Location:       locationOnGrid,
 				})
 			}
 		}
@@ -262,7 +263,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 			continue
 		}
 
-		groupedItems[model.Location{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
+		groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
 
 		if maxVal < combo.Pressed {
 			maxVal = combo.Pressed
@@ -270,7 +271,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 	}
 
 	items := make([]cs.Item, 0)
-	l := model.Location{Row: 0, Col: 0}
+	l := model.RowCol{Row: 0, Col: 0}
 
 	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
 		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
@@ -279,14 +280,14 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 
 			item, ok := groupedItems[l]
 			if ok {
+				locationOnGrid := item.Location
 				highlight := item.Position == position
 				items = append(items, cs.Item{
 					Position:       item.Position,
-					Row:            item.Row,
-					Col:            item.Col,
 					KeypressAmount: strconv.Itoa(item.Count),
 					KeyName:        item.KeyLabel,
 					Highlight:      highlight,
+					Location:       locationOnGrid,
 				})
 			}
 		}
@@ -397,7 +398,6 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 	}
 
 	log.Printf("Successfully parsed info.json file, got %d locations (%d rows, %d cols)", len(locationsParsed.Locations), locationsParsed.Rows, locationsParsed.Cols)
-
 	handler := ServerHandler{
 		Storage:         storage,
 		KeymapFile:      keymapFile,
