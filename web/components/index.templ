@@ -64,17 +64,17 @@ templ switchMode(c *RenderContext) {
 	}
 }
 
+//width="75%" max-width="2000px"
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-	<svg id="keysgrid" class="mt-4 ml-4 mr-4" viewBox={ c.ViewBoxSize() }>
+	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-3/4 max-w-7xl" viewBox={ c.ViewBoxSize() }>
 		<g>
 			for _, item := range c.Items {
 				@svgKey(&item, c)
 			}
 			if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
 				// Draw connection paths for combos
-				<g class="connection-paths">
-				</g>
+				<g class="connection-paths"></g>
 			}
 		</g>
 	</svg>
