@@ -48,7 +48,7 @@ tailwind:
 
 .PHONY: tailwind-watch
 tailwind-watch:
-	tailwindcss -i assets/css/tailwind_input.css -o assets/css/tailwind_output.css --watch
+	tailwindcss -i assets/css/tailwind_input.css -o assets/css/tailwind_output.css --watch --cwd assets/css
 
 .PHONY: lint
 lint:
