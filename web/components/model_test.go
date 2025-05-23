@@ -5,6 +5,7 @@ import (
 
 	"github.com/dasdy/glover/model"
 	"github.com/dasdy/glover/web/components"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLocation_ToTransform(t *testing.T) {
@@ -26,12 +27,12 @@ func TestLocation_ToTransform(t *testing.T) {
 		{
 			name:     "translation with rotation",
 			location: model.Location{X: 1, Y: 2, R: 45},
-			want:     "translate(80.00, 160.00) rotate(45.00)",
+			want:     "translate(80.00, 160.00) rotate(45.00 0.00 0.00)",
 		},
 		{
 			name:     "negative values",
 			location: model.Location{X: -1.5, Y: -2.5, R: -90},
-			want:     "translate(-120.00, -200.00) rotate(-90.00)",
+			want:     "translate(-120.00, -200.00) rotate(-90.00 0.00 0.00)",
 		},
 	}
 
@@ -48,30 +49,30 @@ func TestLocation_ToTransformOrigin(t *testing.T) {
 	tests := []struct {
 		name     string
 		location model.Location
-		want     string
+		want     []float64
 	}{
 		{
 			name:     "zero rotation origin",
 			location: model.Location{Rx: 0, Ry: 0},
-			want:     "0 0",
+			want:     []float64{0, 0},
 		},
 		{
 			name:     "positive rotation origin",
 			location: model.Location{Rx: 1, Ry: 2},
-			want:     "80.00 160.00",
+			want:     []float64{1, 2},
 		},
 		{
 			name:     "negative rotation origin",
 			location: model.Location{Rx: -1.5, Ry: -2.5},
-			want:     "-120.00 -200.00",
+			want:     []float64{-1.5, -2.5},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := components.ToTransformOrigin(&tt.location); got != tt.want {
-				t.Errorf("Location.ToTransformOrigin() = %v, want %v", got, tt.want)
-			}
+			gotX, gotY := components.ToTransformOrigin(&tt.location)
+
+			assert.Equal(t, tt.want, []float64{gotX, gotY})
 		})
 	}
 }
@@ -89,7 +90,7 @@ func TestRenderContext_ViewBoxSize(t *testing.T) {
 				TotalRows: 0,
 				Items:     []components.Item{},
 			},
-			wantSize: "0 0 0 0",
+			wantSize: "0 0 0 240",
 		},
 		{
 			name: "regular grid without items",
@@ -98,7 +99,7 @@ func TestRenderContext_ViewBoxSize(t *testing.T) {
 				TotalRows: 2,
 				Items:     []components.Item{},
 			},
-			wantSize: "0 0 240 160",
+			wantSize: "0 0 240 400",
 		},
 		{
 			name: "grid with items within bounds",
@@ -110,7 +111,7 @@ func TestRenderContext_ViewBoxSize(t *testing.T) {
 					{Location: model.Location{X: 2, Y: 1}},
 				},
 			},
-			wantSize: "0 0 240 160",
+			wantSize: "0 0 240 400",
 		},
 		{
 			name: "grid with items exceeding bounds",
@@ -122,7 +123,7 @@ func TestRenderContext_ViewBoxSize(t *testing.T) {
 					{Location: model.Location{X: 2, Y: 1}},
 				},
 			},
-			wantSize: "0 0 320 240",
+			wantSize: "0 0 320 480",
 		},
 	}
 

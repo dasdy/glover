@@ -2,7 +2,6 @@ package components
 
 import (
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/dasdy/glover/model"
@@ -70,29 +69,18 @@ func (c *RenderContext) ViewBoxSize() string {
 
 func FindConnectionKey(c *RenderContext, conn *ComboConnection) (*Item, *Item) {
 	var fromKey, toKey *Item
+
 	for i := range c.Items {
 		if c.Items[i].Position == conn.FromPosition {
 			fromKey = &c.Items[i]
 		}
+
 		if c.Items[i].Position == conn.ToPosition {
 			toKey = &c.Items[i]
 		}
 	}
 
 	return fromKey, toKey
-}
-
-func KeyPath(fromKey, toKey *Item) string {
-	fromX := fromKey.Location.Col*KeySize + KeyCenterOffset
-	fromY := fromKey.Location.Row*KeySize + KeyCenterOffset
-	toX := toKey.Location.Col*KeySize + KeyCenterOffset
-	toY := toKey.Location.Row*KeySize + KeyCenterOffset
-
-	// Calculate control points for a curved path
-	midX := (fromX + toX) / 2
-	midY := (fromY+toY)/2 - 40 // Curve upward
-
-	return fmt.Sprintf("M %d %d Q %d %d %d %d", fromX, fromY, midX, midY, toX, toY)
 }
 
 func KeyPathStrokeWidth(conn *ComboConnection) string {
@@ -105,16 +93,18 @@ func KeyPathStrokeWidth(conn *ComboConnection) string {
 }
 
 func ToTransform(l *model.Location) string {
-	log.Printf("ToTransform: %+v", l)
+	// log.Printf("ToTransform: %+v", l)
 	translate := fmt.Sprintf("translate(%.2f, %.2f)", l.X*KeySize, l.Y*KeySize)
+
 	if l.R != 0 {
-		translate += fmt.Sprintf(" rotate(%.2f)", l.R)
+		rx, ry := ToTransformOrigin(l)
+		translate += fmt.Sprintf(" rotate(%.2f %.2f %.2f)", l.R, rx*KeySize, ry*KeySize)
 	}
 
 	return translate
 }
 
-func ToTransformOrigin(l *model.Location) string {
+func ToTransformOrigin(l *model.Location) (float64, float64) {
 	rx := l.Rx
 	if l.Rx != 0 {
 		rx -= l.X
@@ -125,5 +115,5 @@ func ToTransformOrigin(l *model.Location) string {
 		ry -= l.Y
 	}
 
-	return fmt.Sprintf("%.2f %.2f", rx*KeySize, ry*KeySize)
+	return rx, ry
 }

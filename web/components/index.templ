@@ -33,6 +33,10 @@ templ HeatMap(c *RenderContext) {
 				}
 				slider.oninput()
 			</script>
+			for _, conn := range c.ComboConnections {
+				// Add data attributes for each item
+				@templ.JSFuncCall("addConnectionPath", conn.FromPosition, conn.ToPosition, KeyPathStrokeWidth(&conn))
+			}
 		</body>
 	</html>
 }
@@ -70,21 +74,6 @@ templ keyboardSvg(c *RenderContext) {
 			if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
 				// Draw connection paths for combos
 				<g class="connection-paths">
-					for _, conn := range c.ComboConnections {
-						// Find positions of the connected keys
-						{{ fromKey, toKey := FindConnectionKey(c, &conn) }}
-						if fromKey != nil && toKey != nil {
-							// Calculate centers of keys
-							<path
-								d={ KeyPath(fromKey, toKey) }
-								fill="none"
-								stroke="#6366f1"
-								stroke-width={ KeyPathStrokeWidth(&conn) }
-								stroke-opacity="0.7"
-								stroke-linecap="round"
-							></path>
-						}
-					}
 				</g>
 			}
 		</g>
@@ -95,10 +84,7 @@ templ keyboardSvg(c *RenderContext) {
 templ svgKey(item *Item, c *RenderContext) {
 	// Use Row and Col directly for positioning
 	// Each key is 70x70 with 10px gap
-	<g
-		transform-origin={ ToTransformOrigin(&item.Location) }
-		transform={ ToTransform(&item.Location) }
-	>
+	<g transform={ ToTransform(&item.Location) } id={ fmt.Sprintf("key-box-%d", item.Position) }>
 		<a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
 			if !item.Highlight {
 				<rect

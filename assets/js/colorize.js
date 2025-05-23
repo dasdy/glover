@@ -111,3 +111,50 @@ function colorize(maxVal) {
     }
   });
 }
+
+function addConnectionPath(fromId, toId, strength) {
+  const fromBox = document.getElementById(`key-box-${fromId}`);
+  const toBox = document.getElementById(`key-box-${toId}`);
+  const pathsGroup = document.querySelector(".connection-paths");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "#6366f1");
+  path.setAttribute("stroke-width", strength || "2");
+  path.setAttribute("stroke-opacity", "0.7");
+  path.setAttribute("stroke-linecap", "round");
+
+  // Get the transformed center points
+  const fromBounds = fromBox.getBBox();
+  const toBounds = toBox.getBBox();
+
+  const point1 = svgPoint(
+    fromBounds.x + fromBounds.width / 2,
+    fromBounds.y + fromBounds.height / 2,
+    fromBox,
+  );
+
+  const point2 = svgPoint(
+    toBounds.x + toBounds.width / 2,
+    toBounds.y + toBounds.height / 2,
+    toBox,
+  );
+
+  // Create curved path
+  const midX = (point1.x + point2.x) / 2;
+  const midY = (point1.y + point2.y) / 2 - 40; // Curve control point
+  path.setAttribute(
+    "d",
+    `M ${point1.x} ${point1.y} Q ${midX} ${midY} ${point2.x} ${point2.y}`,
+  );
+
+  pathsGroup.appendChild(path);
+}
+
+function svgPoint(x, y, element) {
+  const ctm = element.getCTM();
+  const pt = document.querySelector("svg").createSVGPoint();
+  pt.x = x;
+  pt.y = y;
+  return pt.matrixTransform(ctm);
+}
