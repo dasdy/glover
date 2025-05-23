@@ -58,6 +58,9 @@ func (c *RenderContext) ViewBoxSize() string {
 		}
 	}
 
+	// TODO: figure out how to account for keys with Rx/Ry properly.
+	maxY += 2
+
 	return fmt.Sprintf(
 		"0 0 %d %d",
 		int(math.Ceil(KeySize*(maxX))),
@@ -112,10 +115,15 @@ func ToTransform(l *model.Location) string {
 }
 
 func ToTransformOrigin(l *model.Location) string {
-	if l.Rx == 0 && l.Ry == 0 {
-		return "0 0"
+	rx := l.Rx
+	if l.Rx != 0 {
+		rx -= l.X
 	}
 
-	return fmt.Sprintf("%.2f %.2f", l.Rx*KeySize, l.Ry*KeySize)
-	// return "0 0"
+	ry := l.Ry
+	if l.Ry != 0 {
+		ry -= l.Y
+	}
+
+	return fmt.Sprintf("%.2f %.2f", rx*KeySize, ry*KeySize)
 }
