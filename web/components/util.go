@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/dasdy/glover/model"
@@ -81,6 +82,52 @@ func FindConnectionKey(c *RenderContext, conn *ComboConnection) (*Item, *Item) {
 	}
 
 	return fromKey, toKey
+}
+
+func RotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
+	// Convert angle from degrees to radians
+	angleRad := angle * math.Pi / 180.0
+
+	// Translate point to origin
+	x -= cx
+	y -= cy
+
+	// Rotate point
+	xNew := x*math.Cos(angleRad) - y*math.Sin(angleRad)
+	yNew := x*math.Sin(angleRad) + y*math.Cos(angleRad)
+
+	// Translate point back
+	return xNew + cx, yNew + cy
+}
+
+func KeyCenter(key *Item) (float64, float64) {
+	x := key.Location.X * KeySize // + KeyCenterOffset
+	y := key.Location.Y * KeySize // + KeyCenterOffset
+
+	// if key.Location.R != 0 {
+	// Rotate the point if it has a rotation
+	// cx, cy := ToTransformOrigin(&key.Location)
+	// log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, cx: %.2f, cy: %.2f r: %.2f", key.KeyName, key.Location, x, y, cx, cy, key.Location.R)
+	// x, y = RotatePoint(x, y, cx, cy, key.Location.R)
+
+	log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, r: %.2f", key.KeyName, key.Location, x, y, key.Location.R)
+	x, y = RotatePoint(x, y, key.Location.Rx*KeySize, key.Location.Ry*KeySize, key.Location.R)
+	// }
+
+	log.Printf("KeyCenter(%s) after rotation: x: %.2f, y: %.2f", key.KeyName, x, y)
+
+	return x, y
+}
+
+func KeyPath(fromKey, toKey *Item) string {
+	fromX, fromY := KeyCenter(fromKey)
+	toX, toY := KeyCenter(toKey)
+
+	// Calculate control points for a curved path
+	midX := (fromX + toX) / 2
+	midY := (fromY+toY)/2 - 40 // Curve upward
+
+	return fmt.Sprintf("M %.2f %.2f Q %.2f %.2f %.2f %.2f", fromX, fromY, midX, midY, toX, toY)
 }
 
 func KeyPathStrokeWidth(conn *ComboConnection) string {
