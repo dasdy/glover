@@ -44,6 +44,7 @@ func getSwitchModeButtonText(currentPageType PageType) string {
 	}
 }
 
+// Calculate how big coordinate space needs to be to fit all keys.
 func (c *RenderContext) ViewBoxSize() string {
 	maxX := float64(c.TotalCols)
 	maxY := float64(c.TotalRows)
@@ -68,22 +69,8 @@ func (c *RenderContext) ViewBoxSize() string {
 	)
 }
 
-func FindConnectionKey(c *RenderContext, conn *ComboConnection) (*Item, *Item) {
-	var fromKey, toKey *Item
-
-	for i := range c.Items {
-		if c.Items[i].Position == conn.FromPosition {
-			fromKey = &c.Items[i]
-		}
-
-		if c.Items[i].Position == conn.ToPosition {
-			toKey = &c.Items[i]
-		}
-	}
-
-	return fromKey, toKey
-}
-
+// Attempt at a linear algebra. Seems to be correct, but for some reason the output is not what I expect.
+// and svg points created by this function do not match the key boxes.
 func RotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
 	// Convert angle from degrees to radians
 	angleRad := angle * math.Pi / 180.0
@@ -100,17 +87,21 @@ func RotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
 	return xNew + cx, yNew + cy
 }
 
+// Try to calculate center of the key based on its location. Can be used to calculate paths.
 func KeyCenter(key *Item) (float64, float64) {
 	x := key.Location.X * KeySize // + KeyCenterOffset
 	y := key.Location.Y * KeySize // + KeyCenterOffset
 
 	// if key.Location.R != 0 {
-	// Rotate the point if it has a rotation
+
+	// Rotate the point if it has a rotation. Should work fine, but gives completely wrong results.
 	// cx, cy := ToTransformOrigin(&key.Location)
 	// log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, cx: %.2f, cy: %.2f r: %.2f", key.KeyName, key.Location, x, y, cx, cy, key.Location.R)
 	// x, y = RotatePoint(x, y, cx, cy, key.Location.R)
 
 	log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, r: %.2f", key.KeyName, key.Location, x, y, key.Location.R)
+
+	// Gives somewhat similar results, but I dunno how to make them fit exactly.
 	x, y = RotatePoint(x, y, key.Location.Rx*KeySize, key.Location.Ry*KeySize, key.Location.R)
 	// }
 
@@ -119,6 +110,9 @@ func KeyCenter(key *Item) (float64, float64) {
 	return x, y
 }
 
+// KeyPath is not used at the moment since the 'rotate' part does not work properly, and points
+// to different coordinates than key boxes, and I couldn't figure out how to fix it. Instead I used
+// JS approach to calculate coords dynamically, but maybe this can be fixed somehow.
 func KeyPath(fromKey, toKey *Item) string {
 	fromX, fromY := KeyCenter(fromKey)
 	toX, toY := KeyCenter(toKey)
@@ -139,6 +133,7 @@ func KeyPathStrokeWidth(conn *ComboConnection) string {
 	return fmt.Sprintf("%f", strokeWidth)
 }
 
+// Make svg transform expressions for keys. Usually they only have offset, sometimes rotations with a pivot point.
 func ToTransform(l *model.Location) string {
 	// log.Printf("ToTransform: %+v", l)
 	translate := fmt.Sprintf("translate(%.2f, %.2f)", l.X*KeySize, l.Y*KeySize)
@@ -151,8 +146,12 @@ func ToTransform(l *model.Location) string {
 	return translate
 }
 
+// Make up a pivot point for rotated keys.
 func ToTransformOrigin(l *model.Location) (float64, float64) {
 	rx := l.Rx
+
+	// I have no idea why this has to be done, but for json files in the contrib repo,
+	// this seems to be necessary.
 	if l.Rx != 0 {
 		rx -= l.X
 	}

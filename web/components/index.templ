@@ -64,31 +64,9 @@ templ switchMode(c *RenderContext) {
 	}
 }
 
-//width="75%" max-width="2000px"
-templ circleOnKeyCenter(item *Item) {
-	if item.Location.R != 0 {
-		{{ x, y := KeyCenter(item) }}
-		<circle
-			cx={ fmt.Sprintf("%.2f", x) }
-			cy={ fmt.Sprintf("%.2f", y) }
-			r="10"
-			fill="#6366f1"
-			stroke="#ffffff"
-			stroke-width="2"
-		></circle>
-		<!-- <circle -->
-		<!-- 	transform={ ToTransform(&item.Location) } -->
-		<!-- 	r="10" -->
-		<!-- 	fill="#AA66a1" -->
-		<!-- 	stroke="#ffffff" -->
-		<!-- 	stroke-width="2" -->
-		<!-- ></circle> -->
-	}
-}
-
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-3/4 max-w-7xl" viewBox={ c.ViewBoxSize() }>
+	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-7xl h-96" viewBox={ c.ViewBoxSize() } overflow="visible">
 		<g>
 			for _, item := range c.Items {
 				@svgKey(&item, c)

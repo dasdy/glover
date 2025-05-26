@@ -115,6 +115,8 @@ function colorize(maxVal) {
 function addConnectionPath(fromId, toId, strength) {
   const fromBox = document.getElementById(`key-box-${fromId}`);
   const toBox = document.getElementById(`key-box-${toId}`);
+  const svgBox = document.getElementById(`keysgrid`);
+
   const pathsGroup = document.querySelector(".connection-paths");
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -128,17 +130,8 @@ function addConnectionPath(fromId, toId, strength) {
   const fromBounds = fromBox.getBBox();
   const toBounds = toBox.getBBox();
 
-  const point1 = svgPoint(
-    fromBounds.x + fromBounds.width / 2,
-    fromBounds.y + fromBounds.height / 2,
-    fromBox,
-  );
-
-  const point2 = svgPoint(
-    toBounds.x + toBounds.width / 2,
-    toBounds.y + toBounds.height / 2,
-    toBox,
-  );
+  const point1 = keyCenter(fromBox, svgBox);
+  const point2 = keyCenter(toBox, svgBox);
 
   // Create curved path
   const midX = (point1.x + point2.x) / 2;
@@ -151,10 +144,38 @@ function addConnectionPath(fromId, toId, strength) {
   pathsGroup.appendChild(path);
 }
 
-function svgPoint(x, y, element) {
-  const ctm = element.getCTM();
-  const pt = document.querySelector("svg").createSVGPoint();
-  pt.x = x;
-  pt.y = y;
-  return pt.matrixTransform(ctm);
+function addCircleAtElem(boxId) {
+  const box = document.getElementById(`key-box-${boxId}`);
+  const svgBox = document.getElementById(`keysgrid`);
+  const pathsGroup = document.querySelector(".connection-paths");
+
+  const circle = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
+
+  const coords = keyCenter(box, svgBox);
+
+  circle.setAttribute("cx", coords.x);
+  circle.setAttribute("cy", coords.y);
+  circle.setAttribute("r", "5");
+  circle.setAttribute("fill", "red");
+  circle.setAttribute("stroke", "black");
+  circle.setAttribute("stroke-width", "2");
+  pathsGroup.appendChild(circle);
+}
+
+function keyCenter(box, svgBox) {
+  const fromBounds = box.getBBox();
+  const point1 = box.getBoundingClientRect();
+  const realViewBox = svgBox.getBoundingClientRect();
+  const viewBox = svgBox.viewBox.baseVal;
+
+  const xScale = viewBox.width / realViewBox.width;
+  const yScale = viewBox.height / realViewBox.height;
+
+  const x = (point1.x - realViewBox.x + point1.width / 2) * xScale;
+  const y = (point1.y - realViewBox.y + point1.height / 2) * yScale;
+
+  return { x: x, y: y };
 }
