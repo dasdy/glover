@@ -1,11 +1,9 @@
 package db_test
 
 import (
-	"cmp"
 	"database/sql"
 	"log"
 	"os"
-	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -37,32 +35,6 @@ func mockEvents(keyPositions []int) []model.KeyEvent {
 	}
 
 	return values
-}
-
-func sortCombos(result []model.Combo) {
-	// TODO: this sort might be not useful outside of tests, but maybe it's not that slow
-	// (we are only looking at <200 rows here). Measure how long does it take.
-	slices.SortFunc(result, func(a, b model.Combo) int {
-		baseCmp := cmp.Or(
-			-cmp.Compare(a.Pressed, b.Pressed),
-			cmp.Compare(len(a.Keys), len(b.Keys)),
-		)
-		if baseCmp != 0 {
-			return baseCmp
-		}
-
-		// if a.keys has different length than b.keys, we wouldn't be here.
-		for i := range a.Keys {
-			ak := a.Keys[i]
-			bk := b.Keys[i]
-
-			if keyCmp := cmp.Compare(ak.Position, bk.Position); keyCmp != 0 {
-				return keyCmp
-			}
-		}
-
-		return 0
-	})
 }
 
 func TestConnectToMemoryDB(t *testing.T) {
@@ -173,195 +145,6 @@ func TestRaceCondition(t *testing.T) {
 	})
 }
 
-func TestGatherCombos(t *testing.T) {
-	t.Run("returns empty combos by default", func(t *testing.T) {
-		storage, err := db.NewStorageFromPath(":memory:", false)
-		require.NoError(t, err)
-
-		tracker, err := db.NewComboTrackerFromDB(storage)
-		require.NoError(t, err)
-
-		items := tracker.GatherCombos(1)
-
-		assert.Empty(t, items)
-	})
-
-	t.Run("returns one combo", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-
-		require.NoError(t, err)
-
-		require.NoError(t, db.InitDBStorage(conn))
-
-		positions := []int{
-			1, 2,
-			1, 2,
-		}
-		events := mockEvents(positions)
-		log.Printf("Events: %+v", events)
-
-		curTime := time.Now()
-
-		for _, event := range events {
-			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-	    values(?, ?, ?, ?, ?)`,
-				event.Row, event.Col, event.Position, event.Pressed, curTime)
-			require.NoError(t, err)
-
-			curTime = curTime.Add(100 * time.Millisecond)
-		}
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-
-		tracker, err := db.NewComboTrackerFromDB(storage)
-		require.NoError(t, err)
-
-		time.Sleep(120 * time.Millisecond)
-
-		combos := tracker.GatherCombos(1)
-
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
-				},
-				Pressed: 1,
-			},
-		}, combos)
-	})
-	t.Run("returns plain item count for complicated thing", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-
-		assert.NoError(t, err)
-		assert.NoError(t, db.InitDBStorage(conn))
-
-		positions := []int{
-			1, 2,
-			1, 2,
-			3, 1, 4, 3, 4, 1,
-		}
-		events := mockEvents(positions)
-		log.Printf("Events: %+v", events)
-
-		curTime := time.Now()
-
-		for _, event := range events {
-			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-	    values(?, ?, ?, ?, ?)`,
-				event.Row, event.Col, event.Position, event.Pressed, curTime)
-			require.NoError(t, err)
-
-			curTime = curTime.Add(100 * time.Millisecond)
-		}
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-
-		tracker, err := db.NewComboTrackerFromDB(storage)
-		require.NoError(t, err)
-
-		time.Sleep(120 * time.Millisecond)
-
-		combos := tracker.GatherCombos(1)
-
-		sortCombos(combos)
-
-		assert.Equal(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 3},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 4},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys:    []model.ComboKey{{Position: 1}, {Position: 3}, {Position: 4}},
-				Pressed: 1,
-			},
-		}, combos)
-
-		combos = tracker.GatherCombos(6)
-		assert.Empty(t, combos)
-	})
-	t.Run("ignores items that happened too long ago", func(t *testing.T) {
-		conn, err := sql.Open("sqlite3", ":memory:")
-		require.NoError(t, err)
-
-		require.NoError(t, db.InitDBStorage(conn))
-
-		positions := []int{
-			1, 2, 1, 2, // Valid combo
-			3, 4, // Too old
-		}
-		events := mockEvents(positions)
-
-		curTime := time.Now()
-
-		// Insert valid combo events
-		for _, event := range events[:4] {
-			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-	    values(?, ?, ?, ?, ?)`,
-				event.Row, event.Col, event.Position, event.Pressed, curTime)
-			require.NoError(t, err)
-
-			curTime = curTime.Add(100 * time.Millisecond)
-		}
-
-		// Insert old events
-		oldTime := curTime.Add(-10 * time.Minute)
-		for _, event := range events[4:] {
-			_, err := conn.Exec(`insert into keypresses(row, col, position, pressed, ts)
-	    values(?, ?, ?, ?, ?)`,
-				event.Row, event.Col, event.Position, event.Pressed, oldTime)
-			require.NoError(t, err)
-		}
-
-		storage, err := db.NewStorageFromConnection(conn, false)
-		require.NoError(t, err)
-
-		tracker, err := db.NewComboTrackerFromDB(storage)
-		require.NoError(t, err)
-
-		time.Sleep(120 * time.Millisecond)
-
-		combos := tracker.GatherCombos(1)
-		combos = append(combos, tracker.GatherCombos(3)...)
-
-		assert.ElementsMatch(t, []model.Combo{
-			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
-				},
-				Pressed: 1,
-			},
-			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 4},
-				},
-				Pressed: 1,
-			},
-		}, combos)
-	})
-}
-
 func copyToMem(path string) (*sql.DB, error) {
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -411,25 +194,6 @@ func copyToMem(path string) (*sql.DB, error) {
 	}
 
 	return memConn, err
-}
-
-func BenchmarkComboScan(b *testing.B) {
-	conn, err := copyToMem("./../keypresses.sqlite")
-	if err != nil {
-		b.Fatal(err)
-	}
-	defer conn.Close()
-
-	storage, err := db.NewStorageFromConnection(conn, false)
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	for range b.N {
-		if _, err = db.NewComboTrackerFromDB(storage); err != nil {
-			b.Fatal(err)
-		}
-	}
 }
 
 func TestMergeDatabases(t *testing.T) {

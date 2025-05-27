@@ -15,7 +15,7 @@ type keyState struct {
 }
 
 type ComboTracker struct {
-	comboCounts map[keyHash]*model.Combo
+	comboCounts map[ComboBitmask]*model.Combo
 	curState    []*keyState
 	keys        []*model.ComboKey
 	minComboLen int
@@ -24,7 +24,7 @@ type ComboTracker struct {
 
 func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 	return &ComboTracker{
-		comboCounts: make(map[keyHash]*model.Combo),
+		comboCounts: make(map[ComboBitmask]*model.Combo),
 		curState:    make([]*keyState, keyCount),
 		keys:        make([]*model.ComboKey, keyCount),
 		minComboLen: minComboLen,
@@ -101,7 +101,7 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 	}
 
 	if len(pressedKeys) >= c.minComboLen {
-		id := comboKeyID(pressedKeys)
+		id := ComboKeyID(pressedKeys)
 
 		v, ok := c.comboCounts[id]
 		if !ok {
@@ -123,20 +123,24 @@ func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimesta
 	}
 }
 
-type keyHash struct {
-	high int32
-	low  int64
+type ComboBitmask struct {
+	High uint64
+	Low  uint64
 }
 
-func comboKeyID(keys []model.ComboKey) keyHash {
-	result := keyHash{}
+// Represent combo by a bitmask. Each key present in the combo
+// will have its' bit set to 1 in the mask. Key.position is used for that.
+// Assert that Keyboard has at most 128 keys because I don't really care
+// about keyboards larger than that.
+func ComboKeyID(keys []model.ComboKey) ComboBitmask {
+	result := ComboBitmask{}
 
 	for _, key := range keys {
 		if key.Position < 64 {
-			result.low |= (1 << key.Position)
+			result.Low |= (1 << key.Position)
 		} else {
 			position := key.Position % 64
-			result.high |= (1 << position)
+			result.High |= (1 << position)
 		}
 	}
 
