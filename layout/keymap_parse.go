@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"unsafe"
@@ -37,6 +38,7 @@ func parse(source []byte) (*sitter.Tree, error) {
 	parser := sitter.NewParser()
 	parser.SetLanguage(GetLanguage())
 
+	//nolint:wrapcheck
 	return parser.ParseCtx(context.Background(), nil, source)
 }
 
@@ -145,30 +147,30 @@ func parseLayer(layer *sitter.Node, source []byte) (*Layer, error) {
 func Parse(r io.Reader) (*Keymap, error) {
 	source, err := io.ReadAll(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading input: %w", err)
 	}
 
 	tree, err := parse(source)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing treesitter tree: %w", err)
 	}
 
 	keymap, err := getKeymap(tree, source)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting keymap node: %w", err)
 	}
 
 	layers, err := getLayers(keymap, source)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting layers: %w", err)
 	}
 
 	parsedLayers := make([]*Layer, 0, len(layers))
 
-	for _, layer := range layers {
+	for i, layer := range layers {
 		parsedLayer, err := parseLayer(layer, source)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error parsing layer %d: %w", i, err)
 		}
 
 		parsedLayers = append(parsedLayers, parsedLayer)

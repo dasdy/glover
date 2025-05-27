@@ -84,7 +84,7 @@ func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
 		BaudRate: 9600,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error on opening port %s: %w", path, err)
 	}
 
 	// TODO make this configurable.
@@ -93,7 +93,7 @@ func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
 			return nil, fmt.Errorf("error during closing of port: %w, outer error: %w", innerErr, err)
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("error on setting read timeout for port %s: %w", path, err)
 	}
 
 	return NewDeviceReader(port), nil
@@ -161,7 +161,7 @@ func LooksLikeZMKDevice(path string) bool {
 func (r *RealDeviceOpener) GetAvailableDevices() ([]string, error) {
 	names, err := serial.GetPortsList()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get list of serial ports: %w", err)
 	}
 
 	result := make([]string, 0)

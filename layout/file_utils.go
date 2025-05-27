@@ -34,10 +34,10 @@ func OpenPath(path string) (*os.File, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not open file %s: %w", path, err)
 	}
 
-	return file, err
+	return file, nil
 }
 
 var labels = map[string]string{

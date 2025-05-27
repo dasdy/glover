@@ -17,7 +17,6 @@ linters:
     - mnd
     - paralleltest
     - varnamelen
-    - wrapcheck
   exclusions:
     generated: lax
     presets:

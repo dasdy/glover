@@ -2,6 +2,7 @@ package db_test
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -148,17 +149,17 @@ func TestRaceCondition(t *testing.T) {
 func copyToMem(path string) (*sql.DB, error) {
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open connection to %s: %w", path, err)
 	}
 	defer conn.Close()
 
 	memConn, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open connection to :memory: db: %w", err)
 	}
 
-	if db.InitDBStorage(memConn) != nil {
-		return nil, err
+	if err = db.InitDBStorage(memConn); err != nil {
+		return nil, fmt.Errorf("failed to initialize memory db storage: %w", err)
 	}
 
 	rows, err := conn.Query(
@@ -166,7 +167,7 @@ func copyToMem(path string) (*sql.DB, error) {
         from keypresses
         order by ts`)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query keypresses from %s: %w", path, err)
 	}
 	defer rows.Close()
 
@@ -178,22 +179,22 @@ func copyToMem(path string) (*sql.DB, error) {
 		)
 
 		if rows.Scan(&row, &col, &position, &pressed, &ts) != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan row from %s: %w", path, err)
 		}
 
 		_, err = memConn.Exec(`insert into keypresses(row, col, position, pressed, ts)
 	    values(?, ?, ?, ?, ?)`,
 			row, col, position, pressed, ts)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to insert row into memory db: %w", err)
 		}
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while iterating rows from %s: %w", path, err)
 	}
 
-	return memConn, err
+	return memConn, fmt.Errorf("successfully copied data from %s to memory db", path)
 }
 
 func TestMergeDatabases(t *testing.T) {

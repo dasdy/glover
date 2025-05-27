@@ -32,7 +32,7 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 		log.Printf("Could not render: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
-		return err
+		return fmt.Errorf("could not render template: %w", err)
 	}
 
 	// Template executed successfully to the buffer.
@@ -43,7 +43,7 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 	if _, err := buf.WriteTo(w); err != nil {
 		log.Printf("Could not render: %s", err.Error())
 
-		return err
+		return fmt.Errorf("could not write to response writer: %w", err)
 	}
 
 	return nil

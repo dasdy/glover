@@ -38,7 +38,7 @@ func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
 	var info ZmkInfoJSON
 
 	if err := decoder.Decode(&info); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not decode ZMK info JSON: %w", err)
 	}
 
 	if len(info.Layouts) != 1 {

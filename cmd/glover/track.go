@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/keylog"
@@ -19,10 +20,8 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 	}
 
 	for _, n1 := range names1 {
-		for _, n2 := range names2 {
-			if n1 == n2 {
-				return false
-			}
+		if slices.Contains(names2, n1) {
+			return false
 		}
 	}
 
@@ -40,7 +39,7 @@ func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect
 	case 0:
 		names, err := opener.GetAvailableDevices()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error getting available devices: %w", err)
 		}
 
 		log.Printf("Suggested devices: %+v ", names)

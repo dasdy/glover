@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"iter"
 	"log"
 	"time"
@@ -28,12 +29,12 @@ func NewStorageFromPath(path string, verbose bool) (*SQLiteStorage, error) {
 	if err != nil {
 		log.Fatal(err)
 
-		return nil, err
+		return nil, fmt.Errorf("could not open path %s: got %w", path, err)
 	}
 
 	err = InitDBStorage(db)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not initialize db storage: got %w", err)
 	}
 
 	return &SQLiteStorage{db: db, verbose: verbose}, nil
@@ -44,7 +45,7 @@ func (s *SQLiteStorage) Store(event *model.KeyEvent) error {
 	    values(?, ?, ?, ?, datetime('now', 'subsec'))`,
 		event.Row, event.Col, event.Position, event.Pressed)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not insert keypress %+v: got %w", event, err)
 	}
 
 	return nil
@@ -58,7 +59,7 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
         group by row, col, position
         order by row, position`)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not query keypresses: got %w", err)
 	}
 
 	defer rows.Close()
@@ -70,14 +71,14 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 
 		err = rows.Scan(&row, &col, &position, &count)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not scan row: got %w", err)
 		}
 
 		result = append(result, model.MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while iterating over rows: got %w", err)
 	}
 
 	return result, nil
@@ -86,11 +87,13 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 func (s *SQLiteStorage) AllIterator() (iter.Seq[model.KeyEventWithTimestamp], error) {
 	rows, err := s.db.Query("select row, col, position, pressed, ts from keypresses order by ts")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not query keypresses: got %w", err)
 	}
 
+	// I'm not convinced that this actually does anything - the check should be done after the loop finishes(?)
+	// If so, how do I return such error?
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, fmt.Errorf("error from getting rows: got %w", rows.Err())
 	}
 
 	return func(yield func(model.KeyEventWithTimestamp) bool) {
@@ -128,7 +131,7 @@ func (s *SQLiteStorage) Close() {
 func (s *SQLiteStorage) count() (int, error) {
 	rows, err := s.db.Query("select count(*) from keypresses")
 	if err != nil {
-		return -1, err
+		return -1, fmt.Errorf("could not query keypresses count: got %w", err)
 	}
 	defer rows.Close()
 
@@ -137,11 +140,11 @@ func (s *SQLiteStorage) count() (int, error) {
 	rows.Next()
 
 	if err := rows.Scan(&count); err != nil {
-		return -1, err
+		return -1, fmt.Errorf("could not scan keypresses count: got %w", err)
 	}
 
 	if err = rows.Err(); err != nil {
-		return -1, err
+		return -1, fmt.Errorf("error while iterating over keycount iterator: got %w", err)
 	}
 
 	return count, nil
@@ -157,7 +160,7 @@ func InitDBStorage(db *sql.DB) error {
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
 
-		return err
+		return fmt.Errorf("could not create keypresses table: got %w", err)
 	}
 
 	sqlStmt = ` create index if not exists keypresses_tsix on keypresses (ts ASC);`
@@ -166,7 +169,7 @@ func InitDBStorage(db *sql.DB) error {
 	if err != nil {
 		log.Printf("%q: %v\n", err, sqlStmt)
 
-		return err
+		return fmt.Errorf("could not create keypresses_tsix index: got %w", err)
 	}
 
 	return nil
@@ -183,7 +186,7 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
             select row, col, position, pressed, ts from keypresses
         `)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not query keypresses from input %d: got %w", i, err)
 		}
 		defer rows.Close()
 
@@ -194,7 +197,7 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 		for rows.Next() {
 			err := bar.Add(1)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not update progress bar: got %w", err)
 			}
 
 			var (
@@ -205,7 +208,7 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 
 			err = rows.Scan(&row, &col, &position, &pressed, &ts)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not scan row from input %d: got %w", i, err)
 			}
 
 			_, err = out.db.Exec(`
@@ -213,12 +216,12 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 	            values(?, ?, ?, ?, ?)`,
 				row, col, position, pressed, ts)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not insert keypress from input %d: got %w", i, err)
 			}
 		}
 
 		if err = rows.Err(); err != nil {
-			return err
+			return fmt.Errorf("error while iterating over rows from input %d: got %w", i, err)
 		}
 	}
 

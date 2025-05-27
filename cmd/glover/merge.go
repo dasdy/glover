@@ -21,7 +21,7 @@ var mergeCmd = &cobra.Command{
 			// maybe some simplified init can be created?
 			store, err := db.NewStorageFromPath(fn, false)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not open input file %s: %w", fn, err)
 			}
 			inputs[i] = store
 		}
@@ -32,12 +32,12 @@ var mergeCmd = &cobra.Command{
 
 		output, err := db.NewStorageFromPath(storagePath, false)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not open output file %s: %w", storagePath, err)
 		}
 
 		err = db.Merge(inputs, output)
 		if err != nil {
-			return err
+			return fmt.Errorf("could not merge input files: %w", err)
 		}
 
 		return nil
