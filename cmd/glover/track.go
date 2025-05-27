@@ -97,17 +97,8 @@ var trackCmd = &cobra.Command{
 		log.Printf("Config file: %s\n", viper.ConfigFileUsed())
 		log.Printf("Config parameters: %v\n", viper.AllSettings())
 		log.Printf("kmapfile: %s", viper.GetString("keymap-file"))
+		log.Printf("connect mode: %s", connectMode)
 		log.Printf("Output file: %s\n", storagePath)
-
-		deviceReader, err := GetInputsChannel(
-			&ports.RealDeviceOpener{},
-			filenames,
-			autoConnect,
-		)
-		if err != nil {
-			return fmt.Errorf("could not open inputs channel: %w", err)
-		}
-		defer deviceReader.Close()
 
 		log.Printf("connected successfully. Output file: %s\n", storagePath)
 		storage, err := db.NewStorageFromPath(storagePath, verbose)
@@ -131,11 +122,59 @@ var trackCmd = &cobra.Command{
 			go web.StartServer(port, storage, comboTracker, neighborTracker, keymapFile, infoJSONFile, dev)
 		}
 
-		log.Print("Main loop")
-		keylog.Loop(deviceReader.Channel(), storage, trackers, verbose)
+		var channel <-chan string
+
+		if connectMode != monitorMode {
+			deviceReader, err := GetInputsChannel(
+				&ports.RealDeviceOpener{},
+				filenames,
+				connectMode == oneTimeAutoConnectMode,
+			)
+			if err != nil {
+				return fmt.Errorf("could not open inputs channel: %w", err)
+			}
+
+			channel = deviceReader.Channel()
+			defer deviceReader.Close()
+			log.Print("Main loop")
+		} else {
+			reader := ports.DefaultMonitoringDeviceReader()
+
+			channel, err = reader.Channel()
+			if err != nil {
+				return fmt.Errorf("could not open monitoring channel: %w", err)
+			}
+		}
+		keylog.Loop(channel, storage, trackers, verbose)
 
 		return nil
 	},
+}
+
+type connectModeEnum string
+
+const (
+	explicitFileListMode   connectModeEnum = "explicit"
+	oneTimeAutoConnectMode connectModeEnum = "auto"
+	monitorMode            connectModeEnum = "monitor"
+) // String is used both by fmt.Print and by Cobra in help text
+
+func (e *connectModeEnum) String() string {
+	return string(*e)
+}
+
+func (e *connectModeEnum) Set(v string) error {
+	switch v {
+	case "explicit", "auto", "monitor":
+		*e = connectModeEnum(v)
+
+		return nil
+	default:
+		return fmt.Errorf("must be one of %s, %s, or %s", explicitFileListMode, oneTimeAutoConnectMode, monitorMode)
+	}
+} // Type is only used in help text
+func (e *connectModeEnum) Type() string {
+	return "ConnectMode"
 }
 
 var (
@@ -147,7 +186,7 @@ var (
 	disableInterface bool
 	verbose          bool
 	dev              bool
-	autoConnect      bool
+	connectMode      = oneTimeAutoConnectMode
 )
 
 func init() {
@@ -188,11 +227,16 @@ func init() {
 		false,
 		"Enable developer mode")
 
-	trackCmd.Flags().BoolVar(&autoConnect,
-		"auto-connect",
-		true,
-		`If true, try connecting to available devices if provided ones do not work/nothing was provided. 
-        If no devices can be found, use stdin. If auto-connect is false, always use stdin when no input devices are provided.`)
+	trackCmd.Flags().VarP(&connectMode,
+		"mode",
+		"m",
+		`Configures mode in which keyboard will be tried to connect to:
+		explicit = only specified filenames will be treated as keyboards. Connection will be attempted one time and all files in 
+		the list should successfully connect. Recommended if you want to connect several keyboards to avoid mis-tracking events.
+		auto = Looks for default naming pattern that works for ZMK devices on Unix systems. Attempts connection one time, tries to connect to all
+		devices that fit the naming pattern.
+		monitor = Continuously monitors /dev folder for devices that look like a ZMK. Allows detaching and re-attaching devices dynamically. Does
+		not stop unless something catastrophic happens.`)
 
 	trackCmd.Flags().StringVar(
 		&keymapFile,

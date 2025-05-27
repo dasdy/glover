@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/dasdy/glover/model"
 )
@@ -70,7 +69,7 @@ func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
 			loc.Rx = key.Rx
 			loc.Ry = key.Ry
 
-			log.Printf("Key %d: %+v", keyID, loc)
+			// log.Printf("Key %d: %+v", keyID, loc)
 			// loc.Label = key.Label
 			locations[keyID] = loc
 
