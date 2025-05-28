@@ -22,10 +22,11 @@ type MonitoringDeviceReader struct {
 
 func DefaultMonitoringDeviceReader() *MonitoringDeviceReader {
 	return &MonitoringDeviceReader{
-		pathToLookup: "/dev/",
-		devicesList:  make(map[string]*RealDeviceReader),
-		lock:         sync.RWMutex{},
-		opener:       &RealDeviceOpener{},
+		pathToLookup:    "/dev/",
+		devicesList:     make(map[string]*RealDeviceReader),
+		lock:            sync.RWMutex{},
+		opener:          &RealDeviceOpener{},
+		pollingInterval: 5 * time.Second,
 	}
 }
 
@@ -111,7 +112,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 }
 
 func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
-	log.Printf("Finding devices in path: %s", r.pathToLookup)
+	// log.Printf("Finding devices in path: %s", r.pathToLookup)
 
 	entries, err := os.ReadDir(r.pathToLookup)
 	if err != nil {
@@ -154,7 +155,7 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 		defer log.Printf("End monitoring on path: %s", r.pathToLookup)
 
 		for {
-			log.Printf("Polling for devices in path: %s", r.pathToLookup)
+			// log.Printf("Polling for devices in path: %s", r.pathToLookup)
 
 			devices, err := r.FindDevices()
 			if err != nil {
