@@ -113,7 +113,6 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 
 func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
 	// log.Printf("Finding devices in path: %s", r.pathToLookup)
-
 	entries, err := os.ReadDir(r.pathToLookup)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory %s: %w", r.pathToLookup, err)
@@ -122,17 +121,8 @@ func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
 	result := make([]string, 0)
 
 	for _, entry := range entries {
-		if entry.IsDir() || entry.Type()&os.ModeDevice == 0 {
-			continue
-		}
-
-		devicePath := path.Join(r.pathToLookup, entry.Name())
-
-		if !LooksLikeZMKDevice(devicePath) {
-			continue
-		}
-
-		if _, ok := r.devicesList[devicePath]; ok {
+		shouldOpen, devicePath := r.shouldOpen(entry)
+		if !shouldOpen {
 			continue
 		}
 
@@ -156,7 +146,6 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 
 		for {
 			// log.Printf("Polling for devices in path: %s", r.pathToLookup)
-
 			devices, err := r.FindDevices()
 			if err != nil {
 				log.Printf("Error finding devices: %v", err)
@@ -180,4 +169,25 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 	log.Printf("Returning a channel")
 
 	return outputChan, nil
+}
+
+func (r *MonitoringDeviceReader) shouldOpen(entry os.DirEntry) (bool, string) {
+	if entry.IsDir() || entry.Type()&os.ModeDevice == 0 {
+		return false, ""
+	}
+
+	devicePath := path.Join(r.pathToLookup, entry.Name())
+
+	if !LooksLikeZMKDevice(devicePath) {
+		return false, ""
+	}
+
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	if _, ok := r.devicesList[devicePath]; ok {
+		return false, ""
+	}
+
+	return true, devicePath
 }
