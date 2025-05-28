@@ -1,6 +1,10 @@
 # glover
 
 - Record keypresses from Glove80 (or potentially other ZMK-based keyboards)
+- Multiple ways to collect the data:
+  - Through explicit pointing to usb devices
+  - Parse logs from standard input
+  - Search and auto-connect to devices - either as a one-time operation, or as a monitor that can re-connect to devices
 - Make a heatmap for my lovely Glove80, viewable through a web interface
 - Show which key combinations are used the most
 - Show key "neighbors" - keys that are pressed in consequence: before or after the specific key, but not necessarily in one combination
