@@ -1,6 +1,10 @@
 # glover
 
-Make a heatmap for my lovely Glove80.
+- Record keypresses from Glove80 (or potentially other ZMK-based keyboards)
+- Make a heatmap for my lovely Glove80, viewable through a web interface
+- Show which key combinations are used the most
+- Show key "neighbors" - keys that are pressed in consequence: before or after the specific key, but not necessarily in one combination
+- Merge keypress data from multiple computers
 
 ## Keyboard setup
 
@@ -29,6 +33,14 @@ This will also open a web interface, default location is localhost:3000
 
 Interface looks roughly like this:
 ![preview](img/preview.png)
+
+Alternatively, you can try using auto-detection of the keybard devices:
+
+```shell
+./tmp/glover track -m monitor  -o keypresses.sqlite -v
+```
+
+This will automatically monitor your `/dev/` folder and connect new devices as they appear.
 
 ### Show
 
