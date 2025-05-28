@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dasdy/glover/model"
+	"github.com/schollz/progressbar/v3"
 )
 
 type keyState struct {
@@ -91,7 +92,10 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 		}
 		// Ignore key states that have been "true" for too long - for cases when keypress was kost
 		if p.pressed && timeWhen.Sub(p.timeWhen) > 10*time.Second {
-			log.Printf("Ignoring key in position %d: pressed %v ago", k, timeWhen.Sub(p.timeWhen))
+			if verbose {
+				log.Printf("Ignoring key in position %d: pressed %v ago", k, timeWhen.Sub(p.timeWhen))
+			}
+
 			p.pressed = false
 		}
 
@@ -118,9 +122,16 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 }
 
 func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimestamp]) {
+	bar := progressbar.Default(-1, "Scanning history...")
 	for item := range items {
+		err := bar.Add(1)
+		if err != nil {
+			log.Printf("could not update progress bar: %v", err)
+		}
+
 		c.handleKey(item.Position, item.Pressed, item.Timestamp, false)
 	}
+	bar.Finish()
 }
 
 type ComboBitmask struct {
