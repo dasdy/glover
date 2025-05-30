@@ -131,7 +131,11 @@ func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimesta
 
 		c.handleKey(item.Position, item.Pressed, item.Timestamp, false)
 	}
-	bar.Finish()
+
+	err := bar.Finish()
+	if err != nil {
+		log.Printf("could not finish the progress bar: %s", err.Error())
+	}
 }
 
 type ComboBitmask struct {
