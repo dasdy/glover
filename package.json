@@ -5,7 +5,8 @@
     "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "dependencies": {
+    "@tailwindcss/cli": "^4.1.8",
     "npm": "^11.4.0",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.8"
   }
 }

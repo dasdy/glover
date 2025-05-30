@@ -28,7 +28,7 @@ putting the line above to your keyboards' config and using it via usb.
 
 ### Track
 
-```shell
+```bash
 make build
 ./tmp/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -o keypresses.sqlite -v
 ```
@@ -40,7 +40,7 @@ Interface looks roughly like this:
 
 Alternatively, you can try using auto-detection of the keybard devices:
 
-```shell
+```bash
 ./tmp/glover track -m monitor  -o keypresses.sqlite -v
 ```
 
@@ -50,37 +50,54 @@ This will automatically monitor your `/dev/` folder and connect new devices as t
 
 In case if you don't need active key tracking, you can only run the web interface
 
-```shell
+```bash
 ./tmp/glover show -s keypresses.sqlite -p 8000
 ```
 
 ## Develop
 
-### Live-reload
+### Prerequisites
 
-For development, it's easy to use [air](https://github.com/air-verse/air). Make sure to install npm to make changes
-to the css/js related things.
+You need following things:
 
-```shell
-make run-dev
-```
+1. `go` for the compiler
+2. `npm` for `tailwind` and `prettier`
+3. `golangci-lint` if you want to run full CI suite locally.
 
-### Tests
+All 3 of those usually should be installed via your favourite package manager:
 
-```shell
-go test ./...
-go test -bench -benchtime=10s ./...
-```
+```bash
+brew install npm go golangci-lint
 
-### Lint
-
-Make sure you have `prettier`, `tailwindcss` and `golangci-lint` installed.
-
-```shell
-brew install golangci-lint
 npm install
 ```
 
-```shell
-make lint
+### Live-reload
+
+For development, it's easy to use [air](https://github.com/air-verse/air). Make sure to install `npm` to make changes
+to the css/js related things.
+
+```bash
+make run-dev
+```
+
+It's possible to just run `air`. In this case, template generation and tailwind daemon won't run, so only changes to the `.go` files will take effect (which is sometimes the only needed thing).
+
+### Tests
+
+```bash
+
+# To run specific tests, but all by default
+go test ./...
+
+# To run benchmarks
+go test -bench -benchtime=10s ./...
+# OR, to run only tests
+make test
+```
+
+To get coverage report, you can use
+
+```bash
+make cover
 ```
