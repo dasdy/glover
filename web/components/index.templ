@@ -66,7 +66,7 @@ templ switchMode(c *RenderContext) {
 
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-7xl h-96" viewBox={ c.ViewBoxSize() } overflow="visible">
+	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-7xl" viewBox={ c.ViewBoxSize() } overflow="visible">
 		<g>
 			for _, item := range c.Items {
 				@svgKey(&item, c)
