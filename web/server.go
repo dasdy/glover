@@ -209,7 +209,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		}
 	}
 
-	log.Printf("Found connections: %d", len(connections))
+	log.Printf("[Combo] Found connections: %d", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,
@@ -324,7 +324,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	log.Printf("Found connections: %d", len(connections))
+	log.Printf("[Neighbor] Found connections: %d", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,

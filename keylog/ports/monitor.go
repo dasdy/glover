@@ -54,7 +54,7 @@ func (r *MonitoringDeviceReader) Close() error {
 }
 
 func (r *MonitoringDeviceReader) CloseDevice(devicePath string) error {
-	log.Printf("Closing device %s", devicePath)
+	log.Printf("[1] Closing device %s", devicePath)
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -64,12 +64,12 @@ func (r *MonitoringDeviceReader) CloseDevice(devicePath string) error {
 		}
 
 		delete(r.devicesList, devicePath)
-		log.Printf("Device %s closed and removed from list", devicePath)
+		log.Printf("[2] Device %s closed and removed from list", devicePath)
 	} else {
-		log.Printf("Device %s not found in list, nothing to close", devicePath)
+		log.Printf("[2] Device %s not found in list, nothing to close", devicePath)
 	}
 
-	log.Printf("Closing device %s", devicePath)
+	log.Printf("[3] Closing device %s done", devicePath)
 
 	return nil
 }
@@ -79,7 +79,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 	defer r.lock.Unlock()
 
 	if _, exists := r.devicesList[devicePath]; exists {
-		log.Printf("Device %s already exists, skipping", devicePath)
+		log.Printf("[Opener] Device %s already exists, skipping", devicePath)
 
 		return nil
 	}
@@ -92,7 +92,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 	r.devicesList[devicePath] = device
 
 	go func() {
-		log.Printf("Device %s loop started", devicePath)
+		log.Printf("[Monitor loop] Device %s loop started", devicePath)
 		// TODO: is repeat-closing ok?
 		defer device.Close()
 
@@ -100,11 +100,11 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 			out <- line
 		}
 
-		log.Printf("Device %s closed", devicePath)
+		log.Printf("[Monitor loop] Device %s closed", devicePath)
 
 		err := r.CloseDevice(devicePath)
 		if err != nil {
-			log.Printf("Could not close device %s: %s", devicePath, err.Error())
+			log.Printf("[Monitor loop] Could not close device %s: %s", devicePath, err.Error())
 		}
 	}()
 
@@ -126,7 +126,7 @@ func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
 			continue
 		}
 
-		log.Printf("Found device: %s", devicePath)
+		log.Printf("[Finder] Found device: %s", devicePath)
 
 		result = append(result, devicePath)
 	}
@@ -135,20 +135,20 @@ func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
 }
 
 func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
-	log.Printf("Starting monitoring on path: %s", r.pathToLookup)
+	log.Printf("[Monitor-main-launcher] Starting monitoring on path: %s", r.pathToLookup)
 
 	outputChan := make(chan string, 5)
 
 	go func() {
-		log.Printf("Monitoring started on path: %s", r.pathToLookup)
+		log.Printf("[Monitor-main] Monitoring started on path: %s", r.pathToLookup)
 
-		defer log.Printf("End monitoring on path: %s", r.pathToLookup)
+		defer log.Printf("[Monitor-main] End monitoring on path: %s", r.pathToLookup)
 
 		for {
 			// log.Printf("Polling for devices in path: %s", r.pathToLookup)
 			devices, err := r.FindDevices()
 			if err != nil {
-				log.Printf("Error finding devices: %v", err)
+				log.Printf("[Monitor-main] Error finding devices: %v", err)
 
 				continue
 			}
@@ -156,17 +156,17 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 			time.Sleep(r.pollingInterval)
 
 			for _, devicePath := range devices {
-				log.Printf("Processing device: %s", devicePath)
+				log.Printf("[Monitor-main] Processing device: %s", devicePath)
 
 				err := r.AddDevice(devicePath, outputChan)
 				if err != nil {
-					log.Printf("could not add device %s: %s", devicePath, err.Error())
+					log.Printf("[Monitor-main] could not add device %s: %s", devicePath, err.Error())
 				}
 			}
 		}
 	}()
 
-	log.Printf("Returning a channel")
+	log.Printf("[Monitor-main-launcher] Returning a channel")
 
 	return outputChan, nil
 }
