@@ -105,7 +105,7 @@ func KeyCenter(key *Item) (float64, float64) {
 	// log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, cx: %.2f, cy: %.2f r: %.2f", key.KeyName, key.Location, x, y, cx, cy, key.Location.R)
 	// x, y = RotatePoint(x, y, cx, cy, key.Location.R)
 
-	log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, r: %.2f", key.KeyName, key.Location, x, y, key.Location.R)
+	// log.Printf("KeyCenter (%s): %+v, x: %.2f, y: %.2f, r: %.2f", key.KeyName, key.Location, x, y, key.Location.R)
 
 	// Gives somewhat similar results, but I dunno how to make them fit exactly.
 	x, y = RotatePoint(x, y, key.Location.Rx*KeySize, key.Location.Ry*KeySize, key.Location.R)

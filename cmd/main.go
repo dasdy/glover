@@ -3,6 +3,9 @@ package main
 import (
 	"log/slog"
 	"os"
+	"time"
+
+	"gitlab.com/greyxor/slogor"
 
 	"github.com/dasdy/glover/cmd/glover"
 )
@@ -14,12 +17,20 @@ func main() {
 	// handler := logging.ContextHandler{Handler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 	// 	AddSource: true,
 	// })}
-	logger := slog.New(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}),
-		// slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}),
-		// logging.ContextHandler{Handler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})},
-	)
+	// logger := slog.New(
+	// slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}),
+	// slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}),
+	// logging.ContextHandler{Handler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{})},
+	// )
 
-	slog.SetDefault(logger)
+	slog.SetDefault(slog.New(
+		slogor.NewHandler(os.Stderr,
+			slogor.SetLevel(slog.LevelDebug),
+			slogor.SetTimeFormat(time.DateTime),
+			slogor.ShowSource())),
+	)
+	slog.Info("I'm an information message, everything's fine")
+
+	// slog.SetDefault(logger)
 	glover.Execute()
 }
