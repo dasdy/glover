@@ -2,7 +2,7 @@ package db
 
 import (
 	"iter"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -93,7 +93,9 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 		// Ignore key states that have been "true" for too long - for cases when keypress was kost
 		if p.pressed && timeWhen.Sub(p.timeWhen) > 10*time.Second {
 			if verbose {
-				log.Printf("Ignoring key in position %d: pressed %v ago", k, timeWhen.Sub(p.timeWhen))
+				slog.Info("ignoring stale key",
+					"position", k,
+					"staleness", timeWhen.Sub(p.timeWhen))
 			}
 
 			p.pressed = false
@@ -116,7 +118,10 @@ func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time,
 		}
 
 		if verbose {
-			log.Printf("combo counting (%d keys, pressed: %d): %+v", len(pressedKeys), v.Pressed, pressedKeys)
+			slog.Info("combo counting",
+				"keyCount", len(pressedKeys),
+				"pressed", v.Pressed,
+				"keys", pressedKeys)
 		}
 	}
 }
@@ -126,7 +131,7 @@ func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimesta
 	for item := range items {
 		err := bar.Add(1)
 		if err != nil {
-			log.Printf("could not update progress bar: %v", err)
+			slog.Error("could not update progress bar", "error", err)
 		}
 
 		c.handleKey(item.Position, item.Pressed, item.Timestamp, false)
@@ -134,7 +139,7 @@ func (c *ComboTracker) initComboCounter(items iter.Seq[model.KeyEventWithTimesta
 
 	err := bar.Finish()
 	if err != nil {
-		log.Printf("could not finish the progress bar: %s", err.Error())
+		slog.Error("could not finish progress bar", "error", err)
 	}
 }
 

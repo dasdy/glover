@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strconv"
 
+	"log/slog"
+
 	"github.com/a-h/templ"
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/layout"
@@ -29,9 +31,8 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 	// Do not write to w because it implies 200 status
 	var buf bytes.Buffer
 	if err := component.Render(context.Background(), &buf); err != nil {
-		log.Printf("Could not render: %s", err.Error())
+		slog.Error("Failed to render template", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-
 		return fmt.Errorf("could not render template: %w", err)
 	}
 
@@ -41,8 +42,7 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	if _, err := buf.WriteTo(w); err != nil {
-		log.Printf("Could not render: %s", err.Error())
-
+		slog.Error("Failed to write response", "error", err)
 		return fmt.Errorf("could not write to response writer: %w", err)
 	}
 
@@ -57,7 +57,7 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 	for _, key := range dbStats {
 		loc, ok := s.LocationsOnGrid.Locations[key.Position]
 		if !ok {
-			log.Printf("Could not find position %d, wtf", key.Position)
+			slog.Error("Position not found in layout", "position", key.Position)
 		}
 
 		if maxVal < key.Count {
@@ -95,14 +95,12 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 }
 
 func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
-	log.Print("Got request to stats page")
+	slog.Info("Handling stats page request")
 
 	curStats, err := s.Storage.GatherAll()
 	if err != nil {
-		log.Printf("Could not get stats: %s", err.Error())
-
+		slog.Error("Failed to get stats", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-
 		return
 	}
 
@@ -128,7 +126,7 @@ func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model
 }
 
 func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int) cs.RenderContext {
-	log.Printf("Found combos: %d", len(combos))
+	slog.Info("Building combos context", "comboCount", len(combos))
 
 	// Sort combos by press count to get top 5
 	slices.SortFunc(combos, func(a, b model.Combo) int {
@@ -148,7 +146,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		for _, key := range combo.Keys {
 			loc, ok := s.LocationsOnGrid.Locations[key.Position]
 			if !ok {
-				log.Printf("Could not find position %d, wtf", key.Position)
+				slog.Error("Position not found in layout", "position", key.Position)
 			}
 
 			groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
@@ -197,8 +195,6 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 			}
 		}
 
-		log.Printf("pressCount: %d", combo.Pressed)
-
 		connections = append(connections, cs.ComboConnection{
 			FromPosition: position,
 			ToPosition:   otherPos,
@@ -209,7 +205,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		}
 	}
 
-	log.Printf("[Combo] Found connections: %d", len(connections))
+	slog.Info("Found combo connections", "count", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,
@@ -223,7 +219,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 }
 
 func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
-	log.Print("Got request to combos page")
+	slog.Info("Handling combos page request")
 
 	positionString := r.URL.Query().Get("position")
 
@@ -258,7 +254,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 
 		loc, ok := s.LocationsOnGrid.Locations[neighborPosition]
 		if !ok {
-			log.Printf("Could not find position %d, wtf", neighborPosition)
+			slog.Error("Position not found in layout", "position", neighborPosition)
 
 			continue
 		}
@@ -312,8 +308,6 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 			}
 		}
 
-		log.Printf("pressCount: %d", combo.Pressed)
-
 		connections = append(connections, cs.ComboConnection{
 			FromPosition: position,
 			ToPosition:   otherPos,
@@ -324,7 +318,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	log.Printf("[Neighbor] Found connections: %d", len(connections))
+	slog.Info("Found neighbor connections", "count", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,
@@ -338,7 +332,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 }
 
 func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) {
-	log.Print("Got request to neighbors page")
+	slog.Info("Handling neighbors page request")
 
 	positionString := r.URL.Query().Get("position")
 
@@ -390,14 +384,18 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 			http.StripPrefix("/assets",
 				http.FileServer(http.Dir("assets")))))
 
-	log.Printf("Parsing info.json from %s", infoFilePath)
+	slog.Info("Parsing keyboard layout", "file", infoFilePath)
 
 	locationsParsed, err := loadLocationsOnGrid(infoFilePath)
 	if err != nil {
-		log.Fatalf("Could not parse info.json: %s", err)
+		slog.Error("Failed to parse keyboard layout", "error", err)
+		log.Fatal(err)
 	}
 
-	log.Printf("Successfully parsed info.json file, got %d locations (%d rows, %d cols)", len(locationsParsed.Locations), locationsParsed.Rows, locationsParsed.Cols)
+	slog.Info("Successfully parsed keyboard layout",
+		"locations", len(locationsParsed.Locations),
+		"rows", locationsParsed.Rows,
+		"cols", locationsParsed.Cols)
 	handler := ServerHandler{
 		Storage:         storage,
 		KeymapFile:      keymapFile,
@@ -413,12 +411,13 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 }
 
 func StartServer(port int, storage db.Storage, comboTracker db.Tracker, neighborTracker db.Tracker, keymapFile string, infoFilePath string, dev bool) {
-	log.Printf("Running interface on port %d\n", port)
+	slog.Info("Starting server", "port", port)
 
 	err := http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
 		BuildServer(storage, comboTracker, neighborTracker, keymapFile, infoFilePath, dev))
 	if err != nil {
-		log.Fatalf("Could not run server: %s", err)
+		slog.Error("Server failed to start", "error", err)
+		log.Fatal(err)
 	}
 }

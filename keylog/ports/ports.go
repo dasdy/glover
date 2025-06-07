@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -66,13 +66,13 @@ func (r *RealDeviceReader) Channel() <-chan string {
 			}
 
 			wg.Done()
-			log.Printf("Read channel %d routine fin", i)
+			slog.Info("Read channel routine finished", "channel", i)
 		}()
 	}
 
 	go func() {
 		wg.Wait()
-		log.Print("All files marked as closed")
+		slog.Info("All files marked as closed")
 		close(outputChan)
 	}()
 

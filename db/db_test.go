@@ -3,7 +3,7 @@ package db_test
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"sync"
 	"testing"
@@ -83,7 +83,7 @@ func TestRaceCondition(t *testing.T) {
 	t.Run("Should not fail due to race condition on db connection", func(t *testing.T) {
 		file, err := os.CreateTemp("/tmp", "*.sqlite")
 		require.NoError(t, err)
-		log.Printf("Created file: %s", file.Name())
+		slog.Info("created temporary file", "path", file.Name())
 		storage, err := db.NewStorageFromPath(file.Name(), false)
 
 		require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestRaceCondition(t *testing.T) {
 			wg.Done()
 			done <- true
 
-			log.Println("Done writing")
+			slog.Info("done writing")
 		}
 
 		routine2 := func() {
@@ -132,7 +132,7 @@ func TestRaceCondition(t *testing.T) {
 			wg.Done()
 			done <- true
 
-			log.Println("Done reading")
+			slog.Info("done reading")
 		}
 
 		go routine()

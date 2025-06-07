@@ -5,7 +5,7 @@ package glover
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/web"
@@ -20,10 +20,10 @@ var showCmd = &cobra.Command{
 	Long:             `Use log data collected by track command to show web interface with statistics.`,
 	PersistentPreRun: bindFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
-		log.Printf("Config file: %s\n", viper.ConfigFileUsed())
-		log.Printf("Config parameters: %v\n", viper.AllSettings())
-		log.Printf("kmapfile: %s", viper.GetString("keymap-file"))
-		log.Printf("Output file: %s\n", storagePath)
+		slog.Info("Config file: ", "file", viper.ConfigFileUsed())
+		slog.Info("Config parameters: ", "params", viper.AllSettings())
+		slog.Info("kmapfile: ", "keymap-file", viper.GetString("keymap-file"))
+		slog.Info("Output file: ", "output-file", storagePath)
 
 		storage, err := db.NewStorageFromPath(storagePath, true)
 		if err != nil {

@@ -1,7 +1,7 @@
 package layout_test
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -33,10 +33,13 @@ func TestGlove80ParseLayout(t *testing.T) {
 			t.Fatal("Expected keymap to be not nil")
 		}
 
-		log.Printf("Got layout: %v", keymap)
+		slog.Info("parsed layout", "keymap", keymap)
 
 		for i, l := range keymap.Layers {
-			log.Printf("Layer %d: '%s' (%d)", i, l.Name, len(l.Bindings))
+			slog.Info("layer info",
+				"index", i,
+				"name", l.Name,
+				"binding_count", len(l.Bindings))
 		}
 
 		assert.Len(t, keymap.Layers, 4, "Unexpected amt of layers")

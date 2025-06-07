@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"iter"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/dasdy/glover/model"
@@ -153,22 +154,17 @@ func (s *SQLiteStorage) count() (int, error) {
 // Given a connection to db, set up needed tables and indices.
 func InitDBStorage(db *sql.DB) error {
 	// TODO: add indices over row-col-position?
-	sqlStmt := `
-	create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);`
-
+	sqlStmt := `create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);`
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
-		log.Printf("%q: %v\n", err, sqlStmt)
-
+		slog.Error("failed to create table", "error", err, "sql", sqlStmt)
 		return fmt.Errorf("could not create keypresses table: got %w", err)
 	}
 
-	sqlStmt = ` create index if not exists keypresses_tsix on keypresses (ts ASC);`
-
+	sqlStmt = `create index if not exists keypresses_tsix on keypresses (ts ASC);`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
-		log.Printf("%q: %v\n", err, sqlStmt)
-
+		slog.Error("failed to create index", "error", err, "sql", sqlStmt)
 		return fmt.Errorf("could not create keypresses_tsix index: got %w", err)
 	}
 
@@ -190,7 +186,7 @@ func Merge(inputs []*SQLiteStorage, out *SQLiteStorage) error {
 		}
 		defer rows.Close()
 
-		log.Printf("processing input %d", i)
+		slog.Info("processing input database", "index", i)
 
 		bar := progressbar.Default(int64(count), "Writing...")
 

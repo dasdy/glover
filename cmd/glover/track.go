@@ -2,17 +2,20 @@ package glover
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"slices"
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/keylog"
 	"github.com/dasdy/glover/keylog/ports"
+	"github.com/dasdy/glover/logging"
 	"github.com/dasdy/glover/web"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+var trackLogCtx = logging.PackageCtx("track")
 
 func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 	if !autoconnect || len(names1) != 2 || len(names2) != 2 {
@@ -42,15 +45,15 @@ func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect
 			return nil, fmt.Errorf("error getting available devices: %w", err)
 		}
 
-		log.Printf("Suggested devices: %+v ", names)
+		slog.InfoContext(trackLogCtx, "Suggested devices: ", "devices", names)
 
 		if autoConnect && len(names) == 2 {
-			log.Print("Will proceed to autoconnect to devices")
+			slog.InfoContext(trackLogCtx, "Will proceed to autoconnect to devices")
 
 			return GetInputsChannel(opener, names, false)
 		}
 
-		log.Print("Will proceed to read from stdin...")
+		slog.InfoContext(trackLogCtx, "Will proceed to read from stdin...")
 
 		return ports.NewDeviceReader(os.Stdin), nil
 
@@ -67,11 +70,11 @@ func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect
 			return nil, fmt.Errorf("could not open file: %w; Could not suggest devices: %w", err, errInner)
 		}
 
-		log.Printf("could not open provided files. Found candidates to connect instead: %+v", names)
+		slog.InfoContext(trackLogCtx, "could not open provided files. Found candidates to connect instead", "filenames", names)
 
 		switch {
 		case len(names) > 0 && shouldTryConnect(filenames, names, autoConnect):
-			log.Print("autoconnect enabled. Trying to connect to candidates")
+			slog.InfoContext(trackLogCtx, "autoconnect enabled. Trying to connect to candidates")
 
 			return GetInputsChannel(opener, names, false)
 
@@ -94,13 +97,12 @@ var trackCmd = &cobra.Command{
 		Will log keypresses to a sqlite file, and optionally run a web server to visualize the data.`,
 	PersistentPreRun: bindFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
-		log.Printf("Config file: %s\n", viper.ConfigFileUsed())
-		log.Printf("Config parameters: %v\n", viper.AllSettings())
-		log.Printf("kmapfile: %s", viper.GetString("keymap-file"))
-		log.Printf("connect mode: %s", connectMode)
-		log.Printf("Output file: %s\n", storagePath)
+		slog.InfoContext(trackLogCtx, "Config file ", "file", viper.ConfigFileUsed())
+		slog.InfoContext(trackLogCtx, "Config parameters ", "settings", viper.AllSettings())
+		slog.InfoContext(trackLogCtx, "kmapfile ", "keymap-file", viper.GetString("keymap-file"))
+		slog.InfoContext(trackLogCtx, "connect mode ", "connect-mode", connectMode)
+		slog.InfoContext(trackLogCtx, "Output file ", "output-file", storagePath)
 
-		log.Printf("connected successfully. Output file: %s\n", storagePath)
 		storage, err := db.NewStorageFromPath(storagePath, verbose)
 		if err != nil {
 			return fmt.Errorf("could not open %s as sqlite file: %w", storagePath, err)
@@ -136,7 +138,7 @@ var trackCmd = &cobra.Command{
 
 			channel = deviceReader.Channel()
 			defer deviceReader.Close()
-			log.Print("Main loop")
+			slog.InfoContext(trackLogCtx, "Main loop")
 		} else {
 			reader := ports.DefaultMonitoringDeviceReader()
 

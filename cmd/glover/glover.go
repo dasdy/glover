@@ -3,7 +3,7 @@ package glover
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -37,21 +37,21 @@ func Execute() {
 }
 
 func init() {
-	log.Printf("rootCmd init")
+	slog.Info("rootCmd init")
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.glover.yaml)")
 }
 
 func initConfig() {
-	log.Printf("initConfig start")
+	slog.Info("initConfig start")
 
 	if cfgFile != "" {
-		log.Printf("Using config file: %s\n", cfgFile)
+		slog.Info("Using config file", "file", cfgFile)
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		log.Printf("Using default config file\n")
+		slog.Info("Using default config file")
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
@@ -74,12 +74,12 @@ func initConfig() {
 			createExampleConfig()
 		} else {
 			// Other errors
-			log.Printf("Error reading config file: %s\n", err)
+			slog.Error("Error reading config file", "error", err)
 			os.Exit(1)
 		}
 	}
 
-	log.Printf("initConfig done")
+	slog.Info("initConfig done")
 }
 
 func createExampleConfig() {
@@ -90,11 +90,11 @@ port = 8080
 
 	err := os.WriteFile(configPath, []byte(exampleConfig), 0o644)
 	if err != nil {
-		log.Printf("Error creating example config file: %s\n", err)
+		slog.Error("Error creating example config file", "error", err)
 		os.Exit(1)
 	}
 
-	log.Printf("Example config file created at %s\n", configPath)
+	slog.Info("Example config file created", "path", configPath)
 }
 
 // set values to the PFlag variables from config, if they are set. Priority is still given to explicitly provided CLI flags.
@@ -106,16 +106,16 @@ func bindFlags(cmd *cobra.Command, _ []string) {
 
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && viper.IsSet(configName) {
-			log.Printf("Binding flag %s to config value %s\n", f.Name, configName)
+			slog.Info("binding flag", "key", f.Name, "config", configName)
 			val := viper.Get(configName)
 
 			err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 			if err != nil {
-				log.Printf("Error setting flag %s: %s\n", f.Name, err)
+				slog.Error("error setting flag", "key", f.Name, "error", err)
 				panic(err)
 			}
 
-			log.Printf("Flag '%s' set to config value %v\n", f.Name, val)
+			slog.Info("setting flag value", "key", f.Name, "value", val)
 		}
 	})
 }

@@ -3,7 +3,7 @@ package layout
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -22,14 +22,13 @@ func GetBinaryPath() string {
 
 func OpenPath(path string) (*os.File, error) {
 	var err error
-
 	var file *os.File
 
 	if filepath.IsAbs(path) {
-		log.Printf("Opening absolute path %s", path)
+		slog.Info("Opening absolute path", "path", path)
 		file, err = os.Open(path)
 	} else {
-		log.Printf("Opening relative path %s", path)
+		slog.Info("Opening relative path", "path", path)
 		file, err = os.Open(filepath.Join(GetBinaryPath(), path))
 	}
 

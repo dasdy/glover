@@ -3,7 +3,7 @@ package db_test
 import (
 	"cmp"
 	"database/sql"
-	"log"
+	"log/slog"
 	"slices"
 	"testing"
 	"time"
@@ -65,7 +65,7 @@ func TestGatherCombos(t *testing.T) {
 			1, 2,
 		}
 		events := mockEvents(positions)
-		log.Printf("Events: %+v", events)
+		slog.Info("testing events", "events", events)
 
 		curTime := time.Now()
 
@@ -113,7 +113,7 @@ func TestGatherCombos(t *testing.T) {
 			1, 2,
 		}
 		events := mockEvents(positions)
-		log.Printf("Events: %+v", events)
+		slog.Info("testing events", "events", events)
 
 		curTime := time.Now()
 
@@ -159,7 +159,7 @@ func TestGatherCombos(t *testing.T) {
 			3, 1, 4, 3, 4, 1,
 		}
 		events := mockEvents(positions)
-		log.Printf("Events: %+v", events)
+		slog.Info("testing events", "events", events)
 
 		curTime := time.Now()
 

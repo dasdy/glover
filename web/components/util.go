@@ -2,7 +2,7 @@ package components
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"math"
 
 	"github.com/dasdy/glover/model"
@@ -93,6 +93,12 @@ func KeyCenter(key *Item) (float64, float64) {
 	y := key.Location.Y * KeySize // + KeyCenterOffset
 
 	// if key.Location.R != 0 {
+	slog.Info("key center calculation",
+		"key", key.KeyName,
+		"location", key.Location,
+		"x", x,
+		"y", y,
+		"rotation", key.Location.R)
 
 	// Rotate the point if it has a rotation. Should work fine, but gives completely wrong results.
 	// cx, cy := ToTransformOrigin(&key.Location)
@@ -105,7 +111,10 @@ func KeyCenter(key *Item) (float64, float64) {
 	x, y = RotatePoint(x, y, key.Location.Rx*KeySize, key.Location.Ry*KeySize, key.Location.R)
 	// }
 
-	log.Printf("KeyCenter(%s) after rotation: x: %.2f, y: %.2f", key.KeyName, x, y)
+	slog.Info("key center after rotation",
+		"key", key.KeyName,
+		"x", x,
+		"y", y)
 
 	return x, y
 }

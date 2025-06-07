@@ -2,7 +2,7 @@ package keylog
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 
 	"github.com/dasdy/glover/db"
 	"github.com/dasdy/glover/keylog/parser"
@@ -12,16 +12,16 @@ func Loop(ch <-chan string, storage db.Storage, trackers []db.Tracker, enableLog
 	for line := range ch {
 		parsed, err := parser.ParseLine(line)
 		if err != nil && !errors.Is(err, parser.ErrEmptyLine) {
-			log.Printf("Got warning: %s\nline: '%s'", err.Error(), line)
+			slog.Error("Failed to parse line", "error", err, "line", line)
 		}
 
 		if parsed != nil {
 			if enableLogs {
-				log.Printf("got keypress: %+v", *parsed)
+				slog.Info("Got keypress", "keypress", parsed)
 			}
 
 			if storage.Store(parsed) != nil {
-				log.Printf("could not log item: %s", err.Error())
+				slog.Error("Failed to log item", "error", err)
 			}
 
 			for _, tracker := range trackers {
@@ -30,5 +30,5 @@ func Loop(ch <-chan string, storage db.Storage, trackers []db.Tracker, enableLog
 		}
 	}
 
-	log.Println("Channel closed; bailing out")
+	slog.Info("Channel closed; bailing out")
 }

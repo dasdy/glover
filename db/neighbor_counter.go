@@ -2,7 +2,7 @@ package db
 
 import (
 	"iter"
-	"log"
+	"log/slog"
 	"sync"
 
 	"github.com/dasdy/glover/model"
@@ -89,7 +89,9 @@ func (nc *NeighborCounterImpl) handleKey(position int, pressed, verbose bool) {
 		}
 
 		if verbose {
-			log.Printf("Key %d pressed after %d", position, nc.lastKey)
+			slog.Info("key press sequence",
+				"current", position,
+				"previous", nc.lastKey)
 		}
 		// Increment the count for this neighbor pair
 		nc.counts[nc.lastKey][position]++
