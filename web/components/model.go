@@ -3,7 +3,7 @@ package components
 import "github.com/dasdy/glover/model"
 
 type Item struct {
-	Position       int
+	Position       model.KeyPosition
 	Location       model.Location
 	KeyName        string
 	KeypressAmount string
@@ -11,8 +11,8 @@ type Item struct {
 }
 
 type ComboConnection struct {
-	FromPosition int
-	ToPosition   int
+	FromPosition model.KeyPosition
+	ToPosition   model.KeyPosition
 	PressCount   int
 }
 type PageType string
@@ -36,6 +36,6 @@ type RenderContext struct {
 	MaxVal    int
 	Page      PageType
 
-	HighlightPosition int               // The position being highlighted
+	HighlightPosition model.KeyPosition // The position being highlighted
 	ComboConnections  []ComboConnection // Top 5 combo connections for highlighted key
 }

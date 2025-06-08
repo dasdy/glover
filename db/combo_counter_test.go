@@ -31,7 +31,7 @@ func sortCombos(result []model.Combo) {
 			ak := a.Keys[i]
 			bk := b.Keys[i]
 
-			if keyCmp := cmp.Compare(ak.Position, bk.Position); keyCmp != 0 {
+			if keyCmp := cmp.Compare(ak, bk); keyCmp != 0 {
 				return keyCmp
 			}
 		}
@@ -90,9 +90,9 @@ func TestGatherCombos(t *testing.T) {
 
 		assert.Equal(t, []model.Combo{
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(2),
 				},
 				Pressed: 1,
 			},
@@ -138,9 +138,9 @@ func TestGatherCombos(t *testing.T) {
 
 		assert.Equal(t, []model.Combo{
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(2),
 				},
 				Pressed: 2,
 			},
@@ -186,28 +186,32 @@ func TestGatherCombos(t *testing.T) {
 
 		assert.Equal(t, []model.Combo{
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(2),
 				},
 				Pressed: 1,
 			},
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 3},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(3),
 				},
 				Pressed: 1,
 			},
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 4},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(4),
 				},
 				Pressed: 1,
 			},
 			{
-				Keys:    []model.ComboKey{{Position: 1}, {Position: 3}, {Position: 4}},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(3),
+					model.KeyPosition(4),
+				},
 				Pressed: 1,
 			},
 		}, combos)
@@ -261,16 +265,16 @@ func TestGatherCombos(t *testing.T) {
 
 		assert.ElementsMatch(t, []model.Combo{
 			{
-				Keys: []model.ComboKey{
-					{Position: 1},
-					{Position: 2},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(1),
+					model.KeyPosition(2),
 				},
 				Pressed: 1,
 			},
 			{
-				Keys: []model.ComboKey{
-					{Position: 3},
-					{Position: 4},
+				Keys: []model.KeyPosition{
+					model.KeyPosition(3),
+					model.KeyPosition(4),
 				},
 				Pressed: 1,
 			},
@@ -299,17 +303,17 @@ func BenchmarkComboScan(b *testing.B) {
 
 func TestComboKeyId(t *testing.T) {
 	t.Run("empty key set should return empty bitmask", func(t *testing.T) {
-		keys := []model.ComboKey{}
+		keys := []model.KeyPosition{}
 		mask := db.ComboKeyID(keys)
 
 		assert.Equal(t, db.ComboBitmask{Low: 0, High: 0}, mask)
 	})
 
 	t.Run("keys in low range only", func(t *testing.T) {
-		keys := []model.ComboKey{
-			{Position: 1},
-			{Position: 5},
-			{Position: 63},
+		keys := []model.KeyPosition{
+			model.KeyPosition(1),
+			model.KeyPosition(5),
+			model.KeyPosition(63),
 		}
 		mask := db.ComboKeyID(keys)
 
@@ -322,10 +326,10 @@ func TestComboKeyId(t *testing.T) {
 	})
 
 	t.Run("keys in high range only", func(t *testing.T) {
-		keys := []model.ComboKey{
-			{Position: 64},
-			{Position: 70},
-			{Position: 127},
+		keys := []model.KeyPosition{
+			model.KeyPosition(64),
+			model.KeyPosition(70),
+			model.KeyPosition(127),
 		}
 		mask := db.ComboKeyID(keys)
 
@@ -338,11 +342,11 @@ func TestComboKeyId(t *testing.T) {
 	})
 
 	t.Run("keys in both low and high ranges", func(t *testing.T) {
-		keys := []model.ComboKey{
-			{Position: 3},
-			{Position: 64},
-			{Position: 10},
-			{Position: 72},
+		keys := []model.KeyPosition{
+			model.KeyPosition(3),
+			model.KeyPosition(64),
+			model.KeyPosition(10),
+			model.KeyPosition(72),
 		}
 		mask := db.ComboKeyID(keys)
 
@@ -354,15 +358,15 @@ func TestComboKeyId(t *testing.T) {
 	})
 
 	t.Run("same keys should produce same bitmask", func(t *testing.T) {
-		keys1 := []model.ComboKey{
-			{Position: 5},
-			{Position: 20},
-			{Position: 70},
+		keys1 := []model.KeyPosition{
+			model.KeyPosition(5),
+			model.KeyPosition(20),
+			model.KeyPosition(70),
 		}
-		keys2 := []model.ComboKey{
-			{Position: 70},
-			{Position: 5},
-			{Position: 20},
+		keys2 := []model.KeyPosition{
+			model.KeyPosition(70),
+			model.KeyPosition(5),
+			model.KeyPosition(20),
 		}
 
 		mask1 := db.ComboKeyID(keys1)
@@ -372,13 +376,13 @@ func TestComboKeyId(t *testing.T) {
 	})
 
 	t.Run("different keys should produce different bitmasks", func(t *testing.T) {
-		keys1 := []model.ComboKey{
-			{Position: 5},
-			{Position: 20},
+		keys1 := []model.KeyPosition{
+			model.KeyPosition(5),
+			model.KeyPosition(20),
 		}
-		keys2 := []model.ComboKey{
-			{Position: 5},
-			{Position: 21},
+		keys2 := []model.KeyPosition{
+			model.KeyPosition(5),
+			model.KeyPosition(21),
 		}
 
 		mask1 := db.ComboKeyID(keys1)

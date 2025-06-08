@@ -22,6 +22,7 @@ func GetBinaryPath() string {
 
 func OpenPath(path string) (*os.File, error) {
 	var err error
+
 	var file *os.File
 
 	if filepath.IsAbs(path) {

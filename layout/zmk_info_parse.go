@@ -30,7 +30,7 @@ type ZmkInfoJSON struct {
 }
 
 func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
-	locations := make(map[int]model.Location)
+	locations := make(map[model.KeyPosition]model.Location)
 
 	decoder := json.NewDecoder(reader)
 
@@ -47,7 +47,7 @@ func LoadZmkLocationsJSON(reader io.Reader) (*model.KeyboardLayout, error) {
 	rows := 0
 	cols := 0
 
-	keyID := 0
+	keyID := model.KeyPosition(0)
 
 	for _, layout := range info.Layouts {
 		for _, key := range layout.Layout {

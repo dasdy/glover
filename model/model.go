@@ -1,43 +1,46 @@
 package model
 
-import "time"
+import (
+	"time"
+)
+
+// Position of the key in a combo.
+type KeyPosition int
 
 type KeyEvent struct {
 	Row      int
 	Col      int
-	Position int
+	Position KeyPosition
 	Pressed  bool
 }
 
 type KeyEventWithTimestamp struct {
 	Row       int
 	Col       int
-	Position  int
+	Position  KeyPosition
 	Pressed   bool
 	Timestamp time.Time
 }
 
 type MinimalKeyEvent struct {
-	Row, Col, Position, Count int
+	Row, Col, Count int
+	Position        KeyPosition
 }
 
 type MinimalKeyEventWithLabel struct {
-	Position, Count int
-	KeyLabel        string
-	Location        Location
-}
-
-type ComboKey struct {
-	Position int
+	Position KeyPosition
+	Count    int
+	KeyLabel string
+	Location Location
 }
 
 type Combo struct {
-	Keys    []ComboKey
+	Keys    []KeyPosition
 	Pressed int
 }
 
 type KeyboardLayout struct {
-	Locations map[int]Location
+	Locations map[KeyPosition]Location
 	Rows      int
 	Cols      int
 }

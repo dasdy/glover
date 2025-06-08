@@ -75,7 +75,7 @@ func (s *SQLiteStorage) GatherAll() ([]model.MinimalKeyEvent, error) {
 			return nil, fmt.Errorf("could not scan row: got %w", err)
 		}
 
-		result = append(result, model.MinimalKeyEvent{Row: row, Col: col, Position: position, Count: count})
+		result = append(result, model.MinimalKeyEvent{Row: row, Col: col, Position: model.KeyPosition(position), Count: count})
 	}
 
 	if err = rows.Err(); err != nil {
@@ -112,7 +112,7 @@ func (s *SQLiteStorage) AllIterator() (iter.Seq[model.KeyEventWithTimestamp], er
 			item := model.KeyEventWithTimestamp{
 				Row:       row,
 				Col:       col,
-				Position:  position,
+				Position:  model.KeyPosition(position),
 				Pressed:   pressed,
 				Timestamp: ts,
 			}
@@ -158,6 +158,7 @@ func InitDBStorage(db *sql.DB) error {
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
 		slog.Error("failed to create table", "error", err, "sql", sqlStmt)
+
 		return fmt.Errorf("could not create keypresses table: got %w", err)
 	}
 
@@ -165,6 +166,7 @@ func InitDBStorage(db *sql.DB) error {
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		slog.Error("failed to create index", "error", err, "sql", sqlStmt)
+
 		return fmt.Errorf("could not create keypresses_tsix index: got %w", err)
 	}
 

@@ -298,9 +298,6 @@
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
-  .h-96 {
-    height: calc(var(--spacing) * 96);
-  }
   .w-6\/12 {
     width: calc(6 / 12 * 100%);
   }

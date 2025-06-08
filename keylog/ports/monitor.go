@@ -80,6 +80,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 
 	if _, exists := r.devicesList[devicePath]; exists {
 		slog.Info("Device already exists, skipping", "path", devicePath)
+
 		return nil
 	}
 
@@ -93,6 +94,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 	go func() {
 		// TODO: is repeat-closing ok?
 		slog.Info("Device loop started", "path", devicePath)
+
 		defer device.Close()
 
 		for line := range device.Channel() {
@@ -148,6 +150,7 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 			devices, err := r.FindDevices()
 			if err != nil {
 				slog.Error("Error finding devices", "error", err)
+
 				continue
 			}
 

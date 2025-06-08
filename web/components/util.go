@@ -9,7 +9,7 @@ import (
 )
 
 // getLinkForPosition returns the appropriate URL based on the page type.
-func getLinkForPosition(position int, pageType PageType) string {
+func getLinkForPosition(position model.KeyPosition, pageType PageType) string {
 	switch pageType {
 	case PageTypeCombo, PageTypeStats:
 		return fmt.Sprintf("/combo?position=%d", position)
@@ -21,7 +21,7 @@ func getLinkForPosition(position int, pageType PageType) string {
 }
 
 // getSwitchModeLink returns the appropriate URL to switch between combo and neighbors modes.
-func getSwitchModeLink(position int, currentPageType PageType) string {
+func getSwitchModeLink(position model.KeyPosition, currentPageType PageType) string {
 	switch currentPageType {
 	case PageTypeCombo, PageTypeStats:
 		return fmt.Sprintf("/neighbors?position=%d", position)

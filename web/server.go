@@ -32,6 +32,7 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 	if err := component.Render(context.Background(), &buf); err != nil {
 		slog.Error("Failed to render template", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return fmt.Errorf("could not render template: %w", err)
 	}
 
@@ -42,6 +43,7 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 
 	if _, err := buf.WriteTo(w); err != nil {
 		slog.Error("Failed to write response", "error", err)
+
 		return fmt.Errorf("could not write to response writer: %w", err)
 	}
 
@@ -69,6 +71,7 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 
 	// Iterate over total grid and add items that exit in the layout.
 	items := make([]cs.Item, 0, len(groupedItems))
+
 	for _, item := range groupedItems {
 		locationOnGrid := item.Location
 		items = append(items, cs.Item{
@@ -89,22 +92,26 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		slog.Error("Failed to get stats", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
 	slog.Debug("Gathered current stats")
+
 	renderContext := s.BuildStatsRenderContext(curStats)
+
 	slog.Debug("Built render context")
+
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func initEmptyMap(names []string, locationsOnGrid map[int]model.Location) map[model.RowCol]*model.MinimalKeyEventWithLabel {
+func initEmptyMap(names []string, locationsOnGrid map[model.KeyPosition]model.Location) map[model.RowCol]*model.MinimalKeyEventWithLabel {
 	// put empty items in the map so that we show them later properly
 	groupedItems := make(map[model.RowCol]*model.MinimalKeyEventWithLabel)
 
 	for pos, key := range locationsOnGrid {
 		name := "<OOB>"
-		if pos < len(names) {
+		if int(pos) < len(names) {
 			name = names[pos]
 		}
 
@@ -114,7 +121,7 @@ func initEmptyMap(names []string, locationsOnGrid map[int]model.Location) map[mo
 	return groupedItems
 }
 
-func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int) cs.RenderContext {
+func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position model.KeyPosition) cs.RenderContext {
 	slog.Debug("Building combos context", "comboCount", len(combos))
 
 	// Sort combos by press count to get top 5
@@ -133,9 +140,9 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	// set non-zero items in the map
 	for _, combo := range combos {
 		for _, key := range combo.Keys {
-			loc, ok := s.LocationsOnGrid.Locations[key.Position]
+			loc, ok := s.LocationsOnGrid.Locations[key]
 			if !ok {
-				slog.Error("Position not found in layout", "position", key.Position)
+				slog.Error("Position not found in layout", "position", key)
 			}
 
 			groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += combo.Pressed
@@ -174,11 +181,11 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	connections := make([]cs.ComboConnection, 0, 5)
 
 	for _, combo := range combos {
-		var otherPos int
+		var otherPos model.KeyPosition
 
 		for _, key := range combo.Keys {
-			if key.Position != position {
-				otherPos = key.Position
+			if key != position {
+				otherPos = key
 
 				break
 			}
@@ -219,13 +226,14 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	combos := s.ComboTracker.GatherCombos(int(position))
+	positionCasted := model.KeyPosition(position)
+	combos := s.ComboTracker.GatherCombos(positionCasted)
 
-	renderContext := s.BuildCombosRenderContext(combos, int(position))
+	renderContext := s.BuildCombosRenderContext(combos, positionCasted)
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int) cs.RenderContext {
+func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position model.KeyPosition) cs.RenderContext {
 	groupedItems := initEmptyMap(s.KeyNames, s.LocationsOnGrid.Locations)
 	maxVal := 0
 
@@ -234,8 +242,8 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		neighborPosition := position
 
 		for _, key := range combo.Keys {
-			if key.Position != position {
-				neighborPosition = key.Position
+			if key != position {
+				neighborPosition = key
 
 				break
 			}
@@ -287,11 +295,11 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 	})
 
 	for _, combo := range neighbors {
-		var otherPos int
+		var otherPos model.KeyPosition
 
 		for _, key := range combo.Keys {
-			if key.Position != position {
-				otherPos = key.Position
+			if key != position {
+				otherPos = key
 
 				break
 			}
@@ -332,9 +340,10 @@ func (s *ServerHandler) NeighborsHandle(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	neighbors := s.NeighborTracker.GatherCombos(int(position))
+	positionCasted := model.KeyPosition(position)
+	neighbors := s.NeighborTracker.GatherCombos(positionCasted)
 
-	renderContext := s.BuildNeighborsRenderContext(neighbors, int(position))
+	renderContext := s.BuildNeighborsRenderContext(neighbors, positionCasted)
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
@@ -390,6 +399,7 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 		"locations", len(locationsParsed.Locations),
 		"rows", locationsParsed.Rows,
 		"cols", locationsParsed.Cols)
+
 	handler := ServerHandler{
 		Storage:         storage,
 		KeyNames:        keyNames,

@@ -10,8 +10,8 @@ import (
 
 // NeighborCounterImpl implements the NeighborCounter interface.
 type NeighborCounterImpl struct {
-	lastKey   int
-	counts    map[int]map[int]int
+	lastKey   model.KeyPosition
+	counts    map[model.KeyPosition]map[model.KeyPosition]int
 	stateLock sync.RWMutex
 }
 
@@ -19,7 +19,7 @@ type NeighborCounterImpl struct {
 func newNeighborCounter() *NeighborCounterImpl {
 	return &NeighborCounterImpl{
 		lastKey:   -1,
-		counts:    make(map[int]map[int]int),
+		counts:    make(map[model.KeyPosition]map[model.KeyPosition]int),
 		stateLock: sync.RWMutex{},
 	}
 }
@@ -39,22 +39,19 @@ func NewNeighborCounterFromDb(storage Storage) (*NeighborCounterImpl, error) {
 	return tracker, nil
 }
 
-func (nc *NeighborCounterImpl) HandleKeyNow(position int, pressed bool, verbose bool) {
+func (nc *NeighborCounterImpl) HandleKeyNow(position model.KeyPosition, pressed bool, verbose bool) {
 	nc.handleKey(position, pressed, verbose)
 }
 
 // GetAllNeighborCounts returns all recorded neighbor counts.
-func (nc *NeighborCounterImpl) GatherCombos(position int) []model.Combo {
+func (nc *NeighborCounterImpl) GatherCombos(position model.KeyPosition) []model.Combo {
 	counts := nc.counts[position]
 
 	result := make([]model.Combo, 0, len(counts))
 
 	for k, v := range counts {
 		result = append(result, model.Combo{
-			Keys: []model.ComboKey{
-				{Position: k},
-				{Position: position},
-			},
+			Keys:    []model.KeyPosition{k, position},
 			Pressed: v,
 		})
 	}
@@ -76,7 +73,7 @@ func (nc *NeighborCounterImpl) initCounter(items iter.Seq[model.KeyEventWithTime
 }
 
 // RecordKeyPress records a key press and updates neighbor counts.
-func (nc *NeighborCounterImpl) handleKey(position int, pressed, verbose bool) {
+func (nc *NeighborCounterImpl) handleKey(position model.KeyPosition, pressed, verbose bool) {
 	// only process keypresses, not key releases
 	if !pressed {
 		return
@@ -85,7 +82,7 @@ func (nc *NeighborCounterImpl) handleKey(position int, pressed, verbose bool) {
 	if nc.lastKey >= 0 {
 		// Initialize the map for the last key if it doesn't exist
 		if _, exists := nc.counts[nc.lastKey]; !exists {
-			nc.counts[nc.lastKey] = make(map[int]int)
+			nc.counts[nc.lastKey] = make(map[model.KeyPosition]int)
 		}
 
 		if verbose {

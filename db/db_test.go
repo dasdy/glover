@@ -26,7 +26,7 @@ func mockEvents(keyPositions []int) []model.KeyEvent {
 	for _, pos := range keyPositions {
 		event, ok := state[pos]
 		if !ok {
-			event = model.KeyEvent{Row: pos, Col: pos, Position: pos, Pressed: true}
+			event = model.KeyEvent{Row: pos, Col: pos, Position: model.KeyPosition(pos), Pressed: true}
 		} else {
 			event.Pressed = !event.Pressed
 		}
@@ -250,14 +250,14 @@ func TestMergeDatabases(t *testing.T) {
 
 		require.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
 		assert.Equal(t,
-			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+			model.KeyEvent{Row: row, Col: col, Position: model.KeyPosition(position), Pressed: pressed},
 			event1,
 		)
 
 		assert.True(t, rows.Next())
 		require.NoError(t, rows.Scan(&row, &col, &position, &pressed, &ts))
 		assert.Equal(t,
-			model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed},
+			model.KeyEvent{Row: row, Col: col, Position: model.KeyPosition(position), Pressed: pressed},
 			event2,
 		)
 

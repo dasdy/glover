@@ -3,6 +3,7 @@ package db
 import (
 	"iter"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -18,7 +19,7 @@ type keyState struct {
 type ComboTracker struct {
 	comboCounts map[ComboBitmask]*model.Combo
 	curState    []*keyState
-	keys        []*model.ComboKey
+	keys        []*model.KeyPosition
 	minComboLen int
 	stateLock   sync.RWMutex
 }
@@ -27,7 +28,7 @@ func newComboTracker(keyCount, minComboLen int) *ComboTracker {
 	return &ComboTracker{
 		comboCounts: make(map[ComboBitmask]*model.Combo),
 		curState:    make([]*keyState, keyCount),
-		keys:        make([]*model.ComboKey, keyCount),
+		keys:        make([]*model.KeyPosition, keyCount),
 		minComboLen: minComboLen,
 
 		stateLock: sync.RWMutex{},
@@ -50,41 +51,37 @@ func NewComboTrackerFromDB(storage Storage) (*ComboTracker, error) {
 	return tracker, nil
 }
 
-func (c *ComboTracker) HandleKeyNow(position int, pressed bool, verbose bool) {
+func (c *ComboTracker) HandleKeyNow(position model.KeyPosition, pressed bool, verbose bool) {
 	c.handleKey(position, pressed, time.Now(), verbose)
 }
 
-func (c *ComboTracker) GatherCombos(position int) []model.Combo {
+func (c *ComboTracker) GatherCombos(position model.KeyPosition) []model.Combo {
 	c.stateLock.RLock()
 	defer c.stateLock.RUnlock()
 
 	result := make([]model.Combo, 0, len(c.comboCounts))
 
 	for _, v := range c.comboCounts {
-		for _, k := range v.Keys {
-			if k.Position == position {
-				result = append(result, *v)
-
-				break
-			}
+		if slices.Contains(v.Keys, position) {
+			result = append(result, *v)
 		}
 	}
 
 	return result
 }
 
-func (c *ComboTracker) handleKey(position int, pressed bool, timeWhen time.Time, verbose bool) {
+func (c *ComboTracker) handleKey(position model.KeyPosition, pressed bool, timeWhen time.Time, verbose bool) {
 	c.stateLock.Lock()
 	defer c.stateLock.Unlock()
 
 	if c.keys[position] == nil {
-		key := model.ComboKey{Position: position}
+		key := position
 		c.keys[position] = &key
 	}
 
 	c.curState[position] = &keyState{pressed: pressed, timeWhen: timeWhen}
 
-	pressedKeys := make([]model.ComboKey, 0)
+	pressedKeys := make([]model.KeyPosition, 0)
 
 	for k, p := range c.curState {
 		if p == nil {
@@ -152,14 +149,15 @@ type ComboBitmask struct {
 // will have its' bit set to 1 in the mask. Key.position is used for that.
 // Assert that Keyboard has at most 128 keys because I don't really care
 // about keyboards larger than that.
-func ComboKeyID(keys []model.ComboKey) ComboBitmask {
+func ComboKeyID(keys []model.KeyPosition) ComboBitmask {
 	result := ComboBitmask{}
 
 	for _, key := range keys {
-		if key.Position < 64 {
-			result.Low |= (1 << key.Position)
+		intKey := int(key)
+		if intKey < 64 {
+			result.Low |= (1 << intKey)
 		} else {
-			position := key.Position % 64
+			position := intKey % 64
 			result.High |= (1 << position)
 		}
 	}

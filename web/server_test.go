@@ -25,13 +25,23 @@ func openKeymapFile(t *testing.T, filepath string) *model.KeyboardLayout {
 	return layout
 }
 
+func loadKeyNames(t *testing.T, filepath string) []string {
+	t.Helper()
+
+	keyNames, err := layout.GetKeyLabels(filepath)
+
+	assert.NoError(t, err)
+
+	return keyNames
+}
+
 func TestBuildStatsContext(t *testing.T) {
 	t.Run("builds empty context", func(t *testing.T) {
 		stats := make([]model.MinimalKeyEvent, 0)
 
 		handler := web.ServerHandler{
 			Storage:         nil,
-			KeymapFile:      "data/glove80.keymap",
+			KeyNames:        loadKeyNames(t, "data/glove80.keymap"),
 			LocationsOnGrid: openKeymapFile(t, "data/info.json"),
 		}
 		items := handler.BuildStatsRenderContext(stats)
@@ -46,7 +56,7 @@ func TestBuildCombosContext(t *testing.T) {
 		stats := make([]model.Combo, 0)
 		handler := web.ServerHandler{
 			Storage:         nil,
-			KeymapFile:      "glove80.keymap",
+			KeyNames:        loadKeyNames(t, "data/glove80.keymap"),
 			LocationsOnGrid: openKeymapFile(t, "data/info.json"),
 		}
 

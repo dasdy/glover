@@ -76,7 +76,7 @@ func ParseLine(line string) (*model.KeyEvent, error) {
 	}
 
 	if foundCount == 4 {
-		return &model.KeyEvent{Row: row, Col: col, Position: position, Pressed: pressed}, nil
+		return &model.KeyEvent{Row: row, Col: col, Position: model.KeyPosition(position), Pressed: pressed}, nil
 	}
 
 	return nil, ErrEmptyLine

@@ -1,6 +1,7 @@
 package components
 
 import "fmt"
+import "github.com/dasdy/glover/model"
 
 templ HeatMap(c *RenderContext) {
 	<html>
@@ -45,7 +46,7 @@ templ switchMode(c *RenderContext) {
 	if c.Page == PageTypeCombo || c.Page == PageTypeNeighbors {
 		// Find the first highlighted item to get its position for the toggle link
 		{{
-	var highlightedPosition int
+	var highlightedPosition model.KeyPosition
 	for _, item := range c.Items {
 		if item.Highlight {
 			highlightedPosition = item.Position

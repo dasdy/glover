@@ -8,8 +8,8 @@ import (
 
 // NeighborCounter tracks and counts keys pressed directly before or after each other.
 type Tracker interface {
-	HandleKeyNow(position int, pressed bool, verbose bool)
-	GatherCombos(position int) []model.Combo
+	HandleKeyNow(position model.KeyPosition, pressed bool, verbose bool)
+	GatherCombos(position model.KeyPosition) []model.Combo
 }
 
 type Storage interface {
