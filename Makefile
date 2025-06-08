@@ -54,3 +54,4 @@ tailwind-watch:
 lint:
 	npx prettier . --write
 	golangci-lint run --fix
+	golangci-lint run

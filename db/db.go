@@ -155,6 +155,7 @@ func (s *SQLiteStorage) count() (int, error) {
 func InitDBStorage(db *sql.DB) error {
 	// TODO: add indices over row-col-position?
 	sqlStmt := `create table if not exists keypresses(row int, col int, position int, pressed bool, ts datetime);`
+
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
 		slog.Error("failed to create table", "error", err, "sql", sqlStmt)
@@ -163,6 +164,7 @@ func InitDBStorage(db *sql.DB) error {
 	}
 
 	sqlStmt = `create index if not exists keypresses_tsix on keypresses (ts ASC);`
+
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
 		slog.Error("failed to create index", "error", err, "sql", sqlStmt)
