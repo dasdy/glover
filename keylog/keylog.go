@@ -17,7 +17,7 @@ func Loop(ch <-chan string, storage db.Storage, trackers []db.Tracker, enableLog
 
 		if parsed != nil {
 			if enableLogs {
-				slog.Info("Got keypress", "keypress", parsed)
+				slog.Info("Got keypress", "col", parsed.Col, "row", parsed.Row, "postition", parsed.Position)
 			}
 
 			if storage.Store(parsed) != nil {
