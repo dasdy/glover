@@ -6,11 +6,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
-
-	"log/slog"
 
 	"github.com/a-h/templ"
 	"github.com/dasdy/glover/db"
@@ -21,7 +20,7 @@ import (
 
 type ServerHandler struct {
 	Storage         db.Storage
-	KeymapFile      string
+	KeyNames        []string
 	ComboTracker    db.Tracker
 	NeighborTracker db.Tracker
 	LocationsOnGrid *model.KeyboardLayout
@@ -50,7 +49,8 @@ func SafeRenderTemplate(component templ.Component, w http.ResponseWriter) error 
 }
 
 func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent) cs.RenderContext {
-	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
+	// TODO: this init leads to reading layout file on every request. Need to get rid of this somehow
+	groupedItems := initEmptyMap(s.KeyNames, s.LocationsOnGrid.Locations)
 
 	maxVal := 0
 	// set non-zero items in the map
@@ -67,28 +67,16 @@ func (s *ServerHandler) BuildStatsRenderContext(dbStats []model.MinimalKeyEvent)
 		groupedItems[model.RowCol{Row: loc.Row, Col: loc.Col}].Count += key.Count
 	}
 
-	// Iterate over total grid and add real and hidden items.
-	// TODO: can this be done without a bunch of hidden items?
-	items := make([]cs.Item, 0)
-	l := model.RowCol{Row: 0, Col: 0}
-
-	for i := 0; i <= s.LocationsOnGrid.Rows; i++ {
-		for j := 0; j <= s.LocationsOnGrid.Cols; j++ {
-			l.Row = i
-			l.Col = j
-
-			item, ok := groupedItems[l]
-
-			if ok {
-				locationOnGrid := item.Location
-				items = append(items, cs.Item{
-					Position:       item.Position,
-					KeypressAmount: strconv.Itoa(item.Count),
-					KeyName:        item.KeyLabel,
-					Location:       locationOnGrid,
-				})
-			}
-		}
+	// Iterate over total grid and add items that exit in the layout.
+	items := make([]cs.Item, 0, len(groupedItems))
+	for _, item := range groupedItems {
+		locationOnGrid := item.Location
+		items = append(items, cs.Item{
+			Position:       item.Position,
+			KeypressAmount: strconv.Itoa(item.Count),
+			KeyName:        item.KeyLabel,
+			Location:       locationOnGrid,
+		})
 	}
 
 	return cs.RenderContext{TotalCols: s.LocationsOnGrid.Cols, TotalRows: s.LocationsOnGrid.Rows, Items: items, MaxVal: maxVal, Page: cs.PageTypeStats}
@@ -104,12 +92,13 @@ func (s *ServerHandler) StatsHandle(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	slog.Debug("Gathered current stats")
 	renderContext := s.BuildStatsRenderContext(curStats)
+	slog.Debug("Built render context")
 	_ = SafeRenderTemplate(cs.HeatMap(&renderContext), w)
 }
 
-func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model.RowCol]*model.MinimalKeyEventWithLabel {
-	names, _ := layout.GetKeyLabels(name)
+func initEmptyMap(names []string, locationsOnGrid map[int]model.Location) map[model.RowCol]*model.MinimalKeyEventWithLabel {
 	// put empty items in the map so that we show them later properly
 	groupedItems := make(map[model.RowCol]*model.MinimalKeyEventWithLabel)
 
@@ -126,7 +115,7 @@ func initEmptyMap(name string, locationsOnGrid map[int]model.Location) map[model
 }
 
 func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position int) cs.RenderContext {
-	slog.Info("Building combos context", "comboCount", len(combos))
+	slog.Debug("Building combos context", "comboCount", len(combos))
 
 	// Sort combos by press count to get top 5
 	slices.SortFunc(combos, func(a, b model.Combo) int {
@@ -138,7 +127,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 	// 	combosToDisplay = combosToDisplay[:5]
 	// }
 
-	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
+	groupedItems := initEmptyMap(s.KeyNames, s.LocationsOnGrid.Locations)
 	maxVal := 0
 
 	// set non-zero items in the map
@@ -205,7 +194,7 @@ func (s *ServerHandler) BuildCombosRenderContext(combos []model.Combo, position 
 		}
 	}
 
-	slog.Info("Found combo connections", "count", len(connections))
+	slog.Debug("Found combo connections", "count", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,
@@ -237,7 +226,7 @@ func (s *ServerHandler) CombosHandle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, position int) cs.RenderContext {
-	groupedItems := initEmptyMap(s.KeymapFile, s.LocationsOnGrid.Locations)
+	groupedItems := initEmptyMap(s.KeyNames, s.LocationsOnGrid.Locations)
 	maxVal := 0
 
 	// set non-zero items in the map
@@ -318,7 +307,7 @@ func (s *ServerHandler) BuildNeighborsRenderContext(neighbors []model.Combo, pos
 		}
 	}
 
-	slog.Info("Found neighbor connections", "count", len(connections))
+	slog.Debug("Found neighbor connections", "count", len(connections))
 
 	return cs.RenderContext{
 		TotalCols:         s.LocationsOnGrid.Cols,
@@ -388,8 +377,13 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 
 	locationsParsed, err := loadLocationsOnGrid(infoFilePath)
 	if err != nil {
-		slog.Error("Failed to parse keyboard layout", "error", err)
+		slog.Error("Failed to parse keyboard layout", "error", err, "file", infoFilePath)
 		log.Fatal(err)
+	}
+
+	keyNames, err := layout.GetKeyLabels(keymapFile)
+	if err != nil {
+		slog.Error("Failed to parse keymap file", "error", err, "file", keymapFile)
 	}
 
 	slog.Info("Successfully parsed keyboard layout",
@@ -398,7 +392,7 @@ func BuildServer(storage db.Storage, comboTracker db.Tracker, neighborTracker db
 		"cols", locationsParsed.Cols)
 	handler := ServerHandler{
 		Storage:         storage,
-		KeymapFile:      keymapFile,
+		KeyNames:        keyNames,
 		ComboTracker:    comboTracker,
 		NeighborTracker: neighborTracker,
 		LocationsOnGrid: locationsParsed,
