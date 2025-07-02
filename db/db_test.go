@@ -96,6 +96,7 @@ func TestRaceCondition(t *testing.T) {
 
 		routine := func() {
 			event := model.KeyEvent{}
+
 		out:
 			for i := range 16_000 {
 				require.NoError(t, storage.Store(&event))
@@ -104,6 +105,7 @@ func TestRaceCondition(t *testing.T) {
 					// log.Println("Another 2k items written")
 					time.Sleep(100 * time.Millisecond)
 				}
+
 				select {
 				case <-done:
 					break out
@@ -111,7 +113,9 @@ func TestRaceCondition(t *testing.T) {
 					continue
 				}
 			}
+
 			wg.Done()
+
 			done <- true
 
 			slog.Info("done writing")
@@ -122,6 +126,7 @@ func TestRaceCondition(t *testing.T) {
 			for range 6_000 {
 				_, err := storage.GatherAll()
 				require.NoError(t, err)
+
 				select {
 				case <-done:
 					break out
@@ -129,7 +134,9 @@ func TestRaceCondition(t *testing.T) {
 					continue
 				}
 			}
+
 			wg.Done()
+
 			done <- true
 
 			slog.Info("done reading")
@@ -206,10 +213,12 @@ func TestMergeDatabases(t *testing.T) {
 
 		storage1, err := db.NewStorageFromPath(file1.Name(), false)
 		require.NoError(t, err)
+
 		defer storage1.Close()
 
 		storage2, err := db.NewStorageFromPath(file2.Name(), false)
 		require.NoError(t, err)
+
 		defer storage2.Close()
 
 		event1 := model.KeyEvent{

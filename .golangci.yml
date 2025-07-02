@@ -15,8 +15,11 @@ linters:
     - gosec
     - lll
     - mnd
+    - noctx
+    - noinlineerr
     - paralleltest
     - varnamelen
+    - wsl
   exclusions:
     generated: lax
     presets:

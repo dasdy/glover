@@ -59,7 +59,6 @@ func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect
 
 	case 2:
 		deviceReader, err := opener.OpenMultiple(filenames[0], filenames[1])
-
 		if err == nil {
 			return deviceReader, nil
 		}

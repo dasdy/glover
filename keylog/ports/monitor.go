@@ -55,6 +55,7 @@ func (r *MonitoringDeviceReader) Close() error {
 
 func (r *MonitoringDeviceReader) CloseDevice(devicePath string) error {
 	slog.Info("Closing device", "path", devicePath)
+
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

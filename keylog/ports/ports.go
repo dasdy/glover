@@ -60,6 +60,7 @@ func (r *RealDeviceReader) Channel() <-chan string {
 
 	for i, p := range r.ports {
 		ch := ReadFile(p)
+
 		go func() {
 			for v := range ch {
 				outputChan <- v

@@ -5,8 +5,8 @@ import (
 
 	"github.com/dasdy/glover/layout"
 	"github.com/dasdy/glover/model"
-	"github.com/dasdy/glover/web"
 	"github.com/dasdy/glover/web/components"
+	"github.com/dasdy/glover/web/routes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +39,7 @@ func TestBuildStatsContext(t *testing.T) {
 	t.Run("builds empty context", func(t *testing.T) {
 		stats := make([]model.MinimalKeyEvent, 0)
 
-		handler := web.ServerHandler{
+		handler := routes.ServerHandler{
 			Storage:         nil,
 			KeyNames:        loadKeyNames(t, "data/glove80.keymap"),
 			LocationsOnGrid: openKeymapFile(t, "data/info.json"),
@@ -54,7 +54,7 @@ func TestBuildStatsContext(t *testing.T) {
 func TestBuildCombosContext(t *testing.T) {
 	t.Run("builds empty context", func(t *testing.T) {
 		stats := make([]model.Combo, 0)
-		handler := web.ServerHandler{
+		handler := routes.ServerHandler{
 			Storage:         nil,
 			KeyNames:        loadKeyNames(t, "data/glove80.keymap"),
 			LocationsOnGrid: openKeymapFile(t, "data/info.json"),

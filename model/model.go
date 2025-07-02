@@ -52,6 +52,7 @@ type RowCol struct {
 
 type Location struct {
 	RowCol
+
 	X  float64
 	Y  float64
 	R  float64
