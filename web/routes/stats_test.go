@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// setupMockServerHandler creates a mock server handler for testing
+// setupMockServerHandler creates a mock server handler for testing.
 func setupMockServerHandler() MockServerHandler {
 	mockStorage := &SimpleStorageMock{}
 
@@ -82,13 +82,13 @@ func TestBuildStatsRenderContext(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := handler.ServerHandler.BuildStatsRenderContext(tc.inputStats)
+			result := handler.BuildStatsRenderContext(tc.inputStats)
 
 			// Check the result
 			assert.Equal(t, 2, result.TotalRows)
 			assert.Equal(t, 2, result.TotalCols)
 			assert.Equal(t, tc.expectedMaxVal, result.MaxVal)
-			assert.Equal(t, tc.expectedItems, len(result.Items))
+			assert.Len(t, result.Items, tc.expectedItems)
 			assert.Equal(t, components.PageTypeStats, result.Page)
 		})
 	}
@@ -127,11 +127,11 @@ func TestStatsHandle(t *testing.T) {
 			handler.MockStorage.CallCount = 0
 
 			// Create a request to pass to our handler
-			req := httptest.NewRequest("GET", "/stats", nil)
+			req := httptest.NewRequest(http.MethodGet, "/stats", nil)
 			w := httptest.NewRecorder()
 
 			// Call the handler
-			handler.ServerHandler.StatsHandle(w, req)
+			handler.StatsHandle(w, req)
 
 			// Check the status code
 			assert.Equal(t, tc.expectedStatus, w.Code)
@@ -140,22 +140,4 @@ func TestStatsHandle(t *testing.T) {
 			assert.Equal(t, 1, handler.MockStorage.CallCount, "GatherAll should be called exactly once")
 		})
 	}
-}
-
-// TestInitEmptyMap tests the InitEmptyMap function
-func TestInitEmptyMap(t *testing.T) {
-	keyNames := []string{"A", "B", "C", "D"}
-
-	locations := map[model.KeyPosition]model.Location{
-		KeyA: {RowCol: model.RowCol{Row: 0, Col: 0}},
-		KeyB: {RowCol: model.RowCol{Row: 1, Col: 1}},
-	}
-
-	result := routes.InitEmptyMap(keyNames, locations)
-
-	assert.Equal(t, 2, len(result))
-	assert.Equal(t, "A", result[model.RowCol{Row: 0, Col: 0}].KeyLabel)
-	assert.Equal(t, "B", result[model.RowCol{Row: 1, Col: 1}].KeyLabel)
-	assert.Equal(t, 0, result[model.RowCol{Row: 0, Col: 0}].Count)
-	assert.Equal(t, 0, result[model.RowCol{Row: 1, Col: 1}].Count)
 }

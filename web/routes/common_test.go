@@ -1,17 +1,20 @@
-package routes
+package routes_test
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/dasdy/glover/model"
+	"github.com/dasdy/glover/web/routes"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// MockComponent implements the templ.Component interface for testing
+// MockComponent implements the templ.Component interface for testing.
 type MockComponent struct {
 	RenderFunc func(ctx context.Context, w io.Writer) error
 }
@@ -24,9 +27,13 @@ func TestSafeRenderTemplate(t *testing.T) {
 	t.Run("successful render", func(t *testing.T) {
 		// Create a mock component that writes "Hello, World!" to the writer
 		mockComponent := MockComponent{
-			RenderFunc: func(ctx context.Context, w io.Writer) error {
+			RenderFunc: func(_ context.Context, w io.Writer) error {
 				_, err := w.Write([]byte("Hello, World!"))
-				return err
+				if err != nil {
+					return fmt.Errorf("failed to write data: %w", err)
+				}
+
+				return nil
 			},
 		}
 
@@ -34,10 +41,10 @@ func TestSafeRenderTemplate(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Call the function
-		err := SafeRenderTemplate(mockComponent, recorder)
+		err := routes.SafeRenderTemplate(mockComponent, recorder)
 
 		// Assert there's no error
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Assert the response has the correct content type
 		assert.Equal(t, "text/html; charset=UTF-8", recorder.Header().Get("Content-Type"))
@@ -50,7 +57,7 @@ func TestSafeRenderTemplate(t *testing.T) {
 		// Create a mock component that returns an error
 		expectedErr := errors.New("render error")
 		mockComponent := MockComponent{
-			RenderFunc: func(ctx context.Context, w io.Writer) error {
+			RenderFunc: func(_ context.Context, _ io.Writer) error {
 				return expectedErr
 			},
 		}
@@ -59,10 +66,10 @@ func TestSafeRenderTemplate(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Call the function
-		err := SafeRenderTemplate(mockComponent, recorder)
+		err := routes.SafeRenderTemplate(mockComponent, recorder)
 
 		// Assert the error is returned and wrapped
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "could not render template")
 
 		// Assert no response was written
@@ -81,10 +88,10 @@ func TestInitEmptyMap(t *testing.T) {
 		}
 
 		// Call the function
-		result := InitEmptyMap(names, locations)
+		result := routes.InitEmptyMap(names, locations)
 
 		// Assert the map has the correct entries
-		assert.Equal(t, 3, len(result))
+		assert.Len(t, result, 3)
 
 		// Check each entry
 		assert.Equal(t, 0, result[model.RowCol{Row: 0, Col: 0}].Count)
@@ -110,10 +117,10 @@ func TestInitEmptyMap(t *testing.T) {
 		}
 
 		// Call the function
-		result := InitEmptyMap(names, locations)
+		result := routes.InitEmptyMap(names, locations)
 
 		// Assert the map has entries for all positions
-		assert.Equal(t, 3, len(result))
+		assert.Len(t, result, 3)
 
 		// Check that positions with names use those names
 		assert.Equal(t, "A", result[model.RowCol{Row: 0, Col: 0}].KeyLabel)
@@ -129,9 +136,9 @@ func TestInitEmptyMap(t *testing.T) {
 		locations := map[model.KeyPosition]model.Location{}
 
 		// Call the function
-		result := InitEmptyMap(names, locations)
+		result := routes.InitEmptyMap(names, locations)
 
 		// Assert the result is an empty map
-		assert.Equal(t, 0, len(result))
+		assert.Empty(t, result)
 	})
 }
