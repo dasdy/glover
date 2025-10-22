@@ -14,10 +14,10 @@ templ HeatMap(c *RenderContext) {
 			<link rel="stylesheet" href="/assets/css/tailwind_output.css"/>
 		</head>
 		<body
-			class="bg-theme-2"
+			class="min-h-screen bg-gradient-to-br from-theme-2 via-theme-3 to-theme-1 text-slate-800 antialiased selection:bg-theme-4 selection:text-white"
 		>
-			<div class="items-center justify-center flex flex-col ">
-				<h1 class="text-xl mt-10"><a href="/">Home</a></h1>
+			<div class="min-h screen items-center justify-center flex flex-col gap-6 px-4 py-2 md:py-10">
+				<h1 class="mt-2 text-3xl md:text-4xl font-semibold tracking-tight"><a href="/" class="text-theme-4 hover:text-theme-5 decoration-dashed transition-colors">Home</a></h1>
 				@switchMode(c)
 				@keyboardSvg(c)
 				@slider(fmt.Sprintf("%d", c.MaxVal))
@@ -46,18 +46,18 @@ templ switchMode(c *RenderContext) {
 	if c.Page == PageTypeCombo || c.Page == PageTypeNeighbors {
 		// Find the first highlighted item to get its position for the toggle link
 		{{
-	var highlightedPosition model.KeyPosition
-	for _, item := range c.Items {
-		if item.Highlight {
-			highlightedPosition = item.Position
-			break
-		}
-	}
+			var highlightedPosition model.KeyPosition
+			for _, item := range c.Items {
+				if item.Highlight {
+					highlightedPosition = item.Position
+					break
+				}
+			}
 		}}
-		<div class="mb-4">
+		<div class="mb-6">
 			<a
 				href={ templ.SafeURL(getSwitchModeLink(highlightedPosition, c.Page)) }
-				class="px-4 py-2 bg-theme-5 text-white rounded hover:bg-indigo-700 transition duration-200"
+				class="inline-flex items-center gap-2 rounded-lg bg-theme-1 text-slate-900 px-4 py-2 shadow-md ring-1 ring-black/5 hover:bg-theme-4/90 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-4 opacity-90"
 			>
 				{ getSwitchModeButtonText(c.Page) }
 			</a>
@@ -67,14 +67,14 @@ templ switchMode(c *RenderContext) {
 
 // New SVG keyboard template
 templ keyboardSvg(c *RenderContext) {
-	<svg id="keysgrid" class="mt-4 ml-4 mr-4 w-7xl" viewBox={ c.ViewBoxSize() } overflow="visible">
+	<svg id="keysgrid" class="mt-2 mx-4 md:mx-auto w-full max-w-7xl drop-shadow-sm" viewBox={ c.ViewBoxSize() } overflow="visible">
 		<g>
 			for _, item := range c.Items {
 				@svgKey(&item, c)
 			}
 			if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
 				// Draw connection paths for combos
-				<g class="connection-paths"></g>
+				<g class="connection-paths mix-blend-multiply opacity-90 transition-opacity"></g>
 			}
 		</g>
 	</svg>
@@ -85,13 +85,13 @@ templ svgKey(item *Item, c *RenderContext) {
 	// Use Row and Col directly for positioning
 	// Each key is 70x70 with 10px gap
 	<g transform={ ToTransform(&item.Location) } id={ fmt.Sprintf("key-box-%d", item.Position) }>
-		<a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) }>
+		<a href={ templ.SafeURL(getLinkForPosition(item.Position, c.Page)) } class="group focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-4 rounded">
 			if !item.Highlight {
 				<rect
 					width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
 					height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
 					rx="5"
-					class="key-rect"
+					class="key-rect cursor-pointer transition-colors duration-200 drop-shadow-sm group-hover:stroke-theme-4 group-hover:fill-white"
 					data-position={ fmt.Sprintf("%d", item.Position) }
 					data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
 					fill="#e5e7eb"
@@ -102,7 +102,7 @@ templ svgKey(item *Item, c *RenderContext) {
 					width={ fmt.Sprintf("%d", KeySizeWithoutGap) }
 					height={ fmt.Sprintf("%d", KeySizeWithoutGap) }
 					rx="5"
-					class="key-rect"
+					class="key-rect cursor-pointer transition-colors duration-200 drop-shadow-sm group-hover:stroke-theme-4 group-hover:fill-white"
 					data-position={ fmt.Sprintf("%d", item.Position) }
 					data-presses={ fmt.Sprintf("%s", item.KeypressAmount) }
 					fill="#e5e7eb"
@@ -114,12 +114,12 @@ templ svgKey(item *Item, c *RenderContext) {
 				id={ fmt.Sprintf("key-msg-%d", item.Position) }
 				x="5"
 				y="15"
-				class="text-s"
+				class="pointer-events-none select-none fill-slate-700 text-[12px] leading-none"
 				font-size="12"
 			>{ item.KeyName }</text>
 			<text
 				id={ fmt.Sprintf("keys-pressed-%d", item.Position) }
-				class="keys-pressed"
+				class="keys-pressed pointer-events-none select-none fill-slate-900 font-semibold tracking-tight"
 				x={ fmt.Sprintf("%d", KeyCenterOffset) }
 				y={ fmt.Sprintf("%d", KeyCenterOffset+5) }
 				text-anchor="middle"
@@ -131,17 +131,17 @@ templ svgKey(item *Item, c *RenderContext) {
 }
 
 templ slider(maxVal string) {
-	<div class="slidecontainer flex w-6/12 flex-row">
-		<label for="colorClipRange" class="mr-1 content-center align-middle">Color Clipping at:</label>
+	<div class="slidecontainer mx-auto flex w-full max-w-2xl items-center gap-3 rounded-xl border border-slate-200 bg-white/60 p-4 shadow-sm backdrop-blur">
+		<label for="colorClipRange" class="mr-3 whitespace-nowrap text-sm font-medium text-slate-700">Color Clipping at:</label>
 		<input
 			type="range"
 			min="1"
 			max={ maxVal }
 			value={ maxVal }
-			class="slider mt-1 h-12 w-9/12"
+			class="slider h-2 w-full flexx-1 cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-4"
 			step="10"
 			id="colorClipRange"
 		/>
-		<span id="colorClipSpan" class="ml-1 content-center align-middle">{ maxVal }</span>
+		<span id="colorClipSpan" class="ml-2 rounded bg-slate-900/5 px-2 py-1 text-sm tabular-nums text-slate-800">{ maxVal }</span>
 	</div>
 }

@@ -25,6 +25,24 @@ let inferno = [
   hexToRgb("#420a68"),
   hexToRgb("#000004"),
 ];
+let chatgpt1 = [
+  hexToRgb("#f0f9ff"),
+  hexToRgb("#bae6fd"),
+  hexToRgb("#7dd3fc"),
+  hexToRgb("#38bdf8"),
+  hexToRgb("#0ea5e9"),
+  hexToRgb("#1e3a8a"),
+];
+
+let chatgpt2 = [
+  hexToRgb("#f0f9ff"),
+  hexToRgb("#dbeafe"),
+  hexToRgb("#a5b4fc"),
+  hexToRgb("#818cf8"),
+  hexToRgb("#4f46e5"),
+  hexToRgb("#312e81"),
+];
+
 let magma = [
   hexToRgb("#fcfdbf"),
   hexToRgb("#fe9f6d"),
@@ -58,7 +76,9 @@ function interpolateColor(value, schema) {
     // schema = defaultGradient;
     // schema = viridis.slice().reverse();
     // schema = magma.slice().reverse();
-    schema = inferno.slice().reverse();
+    // schema = inferno.slice().reverse();
+    schema = chatgpt1.slice().reverse();
+    // schema = chatgpt2.slice().reverse();
   }
 
   let r, g, b;

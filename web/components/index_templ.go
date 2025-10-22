@@ -32,7 +32,7 @@ func HeatMap(c *RenderContext) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"600\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Glove80 Key Heatmap</title><link rel=\"stylesheet\" href=\"/assets/css/styles.css\"><link rel=\"stylesheet\" href=\"/assets/css/tailwind_output.css\"></head><body class=\"bg-theme-2\"><div class=\"items-center justify-center flex flex-col \"><h1 class=\"text-xl mt-10\"><a href=\"/\">Home</a></h1>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"refresh\" content=\"600\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Glove80 Key Heatmap</title><link rel=\"stylesheet\" href=\"/assets/css/styles.css\"><link rel=\"stylesheet\" href=\"/assets/css/tailwind_output.css\"></head><body class=\"min-h-screen bg-gradient-to-br from-theme-2 via-theme-3 to-theme-1 text-slate-800 antialiased selection:bg-theme-4 selection:text-white\"><div class=\"min-h screen items-center justify-center flex flex-col gap-6 px-4 py-2 md:py-10\"><h1 class=\"mt-2 text-3xl md:text-4xl font-semibold tracking-tight\"><a href=\"/\" class=\"text-theme-4 hover:text-theme-5 decoration-dashed transition-colors\">Home</a></h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -48,7 +48,7 @@ func HeatMap(c *RenderContext) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><script src=\"/assets/js/colorize.js\"></script><script>\n\t\t\t\tvar slider = document.getElementById(\"colorClipRange\");\n\t\t\t\tvar output = document.getElementById(\"colorClipSpan\");\n\n\t\t\t\t// Update the current slider value (each time you drag the slider handle)\n\t\t\t\tslider.oninput = function () {\n\t\t\t\t\toutput.innerHTML = this.value;\n\t\t\t\t\tcolorize(this.value)\n\t\t\t\t}\n\t\t\t\tslider.oninput()\n\t\t\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><script src=\"/assets/js/colorize.js\"></script><script>\n\t\t\t\tvar slider = document.getElementById(\"colorClipRange\");\n\t\t\t\tvar output = document.getElementById(\"colorClipSpan\");\n\n\t\t\t\t// Update the current slider value (each time you drag the slider handle)\n\t\t\t\tslider.oninput = function () {\n\t\t\t\t\toutput.innerHTML = this.value;\n\t\t\t\t\tcolorize(this.value);\n\t\t\t\t};\n\t\t\t\tslider.oninput();\n\t\t\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -104,7 +104,7 @@ func switchMode(c *RenderContext) templ.Component {
 					break
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"mb-4\"><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"mb-6\"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -117,7 +117,7 @@ func switchMode(c *RenderContext) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"px-4 py-2 bg-theme-5 text-white rounded hover:bg-indigo-700 transition duration-200\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"inline-flex items-center gap-2 rounded-lg bg-theme-1 text-slate-900 px-4 py-2 shadow-md ring-1 ring-black/5 hover:bg-theme-4/90 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-4 opacity-90\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -161,14 +161,14 @@ func keyboardSvg(c *RenderContext) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<svg id=\"keysgrid\" class=\"mt-4 ml-4 mr-4 w-7xl\" viewBox=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<svg id=\"keysgrid\" class=\"mt-2 mx-4 md:mx-auto w-full max-w-7xl drop-shadow-sm\" viewBox=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(c.ViewBoxSize())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/index.templ`, Line: 70, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/index.templ`, Line: 70, Col: 106}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -185,7 +185,7 @@ func keyboardSvg(c *RenderContext) templ.Component {
 			}
 		}
 		if c.HighlightPosition > 0 && len(c.ComboConnections) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <g class=\"connection-paths\"></g>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <g class=\"connection-paths mix-blend-multiply opacity-90 transition-opacity\"></g>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -259,7 +259,7 @@ func svgKey(item *Item, c *RenderContext) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"group focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-4 rounded\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -290,7 +290,7 @@ func svgKey(item *Item, c *RenderContext) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" rx=\"5\" class=\"key-rect\" data-position=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" rx=\"5\" class=\"key-rect cursor-pointer transition-colors duration-200 drop-shadow-sm group-hover:stroke-theme-4 group-hover:fill-white\" data-position=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -347,7 +347,7 @@ func svgKey(item *Item, c *RenderContext) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" rx=\"5\" class=\"key-rect\" data-position=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" rx=\"5\" class=\"key-rect cursor-pointer transition-colors duration-200 drop-shadow-sm group-hover:stroke-theme-4 group-hover:fill-white\" data-position=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -391,7 +391,7 @@ func svgKey(item *Item, c *RenderContext) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" x=\"5\" y=\"15\" class=\"text-s\" font-size=\"12\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" x=\"5\" y=\"15\" class=\"pointer-events-none select-none fill-slate-700 text-[12px] leading-none\" font-size=\"12\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -417,7 +417,7 @@ func svgKey(item *Item, c *RenderContext) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"keys-pressed\" x=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"keys-pressed pointer-events-none select-none fill-slate-900 font-semibold tracking-tight\" x=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -485,7 +485,7 @@ func slider(maxVal string) templ.Component {
 			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"slidecontainer flex w-6/12 flex-row\"><label for=\"colorClipRange\" class=\"mr-1 content-center align-middle\">Color Clipping at:</label> <input type=\"range\" min=\"1\" max=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"slidecontainer mx-auto flex w-full max-w-2xl items-center gap-3 rounded-xl border border-slate-200 bg-white/60 p-4 shadow-sm backdrop-blur\"><label for=\"colorClipRange\" class=\"mr-3 whitespace-nowrap text-sm font-medium text-slate-700\">Color Clipping at:</label> <input type=\"range\" min=\"1\" max=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -511,14 +511,14 @@ func slider(maxVal string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" class=\"slider mt-1 h-12 w-9/12\" step=\"10\" id=\"colorClipRange\"> <span id=\"colorClipSpan\" class=\"ml-1 content-center align-middle\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" class=\"slider h-2 w-full flexx-1 cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-theme-4\" step=\"10\" id=\"colorClipRange\"> <span id=\"colorClipSpan\" class=\"ml-2 rounded bg-slate-900/5 px-2 py-1 text-sm tabular-nums text-slate-800\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(maxVal)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/index.templ`, Line: 145, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/index.templ`, Line: 145, Col: 117}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
