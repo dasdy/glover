@@ -208,9 +208,9 @@ func (r *MonitoringDeviceReader) shouldOpenFile(entry os.DirEntry) (bool, string
 	resp := r.shouldOpenDevice(devicePath)
 	if resp {
 		return resp, devicePath
-	} else {
-		return false, ""
 	}
+
+	return false, ""
 }
 
 func (r *MonitoringDeviceReader) shouldOpenDevice(devicePath string) bool {
