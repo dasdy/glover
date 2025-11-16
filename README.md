@@ -4,10 +4,12 @@
 - Multiple ways to collect the data:
   - Through explicit pointing to usb devices
   - Parse logs from standard input
-  - Search and auto-connect to devices - either as a one-time operation, or as a monitor that can re-connect to devices
+  - Search and auto-connect to devices - either as a one-time operation, or as a
+    monitor that can re-connect to devices
 - Make a heatmap for my lovely Glove80, viewable through a web interface
 - Show which key combinations are used the most
-- Show key "neighbors" - keys that are pressed in consequence: before or after the specific key, but not necessarily in one combination
+- Show key "neighbors" - keys that are pressed in consequence: before or after
+  the specific key, but not necessarily in one combination
 - Merge keypress data from multiple computers
 
 ## Keyboard setup
@@ -30,21 +32,23 @@ putting the line above to your keyboards' config and using it via usb.
 
 ```bash
 make build
-./tmp/glover track -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -o keypresses.sqlite -v
+./tmp/glover track -m explicit -f /dev/tty.usbmodem12301 -f /dev/tty.usbmodem12401 -o keypresses.sqlite -v
 ```
 
-This will also open a web interface, default location is localhost:3000
+This will also open a web interface, default location is `localhost:3000`
 
 Interface looks roughly like this:
 ![preview](img/preview.png)
 
-Alternatively, you can try using auto-detection of the keybard devices:
+Alternatively, you can try using auto-detection of the keyboard devices:
 
 ```bash
-./tmp/glover track -m monitor  -o keypresses.sqlite -v
+./tmp/glover track -m monitor -o keypresses.sqlite -v
+./tmp/glover track -v
 ```
 
-This will automatically monitor your `/dev/` folder and connect new devices as they appear.
+This will automatically monitor your `/dev/` folder and connect new devices
+as they appear.
 
 ### Show
 
@@ -52,6 +56,25 @@ In case if you don't need active key tracking, you can only run the web interfac
 
 ```bash
 ./tmp/glover show -s keypresses.sqlite -p 8000
+```
+
+### Permissions
+
+On some systems, connecting to serial devices might not be available to your
+user by default. In order to fix this, you need to add your user to the proper
+group. For example:
+
+```bash
+> ls -l /dev/ttyACM*
+crw-rw---- 1 root uucp 166, 0 Nov 16 13:45 /dev/ttyACM0
+crw-rw---- 1 root uucp 166, 1 Nov 16 13:45 /dev/ttyACM1
+```
+
+In the output, you can see that these files belong to `uucp` group.
+To allow your user to read these files, you need to add your user to that group:
+
+```bash
+sudo usermod -a -G uucp $USER
 ```
 
 ## Develop
@@ -74,14 +97,16 @@ npm install
 
 ### Live-reload
 
-For development, it's easy to use [air](https://github.com/air-verse/air). Make sure to install `npm` to make changes
-to the css/js related things.
+For development, it's easy to use [air](https://github.com/air-verse/air).
+Make sure to install `npm` to make changes to the css/js related things.
 
 ```bash
 make run-dev
 ```
 
-It's possible to just run `air`. In this case, template generation and tailwind daemon won't run, so only changes to the `.go` files will take effect (which is sometimes the only needed thing).
+It's possible to just run `air`. In this case, template generation and tailwind
+daemon won't run, so only changes to the `.go` files will take effect
+(which is sometimes the only needed thing).
 
 ### Tests
 

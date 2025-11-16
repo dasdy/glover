@@ -31,6 +31,8 @@ func TestGlove80ParseLayout(t *testing.T) {
 
 		if keymap == nil {
 			t.Fatal("Expected keymap to be not nil")
+
+			return
 		}
 
 		slog.Info("parsed layout", "keymap", keymap)

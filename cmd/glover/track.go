@@ -32,6 +32,7 @@ func shouldTryConnect(names1 []string, names2 []string, autoconnect bool) bool {
 }
 
 func GetInputsChannel(opener ports.DeviceOpener, filenames []string, autoConnect bool) (*ports.RealDeviceReader, error) {
+	slog.Info("Getting inputs channel", "filenames", filenames)
 	fileCount := len(filenames)
 
 	if fileCount != 2 && fileCount != 0 {

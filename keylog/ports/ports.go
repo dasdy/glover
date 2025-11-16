@@ -35,6 +35,8 @@ func NewDeviceReader(devices ...io.ReadCloser) *RealDeviceReader {
 }
 
 func (r *RealDeviceReader) Close() error {
+	slog.Info("Closing a single reader")
+
 	es := make([]error, 0)
 
 	for _, p := range r.ports {
@@ -52,6 +54,8 @@ func (r *RealDeviceReader) Close() error {
 }
 
 func (r *RealDeviceReader) Channel() <-chan string {
+	slog.Info("opening a channel")
+
 	outputChan := make(chan string, 5)
 
 	var wg sync.WaitGroup
@@ -81,6 +85,8 @@ func (r *RealDeviceReader) Channel() <-chan string {
 }
 
 func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
+	slog.Info("opening a file")
+
 	port, err := serial.Open(path, &serial.Mode{
 		BaudRate: 9600,
 	})
@@ -89,6 +95,8 @@ func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
 	}
 
 	// TODO make this configurable.
+	slog.Info("Opening", "path", path)
+
 	if err := port.SetReadTimeout(10 * time.Hour); err != nil {
 		if innerErr := port.Close(); innerErr != nil {
 			return nil, fmt.Errorf("error during closing of port: %w, outer error: %w", innerErr, err)
@@ -101,9 +109,13 @@ func (r *RealDeviceOpener) Open(path string) (*RealDeviceReader, error) {
 }
 
 func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
+	slog.Info("Closing...")
+
 	es := []error{outerError}
 
 	for i, item := range itemsToClose {
+		slog.Info("Closing", "itemIx", i)
+
 		err := item.Close()
 		if err != nil {
 			es = append(es, fmt.Errorf("error on item %d: %w", i, err))
@@ -118,6 +130,7 @@ func CloseReaders(outerError error, itemsToClose []io.ReadCloser) error {
 }
 
 func (r *RealDeviceOpener) OpenMultiple(paths ...string) (*RealDeviceReader, error) {
+	slog.Info("opening multiple paths", "paths", paths)
 	ports := make([]io.ReadCloser, len(paths))
 
 	for i, p := range paths {
@@ -141,10 +154,15 @@ func (r *RealDeviceOpener) OpenMultiple(paths ...string) (*RealDeviceReader, err
 }
 
 func ReadFile(r io.Reader) <-chan string {
+	slog.Info("reading a file")
+
 	ch1 := make(chan string, 5)
 
 	go func() {
 		scanner := bufio.NewScanner(r)
+
+		slog.Info("awaiting for line in reader")
+
 		for scanner.Scan() {
 			ch1 <- scanner.Text()
 		}
@@ -156,14 +174,19 @@ func ReadFile(r io.Reader) <-chan string {
 }
 
 func LooksLikeZMKDevice(path string) bool {
-	return strings.HasPrefix(filepath.Base(path), "tty.usbmodem")
+	return strings.HasPrefix(filepath.Base(path), "tty.usbmodem") || // macos convention
+		strings.HasPrefix(filepath.Base(path), "tty.ACM") // linux convention
 }
 
 func (r *RealDeviceOpener) GetAvailableDevices() ([]string, error) {
+	slog.Info("Fetching list of devices")
+
 	names, err := serial.GetPortsList()
 	if err != nil {
 		return nil, fmt.Errorf("could not get list of serial ports: %w", err)
 	}
+
+	slog.Info("Found these devices: ", "names", names)
 
 	result := make([]string, 0)
 

@@ -294,7 +294,7 @@ func BenchmarkComboScan(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	for range b.N {
+	for b.Loop() {
 		if _, err = db.NewComboTrackerFromDB(storage); err != nil {
 			b.Fatal(err)
 		}

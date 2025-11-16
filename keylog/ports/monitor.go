@@ -7,6 +7,8 @@ import (
 	"path"
 	"sync"
 	"time"
+
+	"go.bug.st/serial"
 )
 
 type MonitoringDeviceReader struct {
@@ -114,13 +116,19 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 }
 
 func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
-	// log.Printf("Finding devices in path: %s", r.pathToLookup)
+	slog.Info("Finding devices in path:", "pathToLookup", r.pathToLookup)
+
+	result, err := serial.GetPortsList()
+	if err != nil {
+		return nil, fmt.Errorf("could not get list of serial ports: %w", err)
+	}
+
+	slog.Info("serial devices", "names", result)
+
 	entries, err := os.ReadDir(r.pathToLookup)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory %s: %w", r.pathToLookup, err)
 	}
-
-	result := make([]string, 0)
 
 	for _, entry := range entries {
 		shouldOpen, devicePath := r.shouldOpen(entry)
