@@ -82,7 +82,7 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 	defer r.lock.Unlock()
 
 	if _, exists := r.devicesList[devicePath]; exists {
-		slog.Info("Device already exists, skipping", "path", devicePath)
+		slog.Debug("Device already exists, skipping", "path", devicePath)
 
 		return nil
 	}
@@ -116,32 +116,49 @@ func (r *MonitoringDeviceReader) AddDevice(devicePath string, out chan string) e
 }
 
 func (r *MonitoringDeviceReader) FindDevices() ([]string, error) {
-	slog.Info("Finding devices in path:", "pathToLookup", r.pathToLookup)
+	slog.Debug("Finding devices in path:", "pathToLookup", r.pathToLookup)
 
-	result, err := serial.GetPortsList()
+	serialDevices, err := serial.GetPortsList()
 	if err != nil {
 		return nil, fmt.Errorf("could not get list of serial ports: %w", err)
 	}
 
-	slog.Info("serial devices", "names", result)
+	slog.Debug("serial devices", "names", serialDevices)
 
 	entries, err := os.ReadDir(r.pathToLookup)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory %s: %w", r.pathToLookup, err)
 	}
 
+	newDevices := make(map[string]bool)
+
+	for _, devicePath := range serialDevices {
+		shouldOpen := r.shouldOpenDevice(devicePath)
+		if shouldOpen {
+			newDevices[devicePath] = true
+		}
+	}
+
 	for _, entry := range entries {
-		shouldOpen, devicePath := r.shouldOpen(entry)
+		shouldOpen, devicePath := r.shouldOpenFile(entry)
 		if !shouldOpen {
 			continue
 		}
 
 		slog.Info("Found device", "path", devicePath)
 
-		result = append(result, devicePath)
+		newDevices[devicePath] = true
 	}
 
-	return result, nil
+	keys := make([]string, len(newDevices))
+
+	i := 0
+	for k := range newDevices {
+		keys[i] = k
+		i++
+	}
+
+	return keys, nil
 }
 
 func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
@@ -181,23 +198,32 @@ func (r *MonitoringDeviceReader) Channel() (<-chan string, error) {
 	return outputChan, nil
 }
 
-func (r *MonitoringDeviceReader) shouldOpen(entry os.DirEntry) (bool, string) {
+func (r *MonitoringDeviceReader) shouldOpenFile(entry os.DirEntry) (bool, string) {
 	if entry.IsDir() || entry.Type()&os.ModeDevice == 0 {
 		return false, ""
 	}
 
 	devicePath := path.Join(r.pathToLookup, entry.Name())
 
-	if !LooksLikeZMKDevice(devicePath) {
+	resp := r.shouldOpenDevice(devicePath)
+	if resp {
+		return resp, devicePath
+	} else {
 		return false, ""
+	}
+}
+
+func (r *MonitoringDeviceReader) shouldOpenDevice(devicePath string) bool {
+	if !LooksLikeZMKDevice(devicePath) {
+		return false
 	}
 
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
 	if _, ok := r.devicesList[devicePath]; ok {
-		return false, ""
+		return false
 	}
 
-	return true, devicePath
+	return true
 }
