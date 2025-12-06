@@ -3,15 +3,15 @@ module github.com/dasdy/glover
 go 1.25.1
 
 require (
-	github.com/a-h/templ v0.3.943
+	github.com/a-h/templ v0.3.960
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	gitlab.com/greyxor/slogor v1.6.2
+	gitlab.com/greyxor/slogor v1.6.3
 	go.bug.st/serial v1.6.4
 )
 
@@ -47,13 +47,13 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.27.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/term v0.35.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
