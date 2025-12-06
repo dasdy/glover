@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func GetBinaryPath() string {
@@ -119,6 +120,14 @@ func GetKeyLabels(filename string) ([]string, error) {
 				results = append(results, fmt.Sprintf("%+v", b.Modifiers))
 			} else {
 				results = append(results, b.Modifiers[0])
+			}
+		case "&mo":
+			if len(b.Modifiers) > 0 {
+				layerName := b.Modifiers[0]
+				layerName, _ = strings.CutPrefix(layerName, "LAYER_")
+				results = append(results, fmt.Sprintf("=> %s", layerName))
+			} else {
+				results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
 			}
 		case "&magic":
 			results = append(results, "🪄")
