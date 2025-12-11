@@ -125,7 +125,7 @@ func GetKeyLabels(filename string) ([]string, error) {
 			if len(b.Modifiers) > 0 {
 				layerName := b.Modifiers[0]
 				layerName, _ = strings.CutPrefix(layerName, "LAYER_")
-				results = append(results, fmt.Sprintf("=> %s", layerName))
+				results = append(results, "=> "+layerName)
 			} else {
 				results = append(results, fmt.Sprintf("%s %+v", b.Action, b.Modifiers))
 			}
