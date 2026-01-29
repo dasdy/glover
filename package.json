@@ -5,8 +5,5 @@
     "prettier-plugin-go-template": "^0.0.15",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.1.18"
-  },
-  "dependencies": {
-    "npm": "^11.8.0"
   }
 }
